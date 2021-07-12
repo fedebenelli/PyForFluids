@@ -1,16 +1,15 @@
 ! This is file : gerg
 ! Author= Federico Benelli
 ! Started at: 01/07/2021
-! Last Modified: lun 12 jul 2021 09:42:06
+! Last Modified: lun 12 jul 2021 10:31:53
 !
 
 ! General use subrutines
 ! -----------------------
-Subroutine get_params(f, compound, M, Tc, Pc, Dc, Zc, Kpol, Kexp, &
-                      no, vo, &
-                      no_r, do_r, to_r, co_r)
+Subroutine get_pure_params(f, compound, M, Tc, Pc, Dc, Zc, Kpol, Kexp, &
+                           no, vo, &
+                           no_r, do_r, to_r, co_r)
     ! Get the parameters of compound from file f
-
     integer:: i, j
     double precision, intent(inout):: M, Tc, Pc, Dc, Zc
     integer, intent(inout):: Kpol, Kexp
@@ -39,6 +38,22 @@ Subroutine get_params(f, compound, M, Tc, Pc, Dc, Zc, Kpol, Kexp, &
             read (1, *) label, (co_r(j), j=Kpol + 1, Kpol + Kexp)
         end select
     end do
+End Subroutine get_pure_params
+
+Subroutine get_params(rho_c, T_c, M)
+    double precision, dimension(21), intent(inout):: rho_c, T_c, M
+    double precision:: rc, tc, mi
+    character(len=20):: compound
+    integer:: N = 21
+
+    open (1, file='data/critical')
+    do i = 1, N
+        read (1, *) compound, rc, tc, mi
+        rho_c(i) = rc
+        T_c(i) = tc
+        M(i) = mi
+    end do
+
 End Subroutine get_params
 
 Subroutine reducing_params(Bv, Gv, Bt, Gt)
@@ -80,52 +95,41 @@ Subroutine sound_speed(R, T, M, delta, tau, Ar, Ao, w)
     w = sqrt(w*R*T/M)
 End Subroutine sound_speed
 
-Subroutine red_dens(X, Bv, Gv, rho_c, rho_r)
-    ! REDUCING DENSITY
-    double precision, dimension(21), intent(in):: X, rho_c
-    double precision, dimension(21, 21), intent(in)::  Bv, Gv
-    double precision, intent(inout):: rho_r
+Subroutine reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
+    ! REDUCING DENSITY AND TEMPERATURE
+    double precision, dimension(21), intent(in):: X, rho_c, T_c
+    double precision, dimension(21, 21), intent(in)::  Bv, Gv, Bt, Gt
+    double precision, intent(inout):: rho_r, T_r
     integer:: N = 21, i, j
 
     rho_r = 0
-
-    do i = 1, N
-        rho_r = rho_r + X(i)**2/rho_c(i)
-    end do
-
-    do i = 1, N - 1
-    do j = i + 1, N
-        rho_r = rho_r + &
-                2*X(i)*X(j)*Bv(i, j)*Gv(i, j) &
-                *(X(i) + X(j))/(Bv(i, j)**2*X(i) + X(j)) &
-                *1/8*(rho_c(i)**(-1/3) + rho_c(j)**(-1/3))**3
-    end do
-    end do
-End Subroutine red_dens
-
-Subroutine red_temp(X, Bt, Gt, T_c, T_r)
-    ! REDUCING TEMPERATURE
-    double precision, dimension(21), intent(in):: X, T_c
-    double precision, dimension(21, 21), intent(in):: Bt, Gt
-    double precision, intent(inout):: T_r
-    integer:: N = 21, i, j
-
     T_r = 0
 
     do i = 1, N
+    if (X(i) > EPSILON(X(i))) then
+        rho_r = rho_r + X(i)**2/rho_c(i)
         T_r = T_r + X(i)**2*T_c(i)
+    end if
     end do
 
     do i = 1, N - 1
     do j = i + 1, N
-        T_r = T_r + &
-              2*X(i)*X(j)*Bt(i, j)*Gt(i, j) &
-              *(X(i) + X(j))/(Bt(i, j)**2*X(i) + X(j)) &
-              *(T_c(i)*T_c(j))**(1/2)
-    end do
-    end do
+    if (X(i) > EPSILON(X(i))) then
+        if (X(j) > EPSILON(X(i))) then
+            rho_r = rho_r + &
+                    2*X(i)*X(j)*Bv(i, j)*Gv(i, j) &
+                    *(X(i) + X(j))/(Bv(i, j)**2*X(i) + X(j)) &
+                    *1/8*(rho_c(i)**(-1.0/3.0) + rho_c(j)**(-1.0/3.0))**3
 
-End Subroutine red_temp
+            T_r = T_r + &
+                  2*X(i)*X(j)*Bt(i, j)*Gt(i, j) &
+                  *(X(i) + X(j))/(Bt(i, j)**2*X(i) + X(j)) &
+                  *sqrt((T_c(i)*T_c(j)))
+        end if
+    end if
+    end do
+    end do
+End Subroutine reducing_funcs
 
 ! Pure Compound Helmholtz Energy (and derivatives) Calculations
 ! -----------------------------------------------
@@ -323,14 +327,16 @@ Program gerg
 
     ! Pure compound properties
     double precision, dimension(24):: no_r, do_r, to_r, co_r
+    double precision, dimension(21):: rho_c, T_c, M
     double precision, dimension(7):: no, vo
-    double precision:: M, Tc, Pc, Dc, Zc
     integer:: Kpol, Kexp, i
     character(len=20):: compound
+    double precision:: Mi, Tci, Pci, Dci, Zci
 
     ! Calculated variables
     double precision:: aoir(3, 3), aoio(3, 3)
     double precision:: P, Z, w
+    double precision:: T_r, rho_r
 
     ! data file
     character(len=100):: f = 'data/params'
@@ -338,19 +344,19 @@ Program gerg
     ! Constantes
     R = 8.314472
 
-    ! Parámetros funciones reductoras
+    call get_pure_params(f, compound, Mi, Tci, Pci, Dci, Zci, Kpol, Kexp, &
+                         no, vo, &
+                         no_r, do_r, to_r, co_r)
+    call get_params(rho_c, T_c, M)
     call reducing_params(Bv, Gv, Bt, Gt)
-
-    call get_params(f, compound, M, Tc, Pc, Dc, Zc, Kpol, Kexp, &
-                    no, vo, &
-                    no_r, do_r, to_r, co_r)
 
     ! Propiedades de operación
     X = 0
     X(1) = 1
+    call reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
 
     T = 185
-    tau = Tc/T
+    tau = T_r/T
 
     print *, "Isotherm of: ", compound
     print *, "T: ", T, "K"
@@ -358,16 +364,16 @@ Program gerg
 
     do i = 1, 3000, 1
         rho = float(i)/100
-        delta = rho/Dc
+        delta = rho*rho_r
 
         ! Calculate residual and ideal gas helmholtz energy
         call a_oir(delta, tau, Kpol, Kexp, no_r, do_r, to_r, co_r, aoir)
-        call a_oio(rho, T, Dc, Tc, no, vo, aoio)
+        call a_oio(rho, T, Dci, Tci, no, vo, aoio)
 
         call zeta(delta, aoir(2, 1), Z)
-        P = delta/tau*Z/Zc*Pc
+        P = delta/tau*Z/Zci*Pci
 
-        call sound_speed(R, T, M, delta, tau, aoir, aoio, w)
+        call sound_speed(R, T, Mi, delta, tau, aoir, aoio, w)
 
         print *, compound, rho, P, w
     end do
