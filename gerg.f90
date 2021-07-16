@@ -1,7 +1,7 @@
 ! This is file : gerg
 ! Author= Federico Benelli
 ! Started at: 01/07/2021
-! Last Modified: jue 15 jul 2021 02:16:18
+! Last Modified: vie 16 jul 2021 12:32:50
 !
 
 ! -------------------
@@ -86,43 +86,24 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
     delta = rho/rho_c
     tau = T_c/T
 
-    ! Ideal Gas Helmholtz Energy
     aoio(1, 1) = log(delta) + r*(n(1) + n(2)*tau + n(3)*log(tau))
-
     do k = 4, 6
         aoio(1, 1) = aoio(1, 1) + n(k)*log(abs(sinh(v(k)*tau)))
-    end do
-    do k = 5, 7
-        aoio(1, 1) = aoio(1, 1) - n(k)*log(cosh(v(k)*tau))
-    end do
-
-    ! First derivative with reduced density
-    aoio(2, 1) = delta
-
-    ! Second derivative with reduced density
-    aoio(3, 1) = -delta**2.0
-
-    ! First Derivative with reduced temperature
-    aoio(2, 2) = n(2) + n(3)/tau
-    do k = 4, 6
         aoio(2, 2) = aoio(2, 2) + n(k)*v(k)/tanh(v(k)*tau)
-    end do
-    do k = 5, 7
-        aoio(2, 2) = aoio(2, 2) - n(k)*v(k)*tanh(v(k)*tau)
-    end do
-    aoio(2, 2) = r*aoio(2, 2)
-
-    ! Second Derivative with reduced temperature
-    aoio(3, 2) = -n(3)*(1/tau)**2
-    do k = 4, 6
         aoio(3, 2) = aoio(3, 2) - n(k)*(v(k)**2)/(sinh(v(k)*tau)**2)
     end do
     do k = 5, 7
+        aoio(1, 1) = aoio(1, 1) - n(k)*log(cosh(v(k)*tau))
+        aoio(2, 2) = aoio(2, 2) - n(k)*v(k)*tanh(v(k)*tau)
         aoio(3, 2) = aoio(3, 2) - n(k)*(v(k)**2)/(cosh(v(k)*tau)**2)
     end do
-    aoio(3, 2) = r*aoio(3, 2)
 
-    ! Second Derivative with reduced density and temperature
+    aoio(2, 1) = delta
+    aoio(3, 1) = -delta**2.0
+    aoio(2, 2) = n(2) + n(3)/tau
+    aoio(2, 2) = r*aoio(2, 2)
+    aoio(3, 2) = -n(3)*(1/tau)**2
+    aoio(3, 2) = r*aoio(3, 2)
     aoio(3, 3) = 0
 
 End Subroutine a_oio
@@ -163,81 +144,52 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
         aoir(1, 1) = aoir(1, 1) + &
                      n(k)*delta**d(k) &
                      *tau**t(k)
+        aoir(2, 1) = aoir(2, 1) + &
+                     n(k)*d(k) &
+                     *delta**(d(k) - 1) &
+                     *tau**t(k)
+        aoir(2, 2) = aoir(2, 2) + &
+                     n(k)*t(k)*delta**d(k) &
+                     *tau**(t(k) - 1)
+        aoir(3, 1) = aoir(3, 1) + &
+                     n(k)*d(k)*(d(k) - 1)*delta**(d(k) - 2)*tau**t(k)
+        aoir(3, 2) = aoir(3, 2) + &
+                     n(k)*t(k)*(t(k) - 1) &
+                     *delta**d(k)*tau**(t(k) - 2)
+        aoir(3, 3) = aoir(3, 3) + &
+                     n(k)*d(k)*t(k) &
+                     *delta**(d(k) - 1)*tau**(t(k) - 1)
     end do
     do k = Kpol + 1, Kpol + Kexp
         aoir(1, 1) = aoir(1, 1) + &
                      n(k)*delta**d(k) &
                      *tau**t(k) &
                      *exp(-delta**c(k))
-    end do
-
-    ! First Derivative with reduced density
-    do k = 1, Kpol
-        aoir(2, 1) = aoir(2, 1) + &
-                     n(k)*d(k) &
-                     *delta**(d(k) - 1) &
-                     *tau**t(k)
-    end do
-    do k = Kpol + 1, Kpol + Kexp
+        ! First Derivative with reduced density
         aoir(2, 1) = aoir(2, 1) + &
                      n(k) &
                      *delta**(d(k) - 1) &
                      *(d(k) - c(k)*delta**c(k)) &
                      *tau**t(k) &
                      *exp(-delta**c(k))
-    end do
-
-    ! First Derivative with reduced temperature
-    do k = 1, Kpol
-        aoir(2, 2) = aoir(2, 2) + &
-                     n(k)*t(k)*delta**d(k) &
-                     *tau**(t(k) - 1)
-    end do
-    do k = Kpol + 1, Kpol + Kexp
+        ! First Derivative with reduced temperature
         aoir(2, 2) = aoir(2, 2) + &
                      n(k)*t(k)*delta**d(k) &
                      *tau**(t(k) - 1) &
                      *exp(-delta**c(k))
-    end do
-
-    ! Second Derivative with reduced density
-    do k = 1, Kpol
-        aoir(3, 1) = aoir(3, 1) + &
-                     n(k)*d(k)*(d(k) - 1) &
-                     *delta**(d(k) - 2) &
-                     *tau**t(k)
-    end do
-    do k = Kpol + 1, Kpol + Kexp
+        ! Second Derivative with reduced density
         aoir(3, 1) = aoir(3, 1) + &
                      n(k)*delta**(d(k) - 2) &
                      *( &
-                     (d(k) - c(k)*delta**c(k) &
-                      *(d(k) - 1 - c(k)*delta**c(k)) &
-                      - c(k)**2*delta**c(k)) &
-                     ) &
+                     (d(k) - c(k)*delta**c(k)) &
+                     *(d(k) - 1 - c(k)*delta**c(k)) - c(k)**2*delta**c(k)) &
                      *tau**t(k)*exp(-delta**c(k))
-    end do
-
-    ! Second Derivative with reduced temperature
-    do k = 1, Kpol
-        aoir(3, 2) = aoir(3, 2) + &
-                     n(k)*t(k)*(t(k) - 1) &
-                     *delta**d(k)*tau**(t(k) - 2)
-    end do
-    do k = Kpol + 1, Kpol + Kexp
+        ! Second Derivative with reduced temperature
         aoir(3, 2) = aoir(3, 2) + &
                      n(k)*t(k)*(t(k) - 1) &
                      *delta**d(k)*tau**(t(k) - 2) &
                      *exp(-delta**c(k))
-    end do
-
-    ! Second Derivative with reduced temperature and density
-    do k = 1, Kpol
-        aoir(3, 3) = aoir(3, 3) + &
-                     n(k)*d(k)*t(k) &
-                     *delta**(d(k) - 1)*tau**(t(k) - 1)
-    end do
-    do k = Kpol + 1, Kpol + Kexp
+        ! Second Derivative with reduced temperature and density
         aoir(3, 3) = aoir(3, 3) + &
                      n(k)*t(k)*delta**(d(k) - 1) &
                      *(d(k) - c(k)*delta**c(k)) &
@@ -283,6 +235,18 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
     do k = 1, Kpolij
         aijr(1, 1) = aijr(1, 1) + &
                      n(k)*delta**d(k)*tau**t(k)
+        aijr(2, 1) = aijr(2, 1) + &
+                     n(k)*d(k)*delta**(d(k) - 1)*tau**t(k)
+        aijr(3, 1) = aijr(3, 1) + &
+                     n(k)*d(k)*(d(k) - 1) &
+                     *delta**(d(k) - 2)*tau**t(k)
+        aijr(2, 2) = aijr(2, 2) + &
+                     n(k)*t(k)*delta**d(k)*tau**(t(k) - 1)
+        aijr(3, 2) = aijr(3, 2) + &
+                     n(k)*t(k)*(t(k) - 1)*delta**d(k)*tau**(t(k) - 2)
+        aijr(3, 3) = aijr(3, 3) + &
+                     n(k)*d(k)*t(k) &
+                     *delta**(d(k) - 1)*tau**(t(k) - 1)
     end do
     do k = Kpolij + 1, Kpolij + Kexpij
         aijr(1, 1) = aijr(1, 1) + &
@@ -291,14 +255,6 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
                      -eta(k)*(delta - eps(k))**2 &
                      - beta(k)*(delta - gamm(k)) &
                      )
-    end do
-
-    ! First Derivative with reduced density
-    do k = 1, Kpolij
-        aijr(2, 1) = aijr(2, 1) + &
-                     n(k)*d(k)*delta**(d(k) - 1)*tau**t(k)
-    end do
-    do k = Kpolij + 1, Kpolij + Kexpij
         aijr(2, 1) = aijr(2, 1) + &
                      n(k)*delta**d(k)*tau**t(k) &
                      *exp( &
@@ -306,15 +262,6 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
                      - beta(k)*(delta - gamm(k)) &
                      ) &
                      *(d(k)/delta - 2*eta(k)*(delta - eps(k)) - beta(k))
-    end do
-
-    ! Second derivative with reduced density
-    do k = 1, Kpolij
-        aijr(3, 1) = aijr(3, 1) + &
-                     n(k)*d(k)*(d(k) - 1) &
-                     *delta**(d(k) - 2)*tau**t(k)
-    end do
-    do k = Kpolij + 1, Kpolij + Kexpij
         aijr(3, 1) = aijr(3, 1) + &
                      n(k)*delta**d(k)*tau**t(k) &
                      *exp( &
@@ -323,45 +270,19 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
                      ) &
                      *((d(k)/delta - 2*eta(k)*(delta - eps(k)) - beta(k))**2 &
                        - d(k)/delta**2 - 2*eta(k))
-    end do
-
-    ! First derivative with reduced temperature
-    do k = 1, Kpolij
-        aijr(2, 2) = aijr(2, 2) + &
-                     n(k)*t(k)*delta**d(k)*tau**(t(k) - 1)
-    end do
-    do k = Kpolij + 1, Kpolij + Kexpij
         aijr(2, 2) = aijr(2, 2) + &
                      n(k)*t(k)*delta**d(k)*tau**(t(k) - 1) &
                      *exp( &
                      -eta(k)*(delta - eps(k))**2 &
                      - beta(k)*(delta - gamm(k)) &
                      )
-    end do
-
-    ! Second derivative with reduced temperature
-    do k = 1, Kpolij
-        aijr(3, 2) = aijr(3, 2) + &
-                     n(k)*t(k)*(t(k) - 1)*delta**d(k)*tau**(t(k) - 2)
-    end do
-    do k = Kpolij + 1, Kpolij + Kexpij
         aijr(3, 2) = aijr(3, 2) + &
                      n(k)*t(k)*(t(k) - 1)*delta**d(k)*tau**(t(k) - 2) &
                      *exp( &
                      -eta(k)*(delta - eps(k))**2 &
                      - beta(k)*(delta - gamm(k)) &
                      )
-    end do
-
-    ! Second derivative with reduced temperature and density
-    do k = 1, Kpolij
-        aijr(3, 3) = aijr(3, 3) + &
-                     n(k)*d(k)*t(k) &
-                     *delta**(d(k) - 1)*tau**(t(k) - 1)
-    end do
-
-    ! TODO esta derivada estan bien en el paper??
-    do k = Kpolij + 1, Kexpij + Kpolij
+        ! TODO esta derivada estan bien en el paper??
         aijr(3, 3) = aijr(3, 3) + &
                      n(k)*t(k)*delta**d(k)*tau**(t(k) - 1) &
                      *exp( &
@@ -389,16 +310,18 @@ Subroutine residual_term(X, delta, tau, &
 
     integer:: i, j
 
-    ar(1, 1) = 0
-    ar(2, 1) = 0
+    ar = 0
+
     do i = 1, size(X)
         if (X(i) > eps) then
             call a_oir(delta, tau, Kpol(i), Kexp(i), &
                        nr(i, :), dr(i, :), tr(i, :), cr(i, :), aoir)
-            ar(1, 1) = ar(1, 1) + &
-                       X(i)*aoir(1, 1)
-            ar(2, 1) = ar(2, 1) + &
-                       X(i)*aoir(2, 1)
+            ar(1, 1) = ar(1, 1) + X(i)*aoir(1, 1)
+            ar(2, 1) = ar(2, 1) + X(i)*aoir(2, 1)
+            ar(2, 2) = ar(2, 2) + X(i)*aoir(2, 2)
+            ar(3, 1) = ar(3, 1) + X(i)*aoir(3, 1)
+            ar(3, 2) = ar(3, 2) + X(i)*aoir(3, 2)
+            ar(3, 3) = ar(3, 3) + X(i)*aoir(3, 3)
         end if
     end do
 
@@ -409,10 +332,12 @@ Subroutine residual_term(X, delta, tau, &
                    nij(i, j, :), dij(i, j, :), tij(i, j, :), etaij(i, j, :), &
                    epsij(i, j, :), gammij(i, j, :), betaij(i, j, :), &
                    aijr)
-        ar(1, 1) = ar(1, 1) + &
-                   X(i)*X(j)*Fij(i, j)*aijr(1, 1)
-        ar(2, 1) = ar(2, 1) + &
-                   X(i)*X(j)*Fij(i, j)*aijr(2, 1)
+        ar(1, 1) = ar(1, 1) + X(i)*X(j)*Fij(i, j)*aijr(1, 1)
+        ar(2, 1) = ar(2, 1) + X(i)*X(j)*Fij(i, j)*aijr(2, 1)
+        ar(2, 2) = ar(2, 2) + X(i)*X(j)*Fij(i, j)*aijr(2, 2)
+        ar(3, 1) = ar(3, 1) + X(i)*X(j)*Fij(i, j)*aijr(3, 1)
+        ar(3, 2) = ar(3, 2) + X(i)*X(j)*Fij(i, j)*aijr(3, 2)
+        ar(3, 3) = ar(3, 3) + X(i)*X(j)*Fij(i, j)*aijr(3, 3)
     end if
     end do
     end do
@@ -443,15 +368,17 @@ Program gerg
     ! Critical properties parameters
     character(len=100):: critical_file
     double precision, dimension(21):: rho_c, T_c, M
-    integer:: i
     ! Constants
     double precision:: R
     ! Variables
     double precision:: T, rho, tau, delta, X(21)
     ! Calculated variables
     double precision, dimension(3, 3):: ar, aoir, aoio
-    double precision:: P, Z, w, mean_M
+    double precision:: P, Z, w, mean_M, rho2, old_rho, B, C
     double precision:: T_r, rho_r
+    character(len=100):: compound
+    integer:: i, io
+    double precision:: eps = epsilon(T)
 
     ! Ideal Gas Parameters
     no_file = 'parameters/ideal/n'
@@ -495,7 +422,12 @@ Program gerg
     ! ------------------------
     T = 185.0
     X = 0
-    X(1) = 1
+    open (1, file='concentrations')
+    io = 0
+    i = 0
+    do while (io == 0)
+        read (1, *, iostat=io) i, compound, X(i)
+    end do
 
     mean_M = 0
     do i = 1, size(X)
@@ -504,32 +436,28 @@ Program gerg
 
     call reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
     tau = T_r/T
-
     print *, "T: ", T, "K"
     print *, T_r, 1/rho_r
-    !print *, "------------------------"
-
-    do i = 1, 3000, 100
-
+    print *, "------------------------"
+    do i = 10, 3000, 10
         rho = float(i)/100
         delta = rho*rho_r
-
-        ! Calculate residual and ideal gas helmholtz energy
-        !call a_oir(delta, tau, Kpol(1), Kexp(1), nr(1, :), dr(1, :), tr(1, :), cr(1, :), aoir)
-        !call a_oio(rho, T, rho_c(1), T_c(1), no(1, :), vo(1, :), aoio)
-
         call residual_term(X, delta, tau, &
                            Kpol, Kexp, nr, dr, tr, cr, &
                            Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, etaij, gammij, &
                            ar)
-
         call zeta(delta, ar(2, 1), Z)
 
-        P = Z*rho*T*R/100
+        R = 0.08206
+        P = Z*rho*T*R
+
+        call residual_term(X, eps, tau, &
+                           Kpol, Kexp, nr, dr, tr, cr, &
+                           Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, etaij, gammij, &
+                           ar)
 
         print *, rho, P
 
-        !call sound_speed(R, T, M(1)/100, delta, tau, aoir, aoio, w)
     end do
 
 End Program gerg
