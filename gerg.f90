@@ -1,7 +1,6 @@
-! This is file : gerg
 ! Author= Federico Benelli
 ! Started at: 01/07/2021
-! Last Modified: vie 16 jul 2021 12:32:50
+! Last Modified: dom 18 jul 2021 15:33:49
 !
 
 ! -------------------
@@ -23,7 +22,7 @@ Subroutine reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
     double precision, dimension(21), intent(in):: X, rho_c, T_c
     double precision, dimension(21, 21), intent(in)::  Bv, Gv, Bt, Gt
     double precision, intent(inout):: rho_r, T_r
-    double precision:: eps = epsilon(X(1))
+    double precision:: eps = epsilon(rho_r)
     integer:: N = 21, i, j
     rho_r = 0
     T_r = 0
@@ -87,24 +86,25 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
     tau = T_c/T
 
     aoio(1, 1) = log(delta) + r*(n(1) + n(2)*tau + n(3)*log(tau))
+    aoio(2, 1) = 1/delta
+    aoio(2, 2) = n(2) + n(3)/tau
+    aoio(3, 1) = -(1/delta)**2.0
+    aoio(3, 2) = n(3)*(T/T_c)**2
+    aoio(3, 3) = 0
+
     do k = 4, 6
-        aoio(1, 1) = aoio(1, 1) + n(k)*log(abs(sinh(v(k)*tau)))
+        aoio(1, 1) = aoio(1, 1) + r*n(k)*log(abs(sinh(v(k)*tau)))
         aoio(2, 2) = aoio(2, 2) + n(k)*v(k)/tanh(v(k)*tau)
-        aoio(3, 2) = aoio(3, 2) - n(k)*(v(k)**2)/(sinh(v(k)*tau)**2)
+        aoio(3, 2) = aoio(3, 2) + n(k)*v(k)**2/sinh(v(k)*tau)**2
     end do
     do k = 5, 7
-        aoio(1, 1) = aoio(1, 1) - n(k)*log(cosh(v(k)*tau))
+        aoio(1, 1) = aoio(1, 1) - r*n(k)*log(cosh(v(k)*tau))
         aoio(2, 2) = aoio(2, 2) - n(k)*v(k)*tanh(v(k)*tau)
-        aoio(3, 2) = aoio(3, 2) - n(k)*(v(k)**2)/(cosh(v(k)*tau)**2)
+        aoio(3, 2) = aoio(3, 2) + n(k)*v(k)**2/cosh(v(k)*tau)**2
     end do
 
-    aoio(2, 1) = delta
-    aoio(3, 1) = -delta**2.0
-    aoio(2, 2) = n(2) + n(3)/tau
     aoio(2, 2) = r*aoio(2, 2)
-    aoio(3, 2) = -n(3)*(1/tau)**2
-    aoio(3, 2) = r*aoio(3, 2)
-    aoio(3, 3) = 0
+    aoio(3, 2) = -r*aoio(3, 2)
 
 End Subroutine a_oio
 
@@ -293,6 +293,30 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
     end do
 End Subroutine a_ijr
 
+Subroutine ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
+                      no, vo, ao)
+    double precision:: X(21), rho, T, rho_r, T_r
+    double precision, dimension(21, 7):: no, vo
+    double precision, dimension(3, 3):: ao, aoio
+    double precision, dimension(21):: rho_c, T_c
+    double precision:: eps = epsilon(rho)
+    integer:: N = 21
+
+    ao = 0
+    do i = 1, N
+        if (X(i) > eps) then
+            call a_oio(rho, T, rho_c(i), T_c(i), no(i, :), vo(i, :), aoio)
+            ao(1, 1) = ao(1, 1) + X(i)*(aoio(1, 1) + log(X(i)))
+            ao(2, 1) = ao(2, 1) + X(i)/(rho_c(i)*rho_r)*aoio(2, 1)
+            ao(2, 2) = ao(2, 2) + X(i)*(T_c(i)/T_r)*aoio(2, 2)
+            ao(3, 1) = ao(3, 1) + X(i)*(1/(rho_c(i)/rho_r)**2)*aoio(3, 1)
+            ao(3, 2) = ao(3, 2) + X(i)*(T_c(i)/T_r)**2*aoio(3, 2)
+            ao(3, 3) = ao(3, 3) + X(i)*(T_c(i)/T_r)*(1/(rho_c(i)/rho_r))*aoio(3, 3)
+        end if
+    end do
+
+End Subroutine ideal_term
+
 Subroutine residual_term(X, delta, tau, &
                          Kpol, Kexp, nr, dr, tr, cr, &
                          Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, etaij, gammij, &
@@ -373,11 +397,11 @@ Program gerg
     ! Variables
     double precision:: T, rho, tau, delta, X(21)
     ! Calculated variables
-    double precision, dimension(3, 3):: ar, aoir, aoio
-    double precision:: P, Z, w, mean_M, rho2, old_rho, B, C
+    double precision, dimension(3, 3):: ar, ao
+    double precision:: P, Z, w, mean_M, rho2, old_rho, B, C, cp
     double precision:: T_r, rho_r
     character(len=100):: compound
-    integer:: i, io
+    integer:: i, j, io
     double precision:: eps = epsilon(T)
 
     ! Ideal Gas Parameters
@@ -420,7 +444,8 @@ Program gerg
 
     ! Propiedades de operación
     ! ------------------------
-    T = 185.0
+    !T = 185.0
+    T = 276.15
     X = 0
     open (1, file='concentrations')
     io = 0
@@ -434,30 +459,29 @@ Program gerg
         mean_M = mean_M + X(i)*M(i)
     end do
 
+    X = 0
+    X(1) = 1
+
     call reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
-    tau = T_r/T
-    print *, "T: ", T, "K"
-    print *, T_r, 1/rho_r
-    print *, "------------------------"
-    do i = 10, 3000, 10
-        rho = float(i)/100
+
+    do j = 20, 50, 2
+        !T = float(i)
+        rho = float(j)/100
+
+        tau = T_r/T
         delta = rho*rho_r
+
         call residual_term(X, delta, tau, &
                            Kpol, Kexp, nr, dr, tr, cr, &
                            Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, etaij, gammij, &
                            ar)
+        call ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
+                        no, vo, &
+                        ao)
         call zeta(delta, ar(2, 1), Z)
 
-        R = 0.08206
-        P = Z*rho*T*R
-
-        call residual_term(X, eps, tau, &
-                           Kpol, Kexp, nr, dr, tr, cr, &
-                           Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, etaij, gammij, &
-                           ar)
-
-        print *, rho, P
-
+        P = Z*rho*T*R*1000
+        print *, T, rho, P/1e6
     end do
 
 End Program gerg
