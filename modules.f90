@@ -179,13 +179,21 @@ Contains
         z = 1 + delta*dArdD
     End Subroutine zeta
 
+    Subroutine isobaric_heat(delta, tau, ao, ar, cp)
+        double precision, intent(in):: delta, tau, ao(3, 3), ar(3, 3)
+        double precision, intent(inout) :: cp
+        cp = -tau**2*(ao(3, 2) + ar(3, 2)) &
+             + (1 + delta*ar(2, 1) - delta*tau*ar(3, 3))**2 &
+             /(1 + 2*delta*ar(2, 1) + delta**2*ar(3, 1))
+    End Subroutine isobaric_heat
+
     Subroutine sound_speed(R, T, M, delta, tau, Ar, Ao, w)
         double precision, intent(in):: R, T, M, delta, tau, Ar(3, 3), Ao(3, 3)
         double precision, intent(inout):: w
-
         w = 1 + 2*delta*Ar(2, 1) + delta**2*Ar(3, 1)
         w = w - (1 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2 &
             /(tau**2*(Ao(3, 2) + Ar(3, 2)))
         w = sqrt(w*R*T/M)
     End Subroutine sound_speed
 End Module thermo_props
+
