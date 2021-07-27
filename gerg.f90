@@ -1,6 +1,7 @@
 ! Author= Federico Benelli
+! Gerg-2008 Equation
 ! Started at: 01/07/2021
-! Last Modified: dom 18 jul 2021 15:33:49
+! Last Modified: mar 27 jul 2021 15:57:12
 !
 
 ! -------------------
@@ -22,10 +23,12 @@ Subroutine reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
     double precision, dimension(21), intent(in):: X, rho_c, T_c
     double precision, dimension(21, 21), intent(in)::  Bv, Gv, Bt, Gt
     double precision, intent(inout):: rho_r, T_r
-    double precision:: eps = epsilon(rho_r)
+    double precision:: eps = 0.0001
     integer:: N = 21, i, j
+
     rho_r = 0
     T_r = 0
+
     do i = 1, N
     if (X(i) > eps) then
         rho_r = rho_r + X(i)**2/rho_c(i)
@@ -138,16 +141,12 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
     integer:: k
 
     aoir = 0
-
     ! Residual Helmholtz Energy
     do k = 1, Kpol
         aoir(1, 1) = aoir(1, 1) + &
                      n(k)*delta**d(k) &
                      *tau**t(k)
-        aoir(2, 1) = aoir(2, 1) + &
-                     n(k)*d(k) &
-                     *delta**(d(k) - 1) &
-                     *tau**t(k)
+        aoir(2, 1) = aoir(2, 1) + n(k)*d(k)*delta**(d(k) - 1)*tau**(t(k))
         aoir(2, 2) = aoir(2, 2) + &
                      n(k)*t(k)*delta**d(k) &
                      *tau**(t(k) - 1)
@@ -166,12 +165,7 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
                      *tau**t(k) &
                      *exp(-delta**c(k))
         ! First Derivative with reduced density
-        aoir(2, 1) = aoir(2, 1) + &
-                     n(k) &
-                     *delta**(d(k) - 1) &
-                     *(d(k) - c(k)*delta**c(k)) &
-                     *tau**t(k) &
-                     *exp(-delta**c(k))
+        aoir(2, 1) = aoir(2, 1) + n(k)*delta**(d(k) - 1)*(d(k) - c(k)*delta**c(k))*tau**t(k)*exp(-delta**c(k))
         ! First Derivative with reduced temperature
         aoir(2, 2) = aoir(2, 2) + &
                      n(k)*t(k)*delta**d(k) &
@@ -330,11 +324,13 @@ Subroutine residual_term(X, delta, tau, &
     integer, dimension(21, 21):: Kpolij, Kexpij
     double precision::delta, tau
     double precision, dimension(3, 3):: ar, aoir, aijr
-    double precision:: eps = epsilon(X(1))
+    double precision:: eps = 0.0001
 
     integer:: i, j
 
     ar = 0
+    aoir = 0
+    aijr = 0
 
     do i = 1, size(X)
         if (X(i) > eps) then
@@ -401,8 +397,8 @@ Program gerg
     double precision:: P, Z, w, mean_M, rho2, old_rho, B, C, cp
     double precision:: T_r, rho_r
     character(len=100):: compound
-    integer:: i, j, io
-    double precision:: eps = epsilon(T)
+    integer:: i, j, io, stdin = 5, stdout = 6, stderr = 0
+    character(len=100):: arg
 
     ! Ideal Gas Parameters
     no_file = 'parameters/ideal/n'
@@ -444,44 +440,53 @@ Program gerg
 
     ! Propiedades de operación
     ! ------------------------
-    !T = 185.0
-    T = 276.15
+    call getarg(1, arg)
+    rho = 1
+    T = 1.0
     X = 0
-    open (1, file='concentrations')
-    io = 0
-    i = 0
-    do while (io == 0)
-        read (1, *, iostat=io) i, compound, X(i)
-    end do
 
-    mean_M = 0
-    do i = 1, size(X)
-        mean_M = mean_M + X(i)*M(i)
-    end do
-
-    X = 0
-    X(1) = 1
-
-    call reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
-
-    do j = 20, 50, 2
-        !T = float(i)
-        rho = float(j)/100
+    select case (arg)
+    case ('isotherm')
+        ! Get Isothermic data of mixture at given T
+        read (stdin, *) T
+        io = 0
+        do while (io == 0)
+            read (stdin, *, iostat=io) i, compound, X(i)
+        end do
+        mean_M = 0
+        do i = 1, size(X)
+            mean_M = mean_M + X(i)*M(i)
+        end do
+        call reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
 
         tau = T_r/T
-        delta = rho*rho_r
 
-        call residual_term(X, delta, tau, &
-                           Kpol, Kexp, nr, dr, tr, cr, &
-                           Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, etaij, gammij, &
-                           ar)
-        call ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
-                        no, vo, &
-                        ao)
-        call zeta(delta, ar(2, 1), Z)
+        do j = 1, 3000
+            rho = float(j)/100
+            delta = rho*rho_r
 
-        P = Z*rho*T*R*1000
-        print *, T, rho, P/1e6
+            call residual_term(X, delta, tau, &
+                               Kpol, Kexp, nr, dr, tr, cr, &
+                               Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, etaij, gammij, &
+                               ar)
+            call ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
+                            no, vo, &
+                            ao)
+
+            call zeta(delta, ar, Z)
+
+            call sound_speed(R, T, mean_M/1000, delta, tau, ar, ao, w)
+
+            ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3]
+
+            P = Z*rho*T*R*1000
+            print *, T, rho, P/1e6, Z, w
+        end do
+    end select
+
+    write (stderr, *) mean_M, 1/rho_r, T_r
+    do i = 1, size(X)
+        write (stderr, *) X(i)
     end do
 
 End Program gerg

@@ -35,6 +35,32 @@ Contains
         ! Common parameters
         integer:: i, j, k, compound, io, N = 21
 
+        no = 0
+        vo = 0
+        Kpol = 0
+        Kexp = 0
+        nr = 0
+        dr = 0
+        tr = 0
+        cr = 0
+        Kpolij = 0
+        Kexpij = 0
+        betaij = 0
+        dij = 0
+        epsij = 0
+        etaij = 0
+        gammij = 0
+        nij = 0
+        tij = 0
+        Fij = 0
+        Bv = 0
+        Gv = 0
+        Bt = 0
+        Gt = 0
+        rho_c = 0
+        T_c = 0
+        M = 0
+
         ! Get departure function parameters
         ! ---------------------------------
         open (1, file=Kij_file)
@@ -157,7 +183,6 @@ Contains
 
         ! Get critical properties
         ! -----------------------
-
         open (1, file=critical_file)
         io = 0
         do while (io == 0)
@@ -173,10 +198,10 @@ Module thermo_props  !
     Implicit None
 
 Contains
-    Subroutine zeta(delta, dArdD, z)
-        double precision:: delta, dArdD
+    Subroutine zeta(delta, ar, z)
+        double precision:: delta, ar(3, 3)
         double precision, intent(inout):: z
-        z = 1 + delta*dArdD
+        z = 1 + delta*ar(2, 1)
     End Subroutine zeta
 
     Subroutine isobaric_heat(delta, tau, ao, ar, cp)
