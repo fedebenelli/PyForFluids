@@ -1,7 +1,7 @@
 ! Author= Federico Benelli
 ! Gerg-2008 Equation
 ! Started at: 01/07/2021
-! Last Modified: mar 17 ago 2021 18:01:12
+! Last Modified: jue 19 ago 2021 19:45:04
 !
 
 ! -------------------
@@ -171,11 +171,8 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
                      *exp(-delta**c(k))
         ! Second Derivative with reduced density
         aoir(3, 1) = aoir(3, 1) + &
-                     n(k)*delta**(d(k) - 2) &
-                     *( &
-                     (d(k) - c(k)*delta**c(k)) &
-                     *(d(k) - 1 - c(k)*delta**c(k)) - c(k)**2*delta**c(k)) &
-                     *tau**t(k)*exp(-delta**c(k))
+  n(k)*delta**(d(k) - 2)*((d(k) - c(k)*delta**c(k))*(d(k) - 1 - c(k)*delta**c(k)) - c(k)**2*delta**c(k))*tau**t(k)*exp(-delta**c(k))
+
         ! Second Derivative with reduced temperature
         aoir(3, 2) = aoir(3, 2) + &
                      n(k)*t(k)*(t(k) - 1) &
@@ -232,8 +229,7 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
         aijr(2, 1) = aijr(2, 1) + &
                      n(k)*d(k)*delta**(d(k) - 1)*tau**t(k)
         aijr(3, 1) = aijr(3, 1) + &
-                     n(k)*d(k)*(d(k) - 1) &
-                     *delta**(d(k) - 2)*tau**t(k)
+                     n(k)*d(k)*(d(k) - 1)*delta**(d(k) - 2)*tau**t(k)
         aijr(2, 2) = aijr(2, 2) + &
                      n(k)*t(k)*delta**d(k)*tau**(t(k) - 1)
         aijr(3, 2) = aijr(3, 2) + &
@@ -258,13 +254,9 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
                      ) &
                      *(d(k)/delta - 2*eta(k)*(delta - eps(k)) - beta(k))
         aijr(3, 1) = aijr(3, 1) + &
-                     n(k)*delta**d(k)*tau**t(k) &
-                     *exp( &
-                     -eta(k)*(delta - eps(k))**2 &
-                     - beta(k)*(delta - gamm(k)) &
-                     ) &
-                     *((d(k)/delta - 2*eta(k)*(delta - eps(k)) - beta(k))**2 &
-                       - d(k)/delta**2 - 2*eta(k))
+                     n(k)*delta**d(k)*tau**t(k)*exp( &
+                     -eta(k)*(delta - eps(k))**2 - beta(k)*(delta - gamm(k))) &
+                     *((d(k)/delta - 2*eta(k)*(delta - eps(k)) - beta(k))**2 - d(k)/delta**2 - 2*eta(k))
         aijr(2, 2) = aijr(2, 2) + &
                      n(k)*t(k)*delta**d(k)*tau**(t(k) - 1) &
                      *exp( &
@@ -556,5 +548,4 @@ Program gerg
             print *, T, rho, P/1e6, Z, w
         end do
     end select
-
 End Program gerg
