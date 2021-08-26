@@ -16,8 +16,8 @@ compare() {
 
 	n=$((n+1))
 	cat propiedades "$test_folder/concentrations" | 
-		awk -v n="$n" '{print $1,$2,$n}' |
-		./gerg isotherm | awk '{print $1","$2","$3","$4","$5}' >> "$gerg_data_file"
+		awk -v n="$n" '{print $1,$2,$n}' > debug_data
+	./gerg isotherm | awk '{print $1","$2","$3","$4","$5}' >> "$gerg_data_file"
 	echo "comp,conc" > "$test_folder/tmp_conc"
 	cat "$test_folder/concentrations" |
 		awk -v n="$n" '{print $2","$n}' >> "$test_folder/tmp_conc"
@@ -48,8 +48,8 @@ case $1 in
 
 	n_samples=$(awk '{print NF}' "$test_data_file" | sort -nu | tail -n1)
 
-	[ -z $2 ] && batch_run && exit 0
-	compare $2;;
+	[ -z $2 ] && batch_run "$1" && exit 0
+	compare "$1" $2;;
 
 	"w")
 	test_folder="w_test"
@@ -61,5 +61,16 @@ case $1 in
 
 	[ -z $2 ] && batch_run "$1" && exit 0
 	compare "$1" $2;;
+
+	"bintest")
+		test_folder="GERG_test/binary"
+		gerg_data_file="$test_folder/calcs"
+		head -n1 "$gerg_data_file" > /tmp/gergdata
+		cat /tmp/gergdata > "$gerg_data_file"
+		./gerg $1 | sed -r 's/ /,/g ; s/,+/ /g; s/^ //; s/ $//' >> "$gerg_data_file"
+		cd "$test_folder"
+		python check.py "calcs"
+		;;
+
 esac
 

@@ -24,7 +24,6 @@ concentraciones = conc_df.to_string()
 print('Concentraciones')
 print(concentraciones)
 
-
 df.P = df.P.round(5)
 
 X = compare_df.iloc[:,0].values
@@ -33,6 +32,7 @@ Y = compare_df.iloc[:,1].values
 params = curve_fit(cubic,X,Y)[0]
 
 x = df[(df['P'] > X.min()) & (df['P'] < X.max())]['P'].values
+gerg_x = df['P']
 y = cubic(x,*params)
 
 io = df[df.P == x[0]].index[0]
@@ -52,13 +52,16 @@ fig, ax = plt.subplots()
 
 ax.plot(x,y, label='Experimental (ajuste)', color='gray', ls='--',alpha=0.8)
 ax.scatter(X,Y, label='Experimental', marker='x', color='black')
-ax.plot(x,yhat, label=f'GERG (incertidumbre: {round(error,2)}%)')
+ax.plot(gerg_x, df.Z, label=f'GERG (incertidumbre: {round(error,2)}%)')
 ax.set_title(f'Factor de compresibilidad {concentraciones} a T={T}K')
 ax.set_xlabel('P (MPa)')
 ax.set_ylabel('Z')
 ax.legend()
 
-ax.annotate(concentraciones, (200,150), xycoords='figure pixels')
+
+
 plt.tight_layout()
+plt.xlim(X.min()*0.9,X.max()*1.1)
+plt.ylim(Y.min()*0.9,Y.max()*1.1)
 
 plt.savefig(f'figs/{n}.png',dpi=200)
