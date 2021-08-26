@@ -1,6 +1,7 @@
 # GERG-2008.f90
 
-Program made to calculate the GERG-2008 equation (cite) (WIP). 
+Program made to calculate the GERG-2008 equation [^1]
+
 
 ## Folder structure
 
@@ -37,3 +38,8 @@ Program made to calculate the GERG-2008 equation (cite) (WIP).
 │       └── t
 └── README.md			-> This readme file
 ```
+
+Right now it doesn't work like this, all the parameters are defined in the 
+`parameters.f90` file, for more controlled testing.
+
+[^1]: ![Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
