@@ -207,13 +207,13 @@ Contains
     Subroutine zeta(delta, ar, z)
         real*8, intent(in):: delta, ar(3, 3)
         real*8, intent(inout):: z
-        z = 1 + delta*ar(2, 1)
+        z = 1.d0 + delta*ar(2, 1)
     End Subroutine zeta
 
     Subroutine isocoric_heat(tau, R, Ao, Ar, cv)
         real*8, intent(in):: tau, R, Ao(3, 3), Ar(3, 3)
         real*8, intent(inout)::cv
-        cv = -tau**2*(Ao(3, 2) + Ar(3, 2))
+        cv = -tau**2.d0*(Ao(3, 2) + Ar(3, 2))
         cv = cv*R
     End Subroutine isocoric_heat
 
@@ -225,7 +225,7 @@ Contains
         up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
         down = 1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1)
 
-        cp = -tau**2*(Ao(3, 2) + Ar(3, 2)) + up/down
+        cp = -tau**2.d0*(Ao(3, 2) + Ar(3, 2)) + up/down
 
         cp = cp*R
 
@@ -236,11 +236,10 @@ Contains
         real*8, intent(inout):: w
         real*8:: up, down
 
-        up = (1 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
+        up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
         down = (tau**2*(ao(3, 2) + ar(3, 2)))
-        w = 1.0 + 2*delta*ar(2, 1) + delta**2*ar(3, 1) - up/down
+        w = 1.d0 + 2*delta*ar(2, 1) + delta**2*ar(3, 1) - up/down
         w = sqrt(w*R*T/M)
 
     End Subroutine sound_speed
-
 End Module thermo_props

@@ -1,5 +1,5 @@
 Module parameters
-    integer:: N = 21, max_residual_terms = 24, i, j, k, generalized_departure(8, 2)
+    integer:: N, max_residual_terms = 24, generalized_departure(8, 2)
     real*8, dimension(21, 21, 4):: red_params
     real*8, dimension(21, 21):: Bv, Gv, Bt, Gt
     real*8, dimension(21, 24):: noik, toik
@@ -10,17 +10,17 @@ Module parameters
     integer, dimension(21, 21, 12):: dij
     integer, dimension(21, 21):: Kpolij, Kexpij
     real*8, dimension(21):: T_c, rho_c, M
-    integer, allocatable:: tmp(:), rowcols(:)
+    integer:: tmp1(3), tmp2(14) ! This variables are used to define indexes for repeated terms
     real*8, dimension(21, 12):: n0i, th0i
-    real*8:: RGERG, Rs, Rsr
+    real*8:: R, eps = 1d-10
 
 End Module
 
 Subroutine get_params()
     use parameters
-    RGERG = 8.314472
-    Rs = 8.31451
-    Rsr = Rs/RGERG
+    integer:: i,j,k
+    R = 8.314472d0
+    N = 21
 
     T_c(1) = 190.564d0
     T_c(2) = 126.192d0
@@ -697,10 +697,10 @@ Subroutine get_params()
     coik(20, 11) = 3
     coik(20, 12) = 3
 
-    tmp = (/1, 2, 4/)
+    tmp1 = (/1, 2, 4/)
 
-    do i = 1, size(tmp)
-        k = tmp(i)
+    do i = 1, size(tmp1)
+        k = tmp1(i)
         doik(k, 1) = 1
         doik(k, 2) = 1
         doik(k, 3) = 2
@@ -775,10 +775,10 @@ Subroutine get_params()
 
     end do
 
-    tmp = (/5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21/)
+    tmp2 = (/5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21/)
 
-    do i = 1, size(tmp)
-        k = tmp(i)
+    do i = 1, size(tmp2)
+        k = tmp2(i)
 
         coik(k, 7) = 1
         coik(k, 8) = 1
@@ -1302,8 +1302,7 @@ Subroutine get_params()
     generalized_departure(7, :) = (/5, 7/)
     generalized_departure(8, :) = (/6, 7/)
 
-    rowcols = shape(generalized_departure)
-    do k = 1, rowcols(1)
+    do k = 1, 8
         i = generalized_departure(k, 1)
         j = generalized_departure(k, 2)
 
@@ -1618,5 +1617,4 @@ Subroutine get_params()
     th0i(21, 5) = 0.0d0
     th0i(21, 6) = 0.0d0
     th0i(21, 7) = 0.0d0
-
 End Subroutine get_params

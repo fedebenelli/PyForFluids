@@ -1,13 +1,13 @@
 ! Author= Federico Benelli
 ! Gerg-2008 Equation
 ! Started at: 01/07/2021
-! Last Modified: jue 26 ago 2021 10:56:11
+! Last Modified: mar 31 ago 2021 13:04:21
 !
 
 ! -------------------
 ! GERG 2008 Functions
 ! -------------------
-Subroutine reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
+Subroutine reducing_funcs(X, rho_r, T_r)
     ! REDUCING DENSITY AND TEMPERATURE
     ! input:
     !  - X      (dimension): molar fractions
@@ -20,11 +20,11 @@ Subroutine reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
     ! output:
     !  - rho_r  (float): Reducing density (1/rhor)
     !  - T_r    (float): reducing temperature (Tr)
-    real*8, dimension(21), intent(in):: X, rho_c, T_c
-    real*8, dimension(21, 21), intent(in)::  Bv, Gv, Bt, Gt
+    use parameters
+    real*8, dimension(21), intent(in):: X
     real*8, intent(out):: rho_r, T_r
-    integer:: N = 21, i, j
-    real*8:: eps = 1d-10
+    integer:: i, j
+    call get_params()
 
     rho_r = 0.d0
     T_r = 0.d0
@@ -42,18 +42,55 @@ Subroutine reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
     if (X(j) > eps) then
         rho_r = rho_r + &
                 2.d0*X(i)*X(j)*Bv(i, j)*Gv(i, j) &
-                *(X(i) + X(j))/(Bv(i, j)**2.d0*X(i) + X(j)) &
+                *(X(i) + X(j))/(Bv(i, j)**2*X(i) + X(j)) &
                 *1.d0/8.d0*(rho_c(i)**(-1.d0/3.d0) + rho_c(j)**(-1.d0/3.d0))**3
 
         T_r = T_r + &
               2.d0*X(i)*X(j)*Bt(i, j)*Gt(i, j) &
-              *(X(i) + X(j))/(Bt(i, j)**2.d0*X(i) + X(j)) &
+              *(X(i) + X(j))/(Bt(i, j)**2*X(i) + X(j)) &
               *sqrt((T_c(i)*T_c(j)))
     end if
     end do
     end if
     end do
 End Subroutine reducing_funcs
+
+Subroutine  V_calc(X, P, T, rho)
+        ! Based on: https://github.com/usnistgov/AGA8/issues/12
+        use parameters
+        real*8, intent(in):: P, T, X(21)
+        real*8, intent(out):: rho
+        real*8:: vo, vi, dpdr, ar(3,3), delta, tau, rho_r, T_r, Pcalc
+        integer:: it = 20
+        
+        rho = P/(R*T)
+        rho = rho/1d3
+        vo = -log(rho)
+        call reducing_funcs(X, rho_r, T_r)
+        do i=1,it
+                delta = rho*rho_r
+                tau = T_r/T
+                call residual_term(X, delta, tau, ar)
+
+                Pcalc = (1.d0 + delta*ar(2,1))
+                dpdr = R*T*(1.d0 + 2.d0*delta*ar(2,1) + delta**2*ar(3,1))
+                
+                vi = vo + (Pcalc/(rho*1d3))/dpdr * (log(Pcalc) - log(P))
+
+                if (abs(vi-vo) < Epsilon(vi)) then
+                        rho = exp(-vi)
+                        rho = rho/1d3
+                return
+                else
+                        vo = vi
+                        rho = exp(-vo)
+                end if
+                rho = rho / 1d3
+
+                print *, "[VCALC]", i, rho
+        end do
+End Subroutine V_calc 
+
 
 ! Pure Compound Helmholtz Energy (and derivatives) Calculations
 ! -----------------------------------------------
@@ -77,39 +114,38 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
     ! d(aoio)/dd    |     d(aoio)/dt   |    0             |
     ! d2(aoio)/dd2  |     d2(aoio)/dt2 |    d2(aoio)/dddt |
     ! ----------------------------------------------------|
-    integer, parameter:: dp = 8
-    real(dp), intent(in):: rho, T, rho_c, T_c
-    real(dp), intent(in), dimension(7):: n, v
-    real(dp), intent(out):: aoio(3, 3)
-    real(dp):: r, Tr, Dr, eps = 1d-10
+    real*8, intent(in):: rho, T, rho_c, T_c
+    real*8, intent(in), dimension(7):: n, v
+    real*8, intent(out):: aoio(3, 3)
+    real*8:: r, Tr, Dr, eps = 1d-10
+    character(len=100):: forma
 
     r = 8.314510d0/8.314472d0
-
+    
     aoio = 0.d0
     Tr = T_c/T
     Dr = rho/rho_c
 
     do k = 4, 7
-        !write (0, *) 'Ideal Terms: ', k, n(k), v(k)
         if (v(k) > eps) then
-        if (k == 4) then
-            aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(sinh(v(k)*Tr))))
-            aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/tanh(v(k)*Tr))
-            aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/sinh(v(k)*Tr)**2)
-        else if (k == 5 .or. k == 6) then
-            aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(sinh(v(k)*Tr))))
-            aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(cosh(v(k)*Tr)))
+            if (k == 4) then
+                aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(sinh(v(k)*Tr))))
+                aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/tanh(v(k)*Tr))
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/sinh(v(k)*Tr)**2)
+            else if (k == 5 .or. k == 6) then
+                aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(sinh(v(k)*Tr))))
+                aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(cosh(v(k)*Tr)))
 
-            aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/tanh(v(k)*Tr))
-            aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*tanh(v(k)*Tr))
+                aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/tanh(v(k)*Tr))
+                aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*tanh(v(k)*Tr))
 
-            aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/sinh(v(k)*Tr)**2)
-            aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/cosh(v(k)*Tr)**2)
-        else
-            aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(cosh(v(k)*Tr)))
-            aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*tanh(v(k)*Tr))
-            aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/cosh(v(k)*Tr)**2)
-        end if
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/sinh(v(k)*Tr)**2)
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/cosh(v(k)*Tr)**2)
+            else
+                aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(cosh(v(k)*Tr)))
+                aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*tanh(v(k)*Tr))
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/cosh(v(k)*Tr)**2)
+            end if
         end if
     end do
 
@@ -117,9 +153,8 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
     aoio(2, 1) = 1.d0/Dr
     aoio(3, 1) = -1.d0/Dr**2
     aoio(2, 2) = aoio(2, 2) + r*(n(2) + n(3)/Tr)
-    aoio(3, 2) = aoio(3, 2) + r*(-n(3)/Tr**2)
+    aoio(3, 2) = aoio(3, 2) + r*(-n(3)*(T/T_c)**2)
     aoio(3, 3) = 0.d0
-
 End Subroutine a_oio
 
 Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
@@ -167,7 +202,7 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
         aoir(3, 1) = aoir(3, 1) + &
                      n(k)*d(k)*(d(k) - 1)*delta**(d(k) - 2)*tau**t(k)
         aoir(3, 2) = aoir(3, 2) + &
-                     n(k)*t(k)*(t(k) - 1) &
+                     n(k)*t(k)*(t(k) - 1.d0) &
                      *delta**d(k)*tau**(t(k) - 2.d0)
         aoir(3, 3) = aoir(3, 3) + &
                      n(k)*d(k)*t(k) &
@@ -196,10 +231,11 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
                      *(d(k) - 1 - c(k)*delta**c(k)) &
                      - c(k)**2*delta**c(k)) &
                      *tau**t(k)*exp(-delta**c(k))
-
         ! Second Derivative with reduced temperature
         aoir(3, 2) = aoir(3, 2) + &
-                     n(k)*t(k)*(t(k) - 1.d0)*delta**d(k)*tau**(t(k) - 2.d0)*exp(-delta**c(k))
+                     n(k)*t(k)*(t(k) - 1.d0) &
+                     *delta**d(k)*tau**(t(k) - 2.d0) &
+                     *exp(-delta**c(k))
         ! Second Derivative with reduced temperature and density
         aoir(3, 3) = aoir(3, 3) + &
                      n(k)*t(k)*delta**(d(k) - 1) &
@@ -242,7 +278,7 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
     real*8, dimension(3, 3), intent(out):: aijr
     integer:: k
 
-    aijr = 0.0
+    aijr = 0.d0
     ! Departure function
     do k = 1, Kpolij
         aijr(1, 1) = aijr(1, 1) + &
@@ -299,17 +335,15 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
 
 End Subroutine a_ijr
 
-Subroutine ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
-                      n0i, th0i, ao)
-    real*8:: X(21), rho, T, rho_r, T_r
-    real*8, dimension(21, 7):: n0i, th0i
-    real*8, dimension(3, 3):: ao, aoio
-    real*8, dimension(21):: rho_c, T_c
-    real*8::  xi, eps = 1d-10
-    integer:: N = 21
+Subroutine ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, n0i, th0i, ao)
+    real*8, intent(in):: X(21), rho, T, rho_r, T_r
+    real*8, dimension(21, 7),intent(in):: n0i, th0i
+    real*8, dimension(21), intent(in):: rho_c, T_c
+    real*8, intent(out):: ao(3,3)
+    real*8::  aoio(3,3), xi, eps = 1d-10
+    integer:: N=21
 
-    ao = 0
-
+    ao = 0.d0
     do i = 1, N
         if (X(i) > eps) then
             aoio = 0
@@ -326,32 +360,20 @@ Subroutine ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
             ! ao(3,3) should always be zero, based on the paper
         end if
     end do
-
 End Subroutine ideal_term
 
-Subroutine residual_term(X, delta, tau, &
-                         Kpol, Kexp, noik, doik, toik, coik, &
-                         Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, ethaij, gammaij, &
-                         ar)
-    real*8, dimension(21), intent(in):: X
-    integer, dimension(21), intent(in):: Kpol, Kexp
-    real*8, dimension(21, 24), intent(in):: noik, toik
-    integer, dimension(21, 24), intent(in):: doik, coik
-    real*8, dimension(21, 21, 12), intent(in):: betaij, epsij, ethaij, gammaij
-    real*8, dimension(21, 21, 12), intent(in):: nij, tij
-    integer, dimension(21, 21, 12), intent(in):: dij
-    real*8, dimension(21, 21), intent(in):: Fij
-    integer, dimension(21, 21), intent(in):: Kpolij, Kexpij
-    real*8, intent(in):: delta, tau
+Subroutine residual_term(X, delta, tau, ar)
+    use parameters
+    real*8, intent(in):: delta, tau, X(21)
     real*8, dimension(3, 3), intent(out):: ar
     real*8, dimension(3, 3):: aoir, aijr
-    real*8:: eps = 1d-10
+    integer:: i,j
 
-    integer:: i, j
+    call get_params()
 
     ar = 0.0
 
-    do i = 1, 21
+    do i = 1, N
         if (X(i) > eps) then
             aoir = 0.0
             aijr = 0.0
@@ -368,11 +390,9 @@ Subroutine residual_term(X, delta, tau, &
 
     !write (0, *) "Normal:", ar(2, 1), ar(3, 1), ar(2, 2), ar(3, 2), ar(3, 3)
 
-    do i = 1, 20
-    do j = i + 1, 21
+    do i = 1, N - 1
+    do j = i + 1, N
     if (Fij(i, j) > eps .and. X(i) > eps .and. X(j) > eps) then
-        !!write (0, *) "_Departure Function_"
-        !!write (0, *) i, j, Fij(i, j), Kpolij(i, j), Kexpij(i, j)
         call a_ijr(delta, tau, Kpolij(i, j), Kexpij(i, j), &
                    nij(i, j, :), dij(i, j, :), tij(i, j, :), ethaij(i, j, :), &
                    epsij(i, j, :), gammaij(i, j, :), betaij(i, j, :), &
@@ -386,33 +406,25 @@ Subroutine residual_term(X, delta, tau, &
     end if
     end do
     end do
-    !write (0, *) "Departure:", aijr(2, 1), aijr(3, 1), aijr(2, 2), aijr(3, 2), aijr(3, 3)
-
 End Subroutine residual_term
 
 Program gerg
     use parameters
     use thermo_props
-
     Implicit None
-    ! Constants
-    real*8:: R
     ! Variables
     real*8:: T, rho, tau, delta, X(21)
     ! Calculated variables
     real*8, dimension(3, 3):: ar, ao
-    real*8:: P, Z, w, cp, cv, mean_M
-    real*8:: T_r, rho_r
-    character(len=100):: compound
-
-    integer:: io, counter, stdin = 5, stdout = 6, stderr = 0
-    character(len=100):: arg
-
+    real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
+    ! bintest
     real*8:: test_P, test_cv, test_cp, test_w, up, down
+    integer:: io
+    ! Input args
+    character(len=100):: arg
+    integer:: i,j,k
 
-    ! Constantes
-    R = 8.314472d0
-
+    ! Get the R constant, compound properties and equations parameters
     call get_params()
 
     ! Propiedades de operación
@@ -422,20 +434,14 @@ Program gerg
     T = 1.d0
     X = 0.d0
 
-    counter = 1
-
     select case (arg)
     case ('bintest')
         open (1, file='GERG_test/binary/test_data')
         io = 0
+        ! Reads until the file with test data ends
         do while (io == 0)
-            !write (0, *) "___________________________________________________________"
             X = 0
-            !write (stderr, *) "Iteracion: ", counter
-            counter = counter + 1
-
             read (1, *, iostat=io) i, X(i), j, X(j), T, rho, test_P, test_cv, test_cp, test_w
-
             if (io .ne. 0) then
                 exit
             end if
@@ -447,15 +453,10 @@ Program gerg
             mean_M = mean_M/1000.d0
 
             ! Set delta and tau
-            call reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
+            call reducing_funcs(X, rho_r, T_r)
             delta = rho*rho_r
             tau = T_r/T
-
-            call residual_term(X, delta, tau, &
-                               Kpol, Kexp, noik, doik, toik, coik, &
-                               Fij, Kpolij, Kexpij, dij, nij, tij, betaij, epsij, ethaij, gammaij, &
-                               ar)
-
+            call residual_term(X, delta, tau, ar)
             call ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
                             n0i, th0i, &
                             ao)
@@ -467,60 +468,54 @@ Program gerg
             call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
 
             ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
-            P = Z*rho*T*R*1000.d0*1d-6
+            P = Z*rho*T*R*1000.d0*1.d-6
 
             up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
             down = (1.d0 + 2.d0*delta*Ar(2, 1) - delta**2*Ar(3, 1))
 
             print *, i, j, T, rho, P, cv, cp, w, test_P, test_cv, test_cp, test_w
-            write (stderr, *) i, j, -tau**2*(Ao(3, 2) + Ar(3, 2)), +up/down
+
         end do
         close (1)
+    case ('VCalc')
+            rho = 12.7982864
+            T = 400.0
+            P = 50000.d3
 
-    case ('isotherm')
-        open (1, file='debug_data')
+            x(1 )=0.77824d0       !Methane
+            x(2 )=0.02d0          !Nitrogen
+            x(3 )=0.06d0          !CO2
+            x(4 )=0.08d0          !Ethane
+            x(5 )=0.03d0          !Propane
+            x(6 )=0.003d0         !Butane
+            x(7 )=0.0015d0        !Isobutane
+            x(8 )=0.00165d0       !Pentane
+            x(9 )=0.0005d0        !Isopentane
+            x(10)=0.00215d0       !Hexane
+            x(11)=0.00088d0       !Heptane
+            x(12)=0.00024d0       !Octane
+            x(13)=0.00015d0       !Nonane
+            x(14)=0.00009d0       !Decane
+            x(15)=0.004d0         !Hydrogen
+            x(16)=0.005d0         !Oxygen
+            x(17)=0.002d0         !CO
+            x(18)=0.0001d0        !Water
+            x(19)=0.0025d0        !H2S
+            x(20)=0.007d0         !Helium
+            x(21)=0.001d0         !Argon
 
-        ! Get Isothermic data of mixture at given T
-        read (1, *) T
-        io = 0
-
-        ! Get concentration data
-        do while (io == 0)
-            read (1, *, iostat=io) i, compound, X(i)
-            !print *, i, X(i)
-        end do
-        close (1)
-
-        ! Calculate mean molecular weight
-        mean_M = 0
-        do i = 1, size(X)
-            mean_M = mean_M + X(i)*M(i)
-        end do
-
-        call reducing_funcs(X, Bv, Gv, Bt, Gt, rho_c, rho_r, T_c, T_r)
-
-        tau = T_r/T
-
-        do j = 0, 5000, 10
-            rho = float(j)/10
+            call reducing_funcs(X, rho_r, T_r)
+            
             delta = rho*rho_r
             tau = T_r/T
 
-            call residual_term(X, delta, tau, &
-                               Kpol, Kexp, noik, doik, toik, coik, &
-                               Fij, Kpolij, Kexpij, dij, nij, tij, betaij, &
-                               epsij, ethaij, gammaij, &
-                               ar)
-            call ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
-                            n0i, th0i, &
-                            ao)
-            call zeta(delta, ar, Z)
-            call sound_speed(R, T, mean_M/1000, delta, tau, ar, ao, w)
+            call residual_term(X, delta, tau, ar)
+            call zeta(delta, ar, z)
+            P = Z*rho*T*R*1000.d0
+            print *, rho, P
 
-            ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3]
-            P = Z*rho*T*R*1000
+            call V_calc(X, P, T, rho)
+            print *, rho, P
 
-            !print *, T, rho, P/1e6, Z, w
-        end do
     end select
 End Program gerg
