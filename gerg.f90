@@ -1,7 +1,7 @@
 ! Author= Federico Benelli
 ! Gerg-2008 Equation
 ! Started at: 01/07/2021
-! Last Modified: mar 31 ago 2021 13:04:21
+! Last Modified: mié 01 sep 2021 15:48:41
 !
 
 ! -------------------
@@ -10,13 +10,13 @@
 Subroutine reducing_funcs(X, rho_r, T_r)
     ! REDUCING DENSITY AND TEMPERATURE
     ! input:
-    !  - X      (dimension): molar fractions
-    !  - Bv     (dimension): beta parameters for reducing density
-    !  - Gv     (dimension): gamma parameters for reducing density
-    !  - Bt     (dimension): beta parameters for reducing temperature
-    !  - Gt     (dimension): gamma parameters for reducing temperature
-    !  - rho_c  (dimension): citical densities
-    !  - T_c    (dimension): citical temperatures
+    !  - X      (array): molar fractions
+    !  - Bv     (array): beta parameters for reducing density
+    !  - Gv     (array): gamma parameters for reducing density
+    !  - Bt     (array): beta parameters for reducing temperature
+    !  - Gt     (array): gamma parameters for reducing temperature
+    !  - rho_c  (array): citical densities
+    !  - T_c    (array): citical temperatures
     ! output:
     !  - rho_r  (float): Reducing density (1/rhor)
     !  - T_r    (float): reducing temperature (Tr)
