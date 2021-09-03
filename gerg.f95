@@ -129,22 +129,22 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
     do k = 4, 7
         if (v(k) > eps) then
             if (k == 4) then
-                aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(sinh(v(k)*Tr))))
-                aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/tanh(v(k)*Tr))
-                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/sinh(v(k)*Tr)**2)
+                aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(dsinh(v(k)*Tr))))
+                aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/dtanh(v(k)*Tr))
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/dsinh(v(k)*Tr)**2)
             else if (k == 5 .or. k == 6) then
-                aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(sinh(v(k)*Tr))))
-                aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(cosh(v(k)*Tr)))
+                aoio(1, 1) = aoio(1, 1) + r*(n(k)*log(abs(dsinh(v(k)*Tr))))
+                aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(dcosh(v(k)*Tr)))
 
-                aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/tanh(v(k)*Tr))
-                aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*tanh(v(k)*Tr))
+                aoio(2, 2) = aoio(2, 2) + r*(n(k)*v(k)/dtanh(v(k)*Tr))
+                aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*dtanh(v(k)*Tr))
 
-                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/sinh(v(k)*Tr)**2)
-                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/cosh(v(k)*Tr)**2)
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/dsinh(v(k)*Tr)**2)
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/dcosh(v(k)*Tr)**2)
             else
-                aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(cosh(v(k)*Tr)))
-                aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*tanh(v(k)*Tr))
-                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/cosh(v(k)*Tr)**2)
+                aoio(1, 1) = aoio(1, 1) - r*(n(k)*log(dcosh(v(k)*Tr)))
+                aoio(2, 2) = aoio(2, 2) - r*(n(k)*v(k)*dtanh(v(k)*Tr))
+                aoio(3, 2) = aoio(3, 2) - r*(n(k)*v(k)**2/dcosh(v(k)*Tr)**2)
             end if
         end if
     end do
@@ -335,13 +335,13 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
 
 End Subroutine a_ijr
 
-Subroutine ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, n0i, th0i, ao)
+Subroutine ideal_term(X, rho, T, rho_r, T_r, ao)
+    use parameters
     real*8, intent(in):: X(21), rho, T, rho_r, T_r
-    real*8, dimension(21, 7),intent(in):: n0i, th0i
-    real*8, dimension(21), intent(in):: rho_c, T_c
     real*8, intent(out):: ao(3,3)
-    real*8::  aoio(3,3), xi, eps = 1d-10
-    integer:: N=21
+    real*8::  aoio(3,3), xi
+
+    call get_params()
 
     ao = 0.d0
     do i = 1, N
@@ -418,7 +418,7 @@ Program gerg
     real*8, dimension(3, 3):: ar, ao
     real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
     ! bintest
-    real*8:: test_P, test_cv, test_cp, test_w, up, down
+    real*8:: test_P, test_cv, test_cp, test_w
     integer:: io
     ! Input args
     character(len=100):: arg
@@ -457,9 +457,7 @@ Program gerg
             delta = rho*rho_r
             tau = T_r/T
             call residual_term(X, delta, tau, ar)
-            call ideal_term(X, rho, T, rho_c, T_c, rho_r, T_r, &
-                            n0i, th0i, &
-                            ao)
+            call ideal_term(X, rho, T, rho_r, T_r, ao)
 
             ! Calculate Properties
             call zeta(delta, ar, Z)
@@ -470,10 +468,8 @@ Program gerg
             ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
             P = Z*rho*T*R*1000.d0*1.d-6
 
-            up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
-            down = (1.d0 + 2.d0*delta*Ar(2, 1) - delta**2*Ar(3, 1))
-
             print *, i, j, T, rho, P, cv, cp, w, test_P, test_cv, test_cp, test_w
+            write(0,*) i,j,delta, tau, ar(3,2), ao(3,2), cv, test_cv
 
         end do
         close (1)
