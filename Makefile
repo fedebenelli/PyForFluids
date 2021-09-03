@@ -1,4 +1,5 @@
 install:
-	gfortran  parameters.f90 modules.f90 gerg.f90 -Wall -Wextra -fcheck=all -o gerg
+	gfortran  parameters.f95 thermoprops.f95 gerg.f95 -Wall -Wextra -fcheck=all -o gerg
+	f2py -c parameters.f95 thermoprops.f95 gerg.f95 -m pyforfluids
 debug:
-	gfortran modules.f90 parameters.f90 gerg.f90 -g -O0 -Wall -Wextra -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow,denormal -o gerg
+	gfortran parameters.f95 thermoprops.f95 gerg.f95 -g -O0 -Wall -Wextra -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow,denormal -o gerg

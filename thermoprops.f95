@@ -1,6 +1,6 @@
-Module get_params  !
+Module read_params  !
 Contains
-    Subroutine get_parameters(no_file, vo_file, no, vo, &
+    Subroutine read_parameters(no_file, vo_file, no, vo, &
                               Kr_file, nr_file, dr_file, tr_file, cr_file, &
                               Kpol, Kexp, nr, dr, tr, cr, &
                               Kij_file, betaij_file, dij_file, epsij_file, &
@@ -194,8 +194,8 @@ Contains
         end do
 
         !call robbed_ideal(no, vo)
-    End Subroutine get_parameters
-End Module get_params
+    End Subroutine read_parameters
+End Module read_params
 
 ! ------------------------
 ! Thermodynamic Properties
