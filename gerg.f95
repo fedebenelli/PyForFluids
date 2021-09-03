@@ -118,7 +118,6 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
     real*8, intent(in), dimension(7):: n, v
     real*8, intent(out):: aoio(3, 3)
     real*8:: r, Tr, Dr, eps = 1d-10
-    character(len=100):: forma
 
     r = 8.314510d0/8.314472d0
     

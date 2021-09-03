@@ -35,7 +35,7 @@ Contains
         character(len=100):: critical_file
         real*8, dimension(21), intent(inout):: rho_c, T_c, M
         ! Common parameters
-        integer:: i, j, k, io, N = 21
+        integer:: i, j, k, io 
 
         no = 0
         vo = 0
