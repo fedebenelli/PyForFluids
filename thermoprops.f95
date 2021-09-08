@@ -1,15 +1,15 @@
 Module read_params  !
 Contains
     Subroutine read_parameters(no_file, vo_file, no, vo, &
-                              Kr_file, nr_file, dr_file, tr_file, cr_file, &
-                              Kpol, Kexp, nr, dr, tr, cr, &
-                              Kij_file, betaij_file, dij_file, epsij_file, &
-                              etaij_file, gammij_file, nij_file, tij_file, &
-                              Fij_file, &
-                              Kpolij, Kexpij, betaij, dij, epsij, etaij, &
-                              gammij, nij, tij, Fij, &
-                              reducing_file, Bv, Gv, Bt, Gt, &
-                              critical_file, rho_c, T_c, M)
+                               Kr_file, nr_file, dr_file, tr_file, cr_file, &
+                               Kpol, Kexp, nr, dr, tr, cr, &
+                               Kij_file, betaij_file, dij_file, epsij_file, &
+                               etaij_file, gammij_file, nij_file, tij_file, &
+                               Fij_file, &
+                               Kpolij, Kexpij, betaij, dij, epsij, etaij, &
+                               gammij, nij, tij, Fij, &
+                               reducing_file, Bv, Gv, Bt, Gt, &
+                               critical_file, rho_c, T_c, M)
 
         Implicit None
         ! Ideal gas parameters
@@ -35,7 +35,7 @@ Contains
         character(len=100):: critical_file
         real*8, dimension(21), intent(inout):: rho_c, T_c, M
         ! Common parameters
-        integer:: i, j, k, io 
+        integer:: i, j, k, io
 
         no = 0
         vo = 0
@@ -233,13 +233,23 @@ Contains
 
     Subroutine sound_speed(delta, tau, R, T, M, Ao, Ar, w)
         real*8, intent(in):: delta, tau, R, T, M, Ao(3, 3), Ar(3, 3)
-        real*8, intent(inout):: w
+        real*8, intent(out):: w
         real*8:: up, down
 
         up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
         down = (tau**2*(ao(3, 2) + ar(3, 2)))
         w = 1.d0 + 2*delta*ar(2, 1) + delta**2*ar(3, 1) - up/down
         w = sqrt(w*R*T/M)
-
     End Subroutine sound_speed
+
+    Subroutine isothermal_thermal_coefficent(delta, tau, rho, Ar, delta_t)
+        real*8, intent(in):: delta, Ar(3, 3), tau, rho
+        real*8, intent(out):: delta_t
+        real*8:: up, down
+
+        up = 1 + delta*Ar(2, 1) - delta*tau*Ar(3, 3)
+        down = 1 + 2*delta*Ar(2, 1) + delta**2*Ar(3, 1)
+        delta_t = (1 - up/down)/rho
+    End Subroutine isothermal_thermal_coefficent
+
 End Module thermo_props
