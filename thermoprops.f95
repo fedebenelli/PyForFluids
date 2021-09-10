@@ -238,7 +238,7 @@ Contains
         up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
         down = (tau**2*(ao(3, 2) + ar(3, 2)))
         
-        w = 1.d0 + 2*delta*ar(2, 1) + delta**2*ar(3, 1) - up/down
+        w = 1.d0 + 2.d0*delta*ar(2, 1) + delta**2*ar(3, 1) - up/down
         w = sqrt(w*R*T/M)
     End Subroutine sound_speed
 
@@ -247,17 +247,17 @@ Contains
         real*8, intent(out):: delta_t
         real*8:: up, down
 
-        up = 1 + delta*Ar(2, 1) - delta*tau*Ar(3, 3)
-        down = 1 + 2*delta*Ar(2, 1) + delta**2*Ar(3, 1)
+        up = 1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3)
+        down = 1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1)
         
-        delta_t = (1 - up/down)/rho
+        delta_t = (1.d0 - up/down)/rho
     End Subroutine isothermal_thermal_coefficent
 
     Subroutine pressure(delta, rho, R, T, Ar, p)
         real*8, intent(in):: delta, rho, R, T, Ar(3,3)
         real*8, intent(out):: p
 
-        p = (1 + delta*Ar(2,1))*rho*R*T
+        p = (1.d0 + delta*Ar(2,1))*rho*R*T
     End Subroutine pressure
     
     Subroutine entropy(tau, R, Ao, Ar, s) 
@@ -278,25 +278,26 @@ Contains
         real*8, intent(in):: delta, tau, R, T, Ao(3,3), Ar(3,3)
         real*8, intent(out):: h
 
-        h = ((1 + tau*(Ao(2,2) + Ar(2,2)) + delta*Ar(2,1)))*R*T
+        h = ((1.d0 + tau*(Ao(2,2) + Ar(2,2)) + delta*Ar(2,1)))*R*T
     End Subroutine enthalpy
 
     Subroutine gibbs_free_energy(delta, R, T, Ao, Ar, g) 
         real*8, intent(in):: delta, R, T, Ao(3,3), Ar(3,3)
         real*8, intent(out):: g
 
-        g = (1 + Ao(1,1) + Ar(1,1) + delta*Ar(2,1))*R*T
+        g = (1.d0 + Ao(1,1) + Ar(1,1) + delta*Ar(2,1))*R*T
     End Subroutine gibbs_free_energy
 
     Subroutine joule_thomson_coeff(delta, tau, rho, R, Ao, Ar, JT)
         real*8, intent(in):: delta, tau, rho, R, Ao(3,3), Ar(3,3)
         real*8, intent(out):: JT
-        real*8:: up, down
+        real*8:: up, down_1, down_2
 
         up = delta*Ar(2,1) + delta**2*Ar(3,1) + delta*tau*Ar(2,3)
-        down = (1 + delta*Ar(2,1) - delta*tau*Ar(2,3))**2 - tau**2*(Ao(3,2) + Ar(3,2)*(1 + 2*delta*Ar(2,1) + delta**2*Ar(3,1)))
+        down_1 = (1.d0 + delta*Ar(2,1) - delta*tau*Ar(2,3))**2
+        down_2 = -(tau**2*(Ao(3,2) + Ar(3,2))*(1.d0 + 2.d0*delta*Ar(2,1) + delta**2*Ar(3,1)))
 
-        JT = -up/down*R*rho
+        JT = -up/(down_1 + down_2)*R*rho
     End Subroutine joule_thomson_coeff
 
     Subroutine isentropic_exponent(delta, tau, Ao, Ar, k)
@@ -304,12 +305,12 @@ Contains
         real*8, intent(out):: k
         real*8:: up1, down1, up2, down2
 
-        up1 = 1 + 2*delta*Ar(2,1) + delta**2*Ar(3,1)
-        down1 = 1 + delta*Ar(2,1)
-        up2 = (1 + delta*Ar(2,1) - delta*tau*Ar(2,3))**2
-        down2 = tau**2*(Ao(3,2) + Ar(2,2))*(1 + 2*delta*Ar(2,1) + delta**2*Ar(3,2))
+        up1 = 1.d0 + 2*delta*Ar(2,1) + delta**2*Ar(3,1)
+        down1 = 1.d0 + delta*Ar(2,1)
+        up2 = (1.d0 + delta*Ar(2,1) - delta*tau*Ar(2,3))**2
+        down2 = tau**2*(Ao(3,2) + Ar(2,2))*(1.d0+ 2.d0*delta*Ar(2,1) + delta**2*Ar(3,2))
 
-        k = (up1/down1)*(1 - up2/down2)
+        k = (up1/down1)*(1.d0 - up2/down2)
     End Subroutine isentropic_exponent
 
 
