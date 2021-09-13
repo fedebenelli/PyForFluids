@@ -313,5 +313,23 @@ Contains
         k = (up1/down1)*(1.d0 - up2/down2)
     End Subroutine isentropic_exponent
 
+    Subroutine second_thermal_virial_coeff(rho_r, Ar, B)
+        real*8, intent(in):: rho_r, Ar(3,3)
+        real*8, intent(out):: B
+        real*8:: delta
+
+        delta = 1d-15
+        B = Ar(2,1) / rho_r
+    End Subroutine second_thermal_virial_coeff
+
+    Subroutine third_thermal_virial_coeff(rho_r, Ar, C)
+        real*8, intent(in):: rho_r, Ar(3,3)
+        real*8, intent(out):: C
+        real*8:: delta
+
+        delta = 1d-15
+        C = Ar(3,1) / (rho_r**2)
+    End Subroutine third_thermal_virial_coeff
+
 
 End Module thermo_props
