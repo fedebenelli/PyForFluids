@@ -210,12 +210,13 @@ Contains
         z = 1.d0 + delta*ar(2, 1)
     End Subroutine zeta
 
-    Subroutine isocoric_heat(tau, R, Ao, Ar, cv)
+    Subroutine isochoric_heat(tau, R, Ao, Ar, cv) 
         real*8, intent(in):: tau, R, Ao(3, 3), Ar(3, 3)
         real*8, intent(inout)::cv
+        
         cv = -tau**2.d0*(Ao(3, 2) + Ar(3, 2))
         cv = cv*R
-    End Subroutine isocoric_heat
+    End Subroutine isochoric_heat
 
     Subroutine isobaric_heat(delta, tau, R, Ao, Ar, cp)
         real*8, intent(in):: delta, tau, R, Ao(3, 3), Ar(3, 3)
@@ -226,9 +227,7 @@ Contains
         down = 1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1)
 
         cp = -tau**2.d0*(Ao(3, 2) + Ar(3, 2)) + up/down
-
         cp = cp*R
-
     End Subroutine isobaric_heat
 
     Subroutine sound_speed(delta, tau, R, T, M, Ao, Ar, w)
@@ -238,7 +237,8 @@ Contains
 
         up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
         down = (tau**2*(ao(3, 2) + ar(3, 2)))
-        w = 1.d0 + 2*delta*ar(2, 1) + delta**2*ar(3, 1) - up/down
+        
+        w = 1.d0 + 2.d0*delta*ar(2, 1) + delta**2*ar(3, 1) - up/down
         w = sqrt(w*R*T/M)
     End Subroutine sound_speed
 
@@ -247,9 +247,89 @@ Contains
         real*8, intent(out):: delta_t
         real*8:: up, down
 
-        up = 1 + delta*Ar(2, 1) - delta*tau*Ar(3, 3)
-        down = 1 + 2*delta*Ar(2, 1) + delta**2*Ar(3, 1)
-        delta_t = (1 - up/down)/rho
+        up = 1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3)
+        down = 1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1)
+        
+        delta_t = (1.d0 - up/down)/rho
     End Subroutine isothermal_thermal_coefficent
+
+    Subroutine pressure(delta, rho, R, T, Ar, p)
+        real*8, intent(in):: delta, rho, R, T, Ar(3,3)
+        real*8, intent(out):: p
+
+        p = (1.d0 + delta*Ar(2,1))*rho*R*T
+    End Subroutine pressure
+    
+    Subroutine entropy(tau, R, Ao, Ar, s) 
+        real*8, intent(in):: tau, R, Ao(3,3), Ar(3,3)
+        real*8, intent(out):: s 
+
+        s = (tau*(Ao(2,2) + Ar(2,2)) - Ao(1,1) - Ar(1,1))*R
+    End Subroutine entropy
+
+    Subroutine internal_energy(tau, R, T, Ao, Ar, u)
+        real*8, intent(in):: tau, R, T, Ao(3,3), Ar(3,3)
+        real*8, intent(out):: u
+
+        u = tau*(Ao(2,2) + Ar(2,2))*R*T
+    End Subroutine internal_energy
+
+    Subroutine enthalpy(delta, tau, R, T, Ao, Ar, h)
+        real*8, intent(in):: delta, tau, R, T, Ao(3,3), Ar(3,3)
+        real*8, intent(out):: h
+
+        h = ((1.d0 + tau*(Ao(2,2) + Ar(2,2)) + delta*Ar(2,1)))*R*T
+    End Subroutine enthalpy
+
+    Subroutine gibbs_free_energy(delta, R, T, Ao, Ar, g) 
+        real*8, intent(in):: delta, R, T, Ao(3,3), Ar(3,3)
+        real*8, intent(out):: g
+
+        g = (1.d0 + Ao(1,1) + Ar(1,1) + delta*Ar(2,1))*R*T
+    End Subroutine gibbs_free_energy
+
+    Subroutine joule_thomson_coeff(delta, tau, rho, R, Ao, Ar, JT)
+        real*8, intent(in):: delta, tau, rho, R, Ao(3,3), Ar(3,3)
+        real*8, intent(out):: JT
+        real*8:: up, down_1, down_2
+
+        up = delta*Ar(2,1) + delta**2*Ar(3,1) + delta*tau*Ar(2,3)
+        down_1 = (1.d0 + delta*Ar(2,1) - delta*tau*Ar(2,3))**2
+        down_2 = -(tau**2*(Ao(3,2) + Ar(3,2))*(1.d0 + 2.d0*delta*Ar(2,1) + delta**2*Ar(3,1)))
+
+        JT = -up/(down_1 + down_2)*R*rho
+    End Subroutine joule_thomson_coeff
+
+    Subroutine isentropic_exponent(delta, tau, Ao, Ar, k)
+        real*8, intent(in):: delta, tau, Ao(3,3), Ar(3,3)
+        real*8, intent(out):: k
+        real*8:: up1, down1, up2, down2
+
+        up1 = 1.d0 + 2*delta*Ar(2,1) + delta**2*Ar(3,1)
+        down1 = 1.d0 + delta*Ar(2,1)
+        up2 = (1.d0 + delta*Ar(2,1) - delta*tau*Ar(2,3))**2
+        down2 = tau**2*(Ao(3,2) + Ar(2,2))*(1.d0+ 2.d0*delta*Ar(2,1) + delta**2*Ar(3,2))
+
+        k = (up1/down1)*(1.d0 - up2/down2)
+    End Subroutine isentropic_exponent
+
+    Subroutine second_thermal_virial_coeff(rho_r, Ar, B)
+        real*8, intent(in):: rho_r, Ar(3,3)
+        real*8, intent(out):: B
+        real*8:: delta
+
+        delta = 1d-15
+        B = Ar(2,1) / rho_r
+    End Subroutine second_thermal_virial_coeff
+
+    Subroutine third_thermal_virial_coeff(rho_r, Ar, C)
+        real*8, intent(in):: rho_r, Ar(3,3)
+        real*8, intent(out):: C
+        real*8:: delta
+
+        delta = 1d-15
+        C = Ar(3,1) / (rho_r**2)
+    End Subroutine third_thermal_virial_coeff
+
 
 End Module thermo_props
