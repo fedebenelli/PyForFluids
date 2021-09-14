@@ -1,7 +1,17 @@
+FORTRAN_SOURCES="src/fortran"
+FILES=${FORTRAN_SOURCES}/parameters.f95 ${FORTRAN_SOURCES}/thermoprops.f95 ${FORTRAN_SOURCES}/gerg.f95
+COMPILE_COMMAND=gfortran ${FILES} -Wall -Wextra -fcheck=all
+DEBUG_EXECUTABLE=gfortran ${FILES} -g -O0 -Wall -Wextra -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow,denormal
+
+clean:
+	rm *.mod ${FORTRAN_SOURCES}/*.mod
+
 install:
-	gfortran  parameters.f95 thermoprops.f95 gerg.f95 -Wall -Wextra -fcheck=all -o gerg
+	${COMPILE_COMMAND} -o gerg
+
 debug:
-	gfortran parameters.f95 thermoprops.f95 gerg.f95 -g -O0 -Wall -Wextra -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow,denormal -o gerg
-module:
-	f2py -c parameters.f95 thermoprops.f95 gerg.f95 -m pyforfluids
+	${DEBUG_EXECUTABLE} -o gerg_debug
+
+py_module:
+	f2py -c ${FORTRAN_SOURCES}/*f95 -m pyforfluids
 
