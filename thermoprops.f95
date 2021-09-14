@@ -252,6 +252,77 @@ Contains
         
         delta_t = (1.d0 - up/down)/rho
     End Subroutine isothermal_thermal_coefficent
+    Subroutine dp_dt(rho,delta,tau,R,Ar,dpdt)
+        real*8, intent(in):: delta,R,rho,tau
+        real*8,intent(out)::dpdt
+        real*8,dimension(3,3),intent(in)::Ar
+        
+        dpdt=rho*R*(1.d0+delta*Ar(2,1)-delta*tau*Ar(3,3))
+
+    End Subroutine dp_dt
+    
+    Subroutine dp_drho(T,delta,R,Ar,dpdrho)
+        real*8, intent(in):: delta,R,T
+        real*8,intent(out)::dpdrho
+        real*8,dimension(3,3),intent(in)::Ar
+        
+        dpdrho=T*R*(1.d0+2.d0*delta*Ar(2,1)+(delta**2)*Ar(3,1))
+
+    End Subroutine dp_drho
+
+    Subroutine dp_dv(rho,delta,T,R,Ar,dpdv) !!Recordar que acá hablamos de volumen molar!!
+        real*8, intent(in):: delta,R,rho,T
+        real*8,intent(out)::dpdv
+        real*8,dimension(3,3),intent(in)::Ar
+        
+        dpdv=-(rho**2)*R*T*(1.d0+2.d0*delta*Ar(2,1)+(delta**2)*Ar(3,1))
+
+    End Subroutine dp_dv
+
+    Subroutine a_xixjr(i,j,X,Ar,Ar0,axixj)
+        integer::i,j                               !!Estos enteros me permiten evaluar X(i),X(j)
+        real*8,dimension(21,21),intent(in)::X      !!Las fracciones molares
+        real*8,dimension(3,3,21,21),intent(in)::Ar !!Ar es una matriz 3x3 de las sustancias que definas en el tercer y cuarto argumento
+        real*8,dimension(3,3,21),intent(in)::Ar0   !!Ar0 es una matriz 3x3 a0i_r de la sustancia que definas en el tercer argumento 
+        real*8,dimension(21,21)::F                 !!Parámetros Fij
+        real*8,dimension(3,3)::axixj
+           !axixj:
+           ! --------------+------------------+------------------|
+           ! aij_r         |     0            |    0             |
+           ! d(aij_r)/dxi  |   d(aij_r)/dxj   |    0             |
+           ! d2(aij_r)/dxi2|   d2(aij_r)/dxj2 | d2(aij_r)/dxidxj |
+           ! ----------------------------------------------------|     
+        
+        
+
+        axixj=0.d0
+        axixj(1,1)=Ar(1,1)
+        
+        sum_21=0.d0  !!Los terminos sum_ij van a ser terminos que iteran la sumatoria para cada elemento de matriz "i,j"
+        
+        do k=1,21
+        if (k==i) then
+        continue
+        else
+        sum_21=sum_21+X(k)*F(i,k)*Ar(1,1,i,k)
+        end do
+        axixj(2,1)=Ar0(1,1,i)+sum_21
+
+        sum_22=0.d0  !!Los terminos sum_ij van a ser terminos que iteran la sumatoria para cada elemento de matriz "i,j"
+        
+        do k=1,21
+        if (k==j) then
+        continue
+        else
+        sum_21=sum_21+X(k)*F(j,k)*Ar(1,1,j,k)
+        end do
+        axixj(2,2)=Ar0(1,1,j)+sum_21
+
+        axixj(3,1)=0.d0
+        axixj(3,2)=0.d0
+
+        axixj(3,3)=F(i,j)*Ar(1,1,i,j)        
+    End Subroutine a_xixjr
 
     Subroutine pressure(delta, rho, R, T, Ar, p)
         real*8, intent(in):: delta, rho, R, T, Ar(3,3)
