@@ -461,7 +461,7 @@ Program gerg
             ! Calculate Properties
             call zeta(delta, ar, Z)
             call isobaric_heat(delta, tau, R, ao, ar, cp)
-            call isocoric_heat(tau, R, Ao, Ar, cv)
+            call isochoric_heat(tau, R, Ao, Ar, cv)
             call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
 
             ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
