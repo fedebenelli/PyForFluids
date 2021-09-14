@@ -251,5 +251,31 @@ Contains
         down = 1 + 2*delta*Ar(2, 1) + delta**2*Ar(3, 1)
         delta_t = (1 - up/down)/rho
     End Subroutine isothermal_thermal_coefficent
+    Subroutine dp_dt(rho,delta,tau,R,Ar,dpdt)
+        real*8, intent(in):: delta,R,rho,tau
+        real*8,intent(out)::dpdt
+        real*8,dimension(3,3),intent(in)::Ar
+        
+        dpdt=rho*R*(1.d0+delta*Ar(2,1)-delta*tau*Ar(3,3))
+
+    End Subroutine dp_dt
+    
+    Subroutine dp_drho(T,delta,R,Ar,dpdrho)
+        real*8, intent(in):: delta,R,T
+        real*8,intent(out)::dpdrho
+        real*8,dimension(3,3),intent(in)::Ar
+        
+        dpdrho=T*R*(1.d0+2.d0*delta*Ar(2,1)+(delta**2)*Ar(3,1))
+
+    End Subroutine dp_drho
+
+    Subroutine dp_dv(rho,delta,T,R,Ar,dpdv) !!Recordar que acá hablamos de volumen molar!!
+        real*8, intent(in):: delta,R,rho,T
+        real*8,intent(out)::dpdv
+        real*8,dimension(3,3),intent(in)::Ar
+        
+        dpdv=-(rho**2)*R*T*(1.d0+2.d0*delta*Ar(2,1)+(delta**2)*Ar(3,1))
+
+    End Subroutine dp_dv
 
 End Module thermo_props
