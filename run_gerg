@@ -37,33 +37,35 @@ batch_run() {
 }
 
 
+verification_folder="tests/verification"
 
 case $1 in
 	"Z")
-	col=4
-	test_folder="Z_test"
-	compare_file="$test_folder/compare"
-	test_data_file="$test_folder/test_data"
-	gerg_data_file="$test_folder/gergdata"
+		col=4
+		test_folder="$verification_folder/Z_test"
+		compare_file="$test_folder/compare"
+		test_data_file="$test_folder/test_data"
+		gerg_data_file="$test_folder/gergdata"
 
-	n_samples=$(awk '{print NF}' "$test_data_file" | sort -nu | tail -n1)
+		n_samples=$(awk '{print NF}' "$test_data_file" | sort -nu | tail -n1)
 
-	[ -z $2 ] && batch_run "$1" && exit 0
-	compare "$1" $2;;
+		[ -z $2 ] && batch_run "$1" && exit 0
+		compare "$1" $2;;
 
 	"w")
-	test_folder="w_test"
-	compare_file="$test_folder/compare"
-	test_data_file="$test_folder/test_data"
-	gerg_data_file="$test_folder/gergdata"
+		test_folder="w_test"
+		compare_file="$test_folder/compare"
+		test_data_file="$test_folder/test_data"
+		gerg_data_file="$test_folder/gergdata"
 
-	n_samples=$(awk '{print NF}' "$test_data_file" | sort -nu | tail -n1)
+		n_samples=$(awk '{print NF}' "$test_data_file" | sort -nu | tail -n1)
 
-	[ -z $2 ] && batch_run "$1" && exit 0
-	compare "$1" $2;;
+		[ -z $2 ] && batch_run "$1" && exit 0
+		compare "$1" $2
+	;;
 
 	"bintest")
-		test_folder="GERG_test/binary"
+		test_folder="$verification_folder/GERG_test/binary"
 		gerg_data_file="$test_folder/calcs"
 		head -n1 "$gerg_data_file" > /tmp/gergdata
 		cat /tmp/gergdata > "$gerg_data_file"
