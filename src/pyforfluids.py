@@ -1,7 +1,7 @@
 """PyForFluids
    ===========
 
-   Module that provides.....
+   Module that does stuff.....
 """
 
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ import gerg2008
 
 
 class Model:
-    """Thermodynamical model to be applied"""
+    """Determine the model to be utilized"""
 
     def __init__(self, model):
         """Initialize the model
@@ -23,13 +23,47 @@ class Model:
         possible_models = {"GERG"}
 
         if model not in possible_models:
-            raise ValueError
+            raise ValueError(f"{model} isn't implemented, yet")
 
         if model == "GERG":
-            self.vcalc = gerg2008.vcalc
+            # Define the model's methods
+            self.reducing_funcs = gerg2008.reducing_funcs
+            self.v_calc = gerg2008.v_calc
+            self.a_oio = gerg2008.a_oio
+            self.a_oir = gerg2008.a_oir
+            self.a_ijr = gerg2008.a_ijr
+            self.ideal_term = gerg2008.ideal_term
+            self.residual_term = gerg2008.residual_term
+
             self.pressure = gerg2008.thermo_props.pressure
             self.enthalpy = gerg2008.thermo_props.enthalpy
-            self.reducing_funcs = gerg2008.reducing_funcs
+            self.zeta = gerg2008.thermo_props.zeta
+            self.isochoric_heat = gerg2008.thermo_props.isochoric_heat
+            self.isobaric_heat = gerg2008.thermo_props.isobaric_heat
+            self.sound_speed = gerg2008.thermo_props.sound_speed
+            self.isothermal_thermal_coefficent = (
+                gerg2008.thermo_props.isothermal_thermal_coefficent
+            )
+            self.dp_dt = gerg2008.thermo_props.dp_dt
+            self.dp_drho = gerg2008.thermo_props.dp_drho
+            self.dp_dv = gerg2008.thermo_props.dp_dv
+            self.pressure = gerg2008.thermo_props.pressure
+            self.entropy = gerg2008.thermo_props.entropy
+            self.internal_energy = gerg2008.thermo_props.internal_energy
+            self.enthalpy = gerg2008.thermo_props.enthalpy
+            self.gibbs_free_energy = gerg2008.thermo_props.gibbs_free_energy
+            self.joule_thomson_coeff = (
+                gerg2008.thermo_props.joule_thomson_coeff
+            )
+            self.isentropic_exponent = (
+                gerg2008.thermo_props.isentropic_exponent
+            )
+            self.second_thermal_virial_coeff = (
+                gerg2008.thermo_props.second_thermal_virial_coeff
+            )
+            self.third_thermal_virial_coeff = (
+                gerg2008.thermo_props.third_thermal_virial_coeff
+            )
 
     def validate_components(self, components):
         """Validate if the components are available
@@ -40,14 +74,37 @@ class Model:
         if self.model in non_restricted_models:
             return
 
-        possible_components = {"GERG": ["methane", "carbon_dioxide", ...]}
+        possible_components = {
+            "GERG": [
+                "methane",
+                "nitrogen",
+                "carbon_dioxide",
+                "ethane",
+                "propane",
+                "butane",
+                "isobutane",
+                "pentane",
+                "isopentane",
+                "hexane",
+                "heptane",
+                "octane",
+                "nonane",
+                "decane",
+                "hydrogen",
+                "oxygen",
+                "carbon_monoxide",
+                "water",
+                "hydrogen_sulfide",
+                "helium",
+                "argon",
+            ]
+        }
 
         for component in components:
             if component not in possible_components[self.model]:
-                raise ValueError
-
-    def __repr__(self):
-        return "__repr__"
+                raise ValueError(
+                    f"{component} Can't be used in model {self.model}"
+                )
 
 
 class Fluid(Model):
@@ -117,7 +174,7 @@ class Fluid(Model):
 
         if density is None:
             # Get density with concentration, pressure and temperature
-            density = self.vcalc(concentration, pressure, temperature)
+            density = self.v_calc(concentration, pressure, temperature)
         else:
             pressure = self.pressure(concentration, density, temperature)
 
@@ -138,8 +195,8 @@ class Fluid(Model):
 
     def isotherm_pv(self, p_range):
         """ """
-        v = self.vcalc(self._concentration, p_range, self._temperature)
-        plt.plot(v, p_range)
+        v_range = self.v_calc(self._concentration, p_range, self._temperature)
+        plt.plot(v_range, p_range)
 
 
 fluid = Fluid(
