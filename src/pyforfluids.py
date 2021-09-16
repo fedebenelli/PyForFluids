@@ -118,6 +118,9 @@ class Fluid(Model):
         ):
             raise ValueError("Presión y densidad no pueden ser ambos None....")
 
+        # Validar que los componentes pertenezcan al modelo
+        self.validate_components(kwargs)
+
         self.methane = kwargs.get("methane", 0)
         self.nitrogen = kwargs.get("nitrogen", 0)
         self.carbon_dioxide = kwargs.get("carbon_dioxide", 0)
@@ -166,9 +169,6 @@ class Fluid(Model):
             self.argon,
         ]
 
-        # Validar que los componentes pertenezcan al modelo
-        self.validate_components(kwargs)
-
         # Convertir unidades a SI
         ...
 
@@ -185,7 +185,7 @@ class Fluid(Model):
         self._pressure = pressure
         self._density = density
         self._enthalpy = self.enthalpy(concentration, density, temperature)
-        self._entropy = 0
+        self._entropy = self.entropy(concentration, density, temperature)
 
     def update_properties(self):
         """ """
@@ -199,6 +199,6 @@ class Fluid(Model):
         plt.plot(v_range, p_range)
 
 
-fluid = Fluid(
-    model="GERG", pressure=250, temperature=150, methane=1, normalize=True
-)
+# fluid = Fluid(
+#     model="GERG", pressure=250, temperature=150, methane=1, normalize=True
+# )
