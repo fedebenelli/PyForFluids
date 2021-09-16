@@ -3,7 +3,9 @@
 
    Module that provides.....
 """
+
 import matplotlib.pyplot as plt
+
 import gerg2008
 
 
@@ -53,7 +55,8 @@ class Fluid(Model):
 
     def __init__(self, temperature, pressure=None, density=None, **kwargs):
         """To be defined."""
-        if (pressure, density) == (None, None) or None not in (pressure, density):
+        if (pressure, density) == (None, None) \
+                or None not in (pressure, density):
             raise ValueError("Presión y densidad no pueden ser ambos None....")
 
         self.methane = kwargs.get("methane", 0)
@@ -126,13 +129,21 @@ class Fluid(Model):
         self._entropy = 0
 
     def update_properties(self):
+        """
+        """
         self._enthalpy = self.enthalpy(
             self._concentration, self._density, self._temperature
         )
 
-    def isotherm_pv(self, P_range):
-        V = self.vcalc(self._concentration, P_range, self._temperature)
-        plt.plot(V, P_range)
+    def isotherm_pv(self, p_range):
+        """
+        """
+        v = self.vcalc(self._concentration, p_range, self._temperature)
+        plt.plot(v, p_range)
 
 
-fluid = Fluid(model="GERG", pressure=250, temperature=150, methane=1, normalize=True)
+fluid = Fluid(model="GERG",
+              pressure=250,
+              temperature=150,
+              methane=1,
+              normalize=True)
