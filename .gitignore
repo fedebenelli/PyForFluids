@@ -1,0 +1,11 @@
+*__pycache__*
+old
+results
+suppmatr
+test
+test_new_params.f90
+test_params.f90
+*.mod
+tmp*
+log
+*.cpython*
