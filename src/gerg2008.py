@@ -9,15 +9,15 @@ class GERG2008(core.Model):
 
     # gerg file
     def reducing_funcs(self, x):
-        rho_r, temperature_r = gerg2008f.reducing_funcs(x)
-        return rho_r, temperature_r
+        density_r, temperature_r = gerg2008f.reducing_funcs(x)
+        return density_r, temperature_r
 
     def v_calc(self, x, p, temperature):
-        rho = gerg2008f.V_calc(x, p, temperature)
-        return rho
+        density = gerg2008f.V_calc(x, p, temperature)
+        return density
 
-    def a_oio(self, rho, temperature, rho_c, temperature_c, n, v):
-        aoio = gerg2008f.a_oio(rho, temperature, rho_c, temperature_c, n, v)
+    def a_oio(self, density, temperature, density_c, temperature_c, n, v):
+        aoio = gerg2008f.a_oio(density, temperature, density_c, temperature_c, n, v)
         return aoio
 
     def a_oir(self, delta, tau, kpol, kexp, n, d, t, c):
@@ -30,8 +30,8 @@ class GERG2008(core.Model):
         )
         return a_ijr
 
-    def ideal_term(self, x, rho, temperature, rho_r, temperature_r):
-        ao = gerg2008f.ideal_term(x, rho, temperature, rho_r, temperature_r)
+    def ideal_term(self, x, density, temperature, density_r, temperature_r):
+        ao = gerg2008f.ideal_term(x, density, temperature, density_r, temperature_r)
         return ao
 
     def residual_term(self, x, delta, tau):
@@ -55,26 +55,26 @@ class GERG2008(core.Model):
         w = thermopropsf.sound_speed(delta, tau, r, temperature, m, ao, ar)
         return w
 
-    def isothermal_thermal_coefficent(self, delta, tau, rho, ar):
+    def isothermal_thermal_coefficent(self, delta, tau, density, ar):
         delta_t = thermopropsf.isothermal_thermal_coefficent(
-            delta, tau, rho, ar
+            delta, tau, density, ar
         )
         return delta_t
 
-    def dp_dt(self, rho, delta, tau, r, ar):
-        dp_dt = thermopropsf.dp_dt(rho, delta, tau, r, ar)
+    def dp_dt(self, density, delta, tau, r, ar):
+        dp_dt = thermopropsf.dp_dt(density, delta, tau, r, ar)
         return dp_dt
 
     def dp_drho(self, temperature, delta, r, ar):
         dp_drho = thermopropsf.dp_drho(temperature, delta, r, ar)
         return dp_drho
 
-    def dp_dv(self, rho, delta, temperature, r, ar):
-        dp_dv = thermopropsf.dp_dv(rho, delta, temperature, r, ar)
+    def dp_dv(self, density, delta, temperature, r, ar):
+        dp_dv = thermopropsf.dp_dv(density, delta, temperature, r, ar)
         return dp_dv
 
-    def pressure(self, delta, rho, r, temperature, ar):
-        p = thermopropsf.pressure(delta, rho, r, temperature, ar)
+    def pressure(self, delta, density, r, temperature, ar):
+        p = thermopropsf.pressure(delta, density, r, temperature, ar)
         return p
 
     def entropy(self, tau, r, ao, ar):
@@ -93,18 +93,18 @@ class GERG2008(core.Model):
         g = thermopropsf.gibbs_free_energy(delta, r, temperature, ao, ar)
         return g
 
-    def joule_thomson_coeff(self, delta, tau, rho, r, ao, ar):
-        jt = thermopropsf.joule_thomson_coeff(delta, tau, rho, r, ao, ar)
+    def joule_thomson_coeff(self, delta, tau, density, r, ao, ar):
+        jt = thermopropsf.joule_thomson_coeff(delta, tau, density, r, ao, ar)
         return jt
 
     def isentropic_exponent(self, delta, tau, ao, ar):
         k = thermopropsf.isentropic_exponent(delta, tau, ao, ar)
         return k
 
-    def second_thermal_virial_coeff(self, rho_r, ar):
-        b = thermopropsf.second_thermal_virial_coeff(rho_r, ar)
+    def second_thermal_virial_coeff(self, density_r, ar):
+        b = thermopropsf.second_thermal_virial_coeff(density_r, ar)
         return b
 
-    def third_thermal_virial_coeff(self, rho_r, ar):
-        c = thermopropsf.third_thermal_virial_coeff(rho_r, ar)
+    def third_thermal_virial_coeff(self, density_r, ar):
+        c = thermopropsf.third_thermal_virial_coeff(density_r, ar)
         return c
