@@ -1,140 +1,110 @@
 from . import core
-from .fortran import gerg as gerg2008F
-from .fortran import thermoprops as thermopropsF
+from .fortran import gerg as gerg2008f
+from .fortran import thermoprops as thermopropsf
 
 
 class GERG2008(core.Model):
-	
-	name = "GERG2008"
-	
-	# gerg file
-	def reducing_funcs(self, X):
-		rho_r = gerg2008F.reducing_funcs(X)[0]
-		T_r = gerg2008F.reducing_funcs(X)[1]
-		return rho_r, T_r
 
-	
-	def v_calc(self,X, P, T):
-		rho = gerg2008F.V_calc(X)
-		return rho
+    name = "GERG2008"
 
-	
-	def a_oio(self,rho, T, rho_c, T_c, n, v):
-		aoio = gerg2008F.a_oio(rho, T, rho_c, T_c, n, v)
-		return aoio
-		
+    # gerg file
+    def reducing_funcs(self, x):
+        rho_r, temperature_r = gerg2008f.reducing_funcs(x)
+        return rho_r, temperature_r
 
-	def a_oir(self,delta, tau, Kpol, Kexp, n, d, t, c):
-		a_oir = gerg2008F.a_oir(delta, tau, Kpol, Kexp, n, d, t, c)
-		return a_oir
+    def v_calc(self, x, p, temperature):
+        rho = gerg2008f.V_calc(x, p, temperature)
+        return rho
 
-	
-	def a_ijr(self, delta, tau, Kpolij, Kexpij, n, d, t, eta, eps, gamm, beta):
-		a_ijr = gerg2008F.a_ijr(delta, tau, Kpolij, Kexpij, n, d, t, eta, eps, gamm, beta)
-		return a_ijr 
+    def a_oio(self, rho, temperature, rho_c, temperature_c, n, v):
+        aoio = gerg2008f.a_oio(rho, temperature, rho_c, temperature_c, n, v)
+        return aoio
 
-	
-	def ideal_term(self,X, rho, T, rho_r, T_r):
-		ao = gerg2008F.ideal_term(X, rho, T, rho_r, T_r)
-		return ao
+    def a_oir(self, delta, tau, kpol, kexp, n, d, t, c):
+        a_oir = gerg2008f.a_oir(delta, tau, kpol, kexp, n, d, t, c)
+        return a_oir
 
-	
-	def residual_term(self,X, delta, tau):
-		ar = gerg2008F.residual_term(X, delta, tau)
-		return ar
+    def a_ijr(self, delta, tau, kpolij, kexpij, n, d, t, eta, eps, gamm, beta):
+        a_ijr = gerg2008f.a_ijr(
+            delta, tau, kpolij, kexpij, n, d, t, eta, eps, gamm, beta
+        )
+        return a_ijr
 
-	# Thermoprops file
-	def pressure(self,delta, rho, R, T, Ar):
-		p = thermopropsF.pressure(delta, rho, R, T, Ar)
-		return p
+    def ideal_term(self, x, rho, temperature, rho_r, temperature_r):
+        ao = gerg2008f.ideal_term(x, rho, temperature, rho_r, temperature_r)
+        return ao
 
-	
-	def enthalpy(self,delta, tau, R, T, Ao, Ar):
-		h = thermopropsF.enthalpy(delta, tau, R, T, Ao, Ar)
-		return h
+    def residual_term(self, x, delta, tau):
+        ar = gerg2008f.residual_term(x, delta, tau)
+        return ar
 
-	
-	def zeta(self, ar):
-		z = thermopropsF.zeta(ar)
-		return z
+    # Thermoprops file
+    def zeta(self, ar):
+        z = thermopropsf.zeta(ar)
+        return z
 
-	
-	def isochoric_heat(self,tau, R, Ao, Ar):
-		cv = thermopropsF.isochoric_heat(tau, R, Ao, Ar)
-		return cv
+    def isochoric_heat(self, tau, r, ao, ar):
+        cv = thermopropsf.isochoric_heat(tau, r, ao, ar)
+        return cv
 
-	
-	def isobaric_heat(self, delta, tau, R, Ao, Ar):
-		cp = thermopropsF.isobaric_heat(delta, tau, R, Ao, Ar)
-		return cp
+    def isobaric_heat(self, delta, tau, r, ao, ar):
+        cp = thermopropsf.isobaric_heat(delta, tau, r, ao, ar)
+        return cp
 
-	
-	def sound_speed(self, delta, tau, R, T, M, Ao, Ar):
-		w = thermopropsF.sound_speed(delta, tau, R, T, M, Ao, Ar)
-		return w
+    def sound_speed(self, delta, tau, r, temperature, m, ao, ar):
+        w = thermopropsf.sound_speed(delta, tau, r, temperature, m, ao, ar)
+        return w
 
-	
-	def isothermal_thermal_coefficent(self,delta, tau, rho, Ar):
-		delta_t = thermopropsF.isothermal_thermal_coefficent(delta, tau, rho, Ar)
-		return delta_t
+    def isothermal_thermal_coefficent(self, delta, tau, rho, ar):
+        delta_t = thermopropsf.isothermal_thermal_coefficent(
+            delta, tau, rho, ar
+        )
+        return delta_t
 
-	
-	def dp_dt(self,rho, delta, tau, R, Ar):
-		dp_dt = thermopropsF.dp_dt(rho, delta, tau, R, Ar)
-		return dp_dt
+    def dp_dt(self, rho, delta, tau, r, ar):
+        dp_dt = thermopropsf.dp_dt(rho, delta, tau, r, ar)
+        return dp_dt
 
-	
-	def dp_drho(self,T, delta, R, Ar):
-		dp_drho = thermopropsF.dp_drho(T, delta, R, Ar)
-		return dp_drho
+    def dp_drho(self, temperature, delta, r, ar):
+        dp_drho = thermopropsf.dp_drho(temperature, delta, r, ar)
+        return dp_drho
 
-	
-	def dp_dv(self,rho, delta, T, R, Ar):
-		dp_dv = thermopropsF.dp_dv(rho, delta, T, R, Ar)
-		return dp_dv
+    def dp_dv(self, rho, delta, temperature, r, ar):
+        dp_dv = thermopropsf.dp_dv(rho, delta, temperature, r, ar)
+        return dp_dv
 
-	
-	def pressure(self,delta, rho, R, T, Ar):
-		p = thermopropsF.pressure(delta, rho, R, T, Ar)
-		return p
+    def pressure(self, delta, rho, r, temperature, ar):
+        p = thermopropsf.pressure(delta, rho, r, temperature, ar)
+        return p
 
-	
-	def entropy(self,tau, R, Ao, Ar):
-		s = thermopropsF.entropy(tau, R, Ao, Ar)
-		return s
+    def entropy(self, tau, r, ao, ar):
+        s = thermopropsf.entropy(tau, r, ao, ar)
+        return s
 
-	
-	def internal_energy(self,tau, R, T, Ao, Ar):
-		u = thermopropsF.internal_energy(tau, R, T, Ao, Ar)
-		return u
+    def internal_energy(self, tau, r, temperature, ao, ar):
+        u = thermopropsf.internal_energy(tau, r, temperature, ao, ar)
+        return u
 
-	
-	def enthalpy(self,delta, tau, R, T, Ao, Ar):
-		h = thermopropsF.enthalpy(delta, tau, R, T, Ao, Ar)
-		return h
+    def enthalpy(self, delta, tau, r, temperature, ao, ar):
+        h = thermopropsf.enthalpy(delta, tau, r, temperature, ao, ar)
+        return h
 
-	
-	def gibbs_free_energy(self,delta, R, T, Ao, Ar):
-		g = thermopropsF.gibbs_free_energy(delta, R, T, Ao, Ar)
-		return g
-	
-	def joule_thomson_coeff(self,delta, tau, rho, R, Ao, Ar):
-		JT = thermopropsF.joule_thomson_coeff(delta, tau, rho, R, Ao, Ar)
-		return JT
+    def gibbs_free_energy(self, delta, r, temperature, ao, ar):
+        g = thermopropsf.gibbs_free_energy(delta, r, temperature, ao, ar)
+        return g
 
-	
-	def isentropic_exponent(self,delta, tau, Ao, Ar):
-		k = thermopropsF.isentropic_exponent(delta, tau, Ao, Ar)
-		return k
+    def joule_thomson_coeff(self, delta, tau, rho, r, ao, ar):
+        jt = thermopropsf.joule_thomson_coeff(delta, tau, rho, r, ao, ar)
+        return jt
 
-	
-	def second_thermal_virial_coeff(self,rho_r, Ar):
-		B = thermopropsF.second_thermal_virial_coeff(rho_r, Ar)
-		return B
+    def isentropic_exponent(self, delta, tau, ao, ar):
+        k = thermopropsf.isentropic_exponent(delta, tau, ao, ar)
+        return k
 
-	
-	def third_thermal_virial_coeff(self,rho_r, Ar):
-		C = thermopropsF.third_thermal_virial_coeff(rho_r, Ar)
-		return C
-	
+    def second_thermal_virial_coeff(self, rho_r, ar):
+        b = thermopropsf.second_thermal_virial_coeff(rho_r, ar)
+        return b
 
+    def third_thermal_virial_coeff(self, rho_r, ar):
+        c = thermopropsf.third_thermal_virial_coeff(rho_r, ar)
+        return c
