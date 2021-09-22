@@ -17,7 +17,9 @@ class GERG2008(core.Model):
         return density
 
     def a_oio(self, density, temperature, density_c, temperature_c, n, v):
-        aoio = gerg2008f.a_oio(density, temperature, density_c, temperature_c, n, v)
+        aoio = gerg2008f.a_oio(
+            density, temperature, density_c, temperature_c, n, v
+        )
         return aoio
 
     def a_oir(self, delta, tau, kpol, kexp, n, d, t, c):
@@ -31,7 +33,9 @@ class GERG2008(core.Model):
         return a_ijr
 
     def ideal_term(self, x, density, temperature, density_r, temperature_r):
-        ao = gerg2008f.ideal_term(x, density, temperature, density_r, temperature_r)
+        ao = gerg2008f.ideal_term(
+            x, density, temperature, density_r, temperature_r
+        )
         return ao
 
     def residual_term(self, x, delta, tau):
