@@ -1,0 +1,7 @@
+include LICENSE
+include README.md
+recursive-include pyforfluids *
+
+exclude tox.ini
+exclude pyproject.toml
+recursive-exclude tests *
