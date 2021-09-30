@@ -53,43 +53,8 @@ Subroutine reducing_funcs(X, rho_r, T_r)
    end do
    end if
    end do
+   rho_r = 1/rho_r
 End Subroutine reducing_funcs
-
-Subroutine V_calc(X, P, T, rho)
-   ! Based on: https://github.com/usnistgov/AGA8/issues/12
-   use parameters
-   real*8, intent(in):: P, T, X(21)
-   real*8, intent(out):: rho
-   real*8:: vo, vi, dpdr, ar(3, 3), delta, tau, rho_r, T_r, Pcalc
-   integer:: it = 20
-
-   rho = P/(R*T)
-   rho = rho/1d3
-   vo = -log(rho)
-   call reducing_funcs(X, rho_r, T_r)
-   do i = 1, it
-      delta = rho*rho_r
-      tau = T_r/T
-      call residual_term(X, delta, tau, ar)
-
-      Pcalc = (1.d0 + delta*ar(2, 1))
-      dpdr = R*T*(1.d0 + 2.d0*delta*ar(2, 1) + delta**2*ar(3, 1))
-
-      vi = vo + (Pcalc/(rho*1d3))/dpdr*(log(Pcalc) - log(P))
-
-      if (abs(vi - vo) < Epsilon(vi)) then
-         rho = exp(-vi)
-         rho = rho/1d3
-         return
-      else
-         vo = vi
-         rho = exp(-vo)
-      end if
-      rho = rho/1d3
-
-      print *, "[VCALC]", i, rho
-   end do
-End Subroutine V_calc
 
 ! Pure Compound Helmholtz Energy (and derivatives) Calculations
 ! -----------------------------------------------
@@ -415,8 +380,8 @@ Program gerg
    ! Calculated variables
    real*8, dimension(3, 3):: ar, ao
    real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
-   ! bintest
-   real*8:: test_P, test_cv, test_cp, test_w
+   ! test_variables
+   real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21)
    integer:: io
    ! Input args
    character(len=100):: arg
@@ -452,7 +417,7 @@ Program gerg
 
          ! Set delta and tau
          call reducing_funcs(X, rho_r, T_r)
-         delta = rho*rho_r
+         delta = rho/rho_r
          tau = T_r/T
          call residual_term(X, delta, tau, ar)
          call ideal_term(X, rho, T, rho_r, T_r, ao)
@@ -471,45 +436,57 @@ Program gerg
 
       end do
       close (1)
-   case ('VCalc')
-      rho = 12.7982864
-      T = 400.0
-      P = 50000.d3
+   
+   case ('ngas_test')
+      open (1, file='tests/verification/GERG_test/NG/test_concentrations')
+      io = 0
+      ! Reads until the file with test data ends
+      do while (io == 0)
+         read (1, *, iostat=io) i, (X_ng(i,j), j=1,21)
+         if (io .ne. 0) then
+            exit
+         end if
+      end do
+      close(1)
 
-      x(1) = 0.77824d0       !Methane
-      x(2) = 0.02d0          !Nitrogen
-      x(3) = 0.06d0          !CO2
-      x(4) = 0.08d0          !Ethane
-      x(5) = 0.03d0          !Propane
-      x(6) = 0.003d0         !Butane
-      x(7) = 0.0015d0        !Isobutane
-      x(8) = 0.00165d0       !Pentane
-      x(9) = 0.0005d0        !Isopentane
-      x(10) = 0.00215d0       !Hexane
-      x(11) = 0.00088d0       !Heptane
-      x(12) = 0.00024d0       !Octane
-      x(13) = 0.00015d0       !Nonane
-      x(14) = 0.00009d0       !Decane
-      x(15) = 0.004d0         !Hydrogen
-      x(16) = 0.005d0         !Oxygen
-      x(17) = 0.002d0         !CO
-      x(18) = 0.0001d0        !Water
-      x(19) = 0.0025d0        !H2S
-      x(20) = 0.007d0         !Helium
-      x(21) = 0.001d0         !Argon
+      X_ng = X_ng/100.d0
+      
+      open (1, file='tests/verification/GERG_test/NG/test_values')
+      io=0
+      do while (io == 0)
+         read (1, *, iostat=io) i, T, rho, test_P, test_cv, test_cp, test_w
+         if (io .ne. 0) then
+            exit
+         end if
 
-      call reducing_funcs(X, rho_r, T_r)
+         !write(0,*) i, X_ng(i,1:5)
 
-      delta = rho*rho_r
-      tau = T_r/T
+         mean_M = 0
+         do k = 1, 21
+            mean_M = mean_M + X_ng(i,k)*M(k)
+         end do
+         mean_M = mean_M/1000.d0
 
-      call residual_term(X, delta, tau, ar)
-      call zeta(delta, ar, z)
-      P = Z*rho*T*R*1000.d0
-      print *, rho, P
+         ! Set delta and tau
+         call reducing_funcs(X_ng(i,:), rho_r, T_r)
+         delta = rho/rho_r
+         tau = T_r/T
 
-      call V_calc(X, P, T, rho)
-      print *, rho, P
+         call residual_term(X_ng(i,:), delta, tau, ar)
+         call ideal_term(X_ng(i,:), rho, T, rho_r, T_r, ao)
+
+         ! Calculate Properties
+         call zeta(delta, ar, Z)
+         call isobaric_heat(delta, tau, R, ao, ar, cp)
+         call isochoric_heat(tau, R, Ao, Ar, cv)
+         call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
+         
+         ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
+         P = Z*rho*T*R*1000.d0*1.d-6
+
+         print *, i, rho, t, P, test_P, P-test_P
+
+      end do
 
    end select
 End Program gerg
