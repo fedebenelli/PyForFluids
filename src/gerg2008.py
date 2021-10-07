@@ -3,8 +3,8 @@ import warnings
 
 import numpy as np
 
-from .fortran import gerg2008f
-from .fortran.gerg2008f import thermopropsf
+from fortran import gerg2008f
+from fortran.gerg2008f import thermo_props
 
 
 class GERG2008:
@@ -93,9 +93,10 @@ class GERG2008:
             dtype="d",
         )
 
+
         sum_value = x.sum()
 
-        if 0.9999 < sum_value < 1.0001:
+        if 0.9999 > sum_value > 1.0001:
             warnings.warn("Composition doesn't add '1', will be normalized")
             x = x / sum_value
 
@@ -104,15 +105,18 @@ class GERG2008:
     def calculate_properties(
         self, temperature, pressure, density, composition
     ):
-        r = 8.31
+
+        gerg2008f.get_params()
+        molecular_weights = gerg2008f.parameters.m
+        r = gerg2008f.parameters.r
 
         x = self.set_concentration(composition)
 
-        m = gerg2008f.mean_m(x)
+        m = thermo_props(x, molecular_weights)
 
         density_r, temperature_r = gerg2008f.reducing_funcs(x)
 
-        delta = density * density_r
+        delta = density / density_r
         tau = temperature_r / temperature
 
         ao = gerg2008f.ideal_term(
@@ -120,25 +124,25 @@ class GERG2008:
         )
         ar = gerg2008f.residual_term(x, delta, tau)
 
-        z = thermopropsf.zeta(ar)
-        cv = thermopropsf.isochoric_heat(tau, r, ao, ar)
-        cp = thermopropsf.isobaric_heat(delta, tau, r, ao, ar)
-        w = thermopropsf.sound_speed(delta, tau, r, temperature, m, ao, ar)
+        z = thermo_props.zeta(delta, ar)
+        cv = thermo_props.isochoric_heat(tau, r, ao, ar)
+        cp = thermo_props.isobaric_heat(delta, tau, r, ao, ar)
+        w = thermo_props.sound_speed(delta, tau, r, temperature, m, ao, ar)
         isothermal_thermal_coefficent = (
-            thermopropsf.isothermal_thermal_coefficent(delta, tau, density, ar)
+            thermo_props.isothermal_thermal_coefficent(delta, tau, density, ar)
         )
-        dp_dt = thermopropsf.dp_dt(density, delta, tau, r, ar)
-        dp_drho = thermopropsf.dp_drho(temperature, delta, r, ar)
-        dp_dv = thermopropsf.dp_dv(density, delta, temperature, r, ar)
-        p = thermopropsf.pressure(delta, density, r, temperature, ar)
-        s = thermopropsf.entropy(tau, r, ao, ar)
-        u = thermopropsf.internal_energy(tau, r, temperature, ao, ar)
-        h = thermopropsf.enthalpy(delta, tau, r, temperature, ao, ar)
-        g = thermopropsf.gibbs_free_energy(delta, r, temperature, ao, ar)
-        jt = thermopropsf.joule_thomson_coeff(delta, tau, density, r, ao, ar)
-        k = thermopropsf.isentropic_exponent(delta, tau, ao, ar)
-        b = thermopropsf.second_thermal_virial_coeff(density_r, ar)
-        c = thermopropsf.third_thermal_virial_coeff(density_r, ar)
+        dp_dt = thermo_props.dp_dt(density, delta, tau, r, ar)
+        dp_drho = thermo_props.dp_drho(temperature, delta, r, ar)
+        dp_dv = thermo_props.dp_dv(density, delta, temperature, r, ar)
+        p = thermo_props.pressure(delta, density, r, temperature, ar)
+        s = thermo_props.entropy(tau, r, ao, ar)
+        u = thermo_props.internal_energy(tau, r, temperature, ao, ar)
+        h = thermo_props.enthalpy(delta, tau, r, temperature, ao, ar)
+        g = thermo_props.gibbs_free_energy(delta, r, temperature, ao, ar)
+        jt = thermo_props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
+        k = thermo_props.isentropic_exponent(delta, tau, ao, ar)
+        b = thermo_props.second_thermal_virial_coeff(density_r, ar)
+        c = thermo_props.third_thermal_virial_coeff(density_r, ar)
 
         return {
             "density_r": density_r,
