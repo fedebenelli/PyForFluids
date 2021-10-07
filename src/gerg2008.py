@@ -1,38 +1,39 @@
-from . import core
+""""""
+import warnings
+
+import numpy as np
+
 from .fortran import gerg2008f
 from .fortran.gerg2008f import thermopropsf
 
-import numpy as np
-import warnings
-
 
 class GERG2008:
+    def __init__(self):
+        self.name = "GERG2008"
 
-    name = "GERG2008"
-
-    self.valid_components = [
-        "methane",
-        "nitrogen",
-        "carbon_dioxide",
-        "ethane",
-        "propane",
-        "butane",
-        "isobutane",
-        "pentane",
-        "isopentane",
-        "hexane",
-        "heptane",
-        "octane",
-        "nonane",
-        "decane",
-        "hydrogen",
-        "oxygen",
-        "carbon_monoxide",
-        "water",
-        "hydrogen_sulfide",
-        "helium",
-        "argon",
-    ]
+        self.valid_components = [
+            "methane",
+            "nitrogen",
+            "carbon_dioxide",
+            "ethane",
+            "propane",
+            "butane",
+            "isobutane",
+            "pentane",
+            "isopentane",
+            "hexane",
+            "heptane",
+            "octane",
+            "nonane",
+            "decane",
+            "hydrogen",
+            "oxygen",
+            "carbon_monoxide",
+            "water",
+            "hydrogen_sulfide",
+            "helium",
+            "argon",
+        ]
 
     def validate_components(self, components):
         for component in components:
