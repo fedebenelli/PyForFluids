@@ -96,9 +96,14 @@ class GERG2008:
 
         sum_value = x.sum()
 
-        if 0.9999 > sum_value > 1.0001:
+        print(sum_value)
+
+        print(x)
+
+        if sum_value > 1.0001 or sum_value < 0.9999:
             warnings.warn("Composition doesn't add '1', will be normalized")
             x = x / sum_value
+            print(x)
 
         return x
 
@@ -111,6 +116,7 @@ class GERG2008:
         r = gerg2008f.parameters.r
 
         x = self.set_concentration(composition)
+        print(x)
 
         m = thermo_props(x, molecular_weights)
 
