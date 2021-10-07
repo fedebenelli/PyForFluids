@@ -17,10 +17,11 @@ class Fluid:
 
         self.composition = composition
         self.model = model
-        self.model.validate_components(self.composition)
         self.temperature = temperature
         self.pressure = pressure
         self.density = density
+
+        model.validate_components(composition)
 
     def set_temperature(self, temperature):
         self.temperature = temperature
