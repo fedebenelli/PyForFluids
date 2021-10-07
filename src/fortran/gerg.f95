@@ -375,14 +375,18 @@ Program gerg
    use parameters
    use thermo_props
    Implicit None
+   
    ! Variables
    real*8:: T, rho, tau, delta, X(21)
+   
    ! Calculated variables
    real*8, dimension(3, 3):: ar, ao
    real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
+   
    ! test_variables
    real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21)
    integer:: io
+   
    ! Input args
    character(len=100):: arg
    integer:: i, j, k
