@@ -93,17 +93,11 @@ class GERG2008:
             dtype="d",
         )
 
-
         sum_value = x.sum()
-
-        print(sum_value)
-
-        print(x)
 
         if sum_value > 1.0001 or sum_value < 0.9999:
             warnings.warn("Composition doesn't add '1', will be normalized")
             x = x / sum_value
-            print(x)
 
         return x
 
