@@ -207,15 +207,26 @@ Module thermo_props  !
    Implicit None
 
 Contains
+        Subroutine mean_molecular_weight(X, M, MM)
+                real*8, intent(in):: X(21), M(21)
+                real*8, intent(out):: MM
+                integer:: i
+
+                MM = 0
+                do i=1,size(X)
+                MM = MM + X(i)*M(i)
+                end do
+        End Subroutine mean_molecular_weight
+
    Subroutine zeta(delta, ar, z)
       real*8, intent(in):: delta, ar(3, 3)
-      real*8, intent(inout):: z
+      real*8, intent(out):: z
       z = 1.d0 + delta*ar(2, 1)
    End Subroutine zeta
 
    Subroutine isochoric_heat(tau, R, Ao, Ar, cv)
       real*8, intent(in):: tau, R, Ao(3, 3), Ar(3, 3)
-      real*8, intent(inout)::cv
+      real*8, intent(out)::cv
 
       cv = -tau**2.d0*(Ao(3, 2) + Ar(3, 2))
       cv = cv*R
@@ -223,7 +234,7 @@ Contains
 
    Subroutine isobaric_heat(delta, tau, R, Ao, Ar, cp)
       real*8, intent(in):: delta, tau, R, Ao(3, 3), Ar(3, 3)
-      real*8, intent(inout):: cp
+      real*8, intent(out):: cp
       real*8:: up, down
 
       up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
