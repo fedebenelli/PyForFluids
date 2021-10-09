@@ -384,7 +384,7 @@ Program gerg
    real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
    
    ! test_variables
-   real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21)
+   real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21), P2
    integer:: io
    
    ! Input args
@@ -491,6 +491,36 @@ Program gerg
          print *, i, rho, t, P, test_P, P-test_P
 
       end do
+      case ("pure_methane")
+              T=323.15
 
+              X = 0
+              X(1) = 1.d0
+              mean_M = 0
+              do k = 1, size(X)
+                 mean_M = mean_M + X(k)*M(k)
+              end do
+
+              mean_M = mean_M/1000.d0
+              call reducing_funcs(X, rho_r, T_r)
+
+              do rho=0.1,30,0.1
+                 ! Set delta and tau
+                 delta = rho/rho_r
+                 tau = T_r/T
+                 call residual_term(X, delta, tau, ar)
+                 call ideal_term(X, rho, T, rho_r, T_r, ao)
+
+                 ! Calculate Properties
+                 call zeta(delta, ar, Z)
+                 call isobaric_heat(delta, tau, R, ao, ar, cp)
+                 call isochoric_heat(tau, R, Ao, Ar, cv)
+                 call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
+
+                 ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
+                 P = Z*rho*T*R*1000.d0!*1.d-6
+                 call pressure(delta, rho, R, T, ar, P2)
+                 print *, Z, P*1d-6, P2*1d-6, P-P2
+              end do
    end select
 End Program gerg
