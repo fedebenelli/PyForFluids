@@ -3,8 +3,8 @@ import warnings
 
 import numpy as np
 
-from fortran import gerg2008f
-from fortran.gerg2008f import thermo_props
+from ..fortran import gerg2008f
+from ..fortran.gerg2008f import thermo_props
 
 
 class GERG2008:
@@ -110,7 +110,6 @@ class GERG2008:
         r = gerg2008f.parameters.r
 
         x = self.set_concentration(composition)
-        print(x)
 
         m = thermo_props(x, molecular_weights)
 
