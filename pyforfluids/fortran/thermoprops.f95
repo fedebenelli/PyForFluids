@@ -297,8 +297,10 @@ Contains
    Subroutine pressure(delta, rho, R, T, Ar, p)
       real*8, intent(in):: delta, rho, R, T, Ar(3, 3)
       real*8, intent(out):: p
+      real*8:: z
 
-      p = (1.d0 + delta*Ar(2, 1))*rho*R*T
+      call zeta(delta, Ar, z)
+      p = z*(rho*1000.d0)*R*T
    End Subroutine pressure
 
    Subroutine entropy(tau, R, Ao, Ar, s)

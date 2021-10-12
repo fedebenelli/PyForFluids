@@ -4,10 +4,13 @@ import warnings
 import numpy as np
 
 from ..fortran import gerg2008f
-from ..fortran.gerg2008f import thermo_props
+
+from ..fortran.thermo_props import thermo_props
 
 
 class GERG2008:
+    """ """
+
     def __init__(self):
         self.name = "GERG2008"
 
@@ -140,8 +143,9 @@ class GERG2008:
         g = thermo_props.gibbs_free_energy(delta, r, temperature, ao, ar)
         jt = thermo_props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
         k = thermo_props.isentropic_exponent(delta, tau, ao, ar)
-        b = thermo_props.second_thermal_virial_coeff(density_r, ar)
-        c = thermo_props.third_thermal_virial_coeff(density_r, ar)
+        ar_virial = gerg2008f.residual_term(x, 1e-15, tau)
+        b = thermo_props.second_thermal_virial_coeff(density_r, ar_virial)
+        c = thermo_props.third_thermal_virial_coeff(density_r, ar_virial)
 
         return {
             "density_r": density_r,

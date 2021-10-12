@@ -53,6 +53,7 @@ Subroutine reducing_funcs(X, rho_r, T_r)
    end do
    end if
    end do
+   ! Actually, the reducing volume was calculated, let's make it into density
    rho_r = 1/rho_r
 End Subroutine reducing_funcs
 
@@ -371,156 +372,156 @@ Subroutine residual_term(X, delta, tau, ar)
    end do
 End Subroutine residual_term
 
-Program gerg
-   use parameters
-   use thermo_props
-   Implicit None
-   
-   ! Variables
-   real*8:: T, rho, tau, delta, X(21)
-   
-   ! Calculated variables
-   real*8, dimension(3, 3):: ar, ao
-   real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
-   
-   ! test_variables
-   real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21), P2
-   integer:: io
-   
-   ! Input args
-   character(len=100):: arg
-   integer:: i, j, k
-
-   ! Get the R constant, compound properties and equations parameters
-   call get_params()
-
-   ! Propiedades de operación
-   ! ------------------------
-   call getarg(1, arg)
-   rho = 1.d0
-   T = 1.d0
-   X = 0.d0
-
-   select case (arg)
-   case ('bintest')
-      open (1, file='GERG_test/binary/test_data')
-      io = 0
-      ! Reads until the file with test data ends
-      do while (io == 0)
-         X = 0
-         read (1, *, iostat=io) i, X(i), j, X(j), T, rho, test_P, test_cv, test_cp, test_w
-         if (io .ne. 0) then
-            exit
-         end if
-
-         mean_M = 0
-         do k = 1, size(X)
-            mean_M = mean_M + X(k)*M(k)
-         end do
-         mean_M = mean_M/1000.d0
-
-         ! Set delta and tau
-         call reducing_funcs(X, rho_r, T_r)
-         delta = rho/rho_r
-         tau = T_r/T
-         call residual_term(X, delta, tau, ar)
-         call ideal_term(X, rho, T, rho_r, T_r, ao)
-
-         ! Calculate Properties
-         call zeta(delta, ar, Z)
-         call isobaric_heat(delta, tau, R, ao, ar, cp)
-         call isochoric_heat(tau, R, Ao, Ar, cv)
-         call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
-
-         ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
-         P = Z*rho*T*R*1000.d0*1.d-6
-
-         print *, i, j, T, rho, P, cv, cp, w, test_P, test_cv, test_cp, test_w
-         write (0, *) i, j, delta, tau, ar(3, 2), ao(3, 2), cv, test_cv
-
-      end do
-      close (1)
-   
-   case ('ngas_test')
-      open (1, file='tests/verification/GERG_test/NG/test_concentrations')
-      io = 0
-      ! Reads until the file with test data ends
-      do while (io == 0)
-         read (1, *, iostat=io) i, (X_ng(i,j), j=1,21)
-         if (io .ne. 0) then
-            exit
-         end if
-      end do
-      close(1)
-
-      X_ng = X_ng/100.d0
-      
-      open (1, file='tests/verification/GERG_test/NG/test_values')
-      io=0
-      do while (io == 0)
-         read (1, *, iostat=io) i, T, rho, test_P, test_cv, test_cp, test_w
-         if (io .ne. 0) then
-            exit
-         end if
-
-         !write(0,*) i, X_ng(i,1:5)
-
-         mean_M = 0
-         do k = 1, 21
-            mean_M = mean_M + X_ng(i,k)*M(k)
-         end do
-         mean_M = mean_M/1000.d0
-
-         ! Set delta and tau
-         call reducing_funcs(X_ng(i,:), rho_r, T_r)
-         delta = rho/rho_r
-         tau = T_r/T
-
-         call residual_term(X_ng(i,:), delta, tau, ar)
-         call ideal_term(X_ng(i,:), rho, T, rho_r, T_r, ao)
-
-         ! Calculate Properties
-         call zeta(delta, ar, Z)
-         call isobaric_heat(delta, tau, R, ao, ar, cp)
-         call isochoric_heat(tau, R, Ao, Ar, cv)
-         call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
-         
-         ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
-         P = Z*rho*T*R*1000.d0*1.d-6
-
-         print *, i, rho, t, P, test_P, P-test_P
-
-      end do
-      case ("pure_methane")
-              T=323.15
-
-              X = 0
-              X(1) = 1.d0
-              mean_M = 0
-              do k = 1, size(X)
-                 mean_M = mean_M + X(k)*M(k)
-              end do
-
-              mean_M = mean_M/1000.d0
-              call reducing_funcs(X, rho_r, T_r)
-
-              do rho=0.1,30,0.1
-                 ! Set delta and tau
-                 delta = rho/rho_r
-                 tau = T_r/T
-                 call residual_term(X, delta, tau, ar)
-                 call ideal_term(X, rho, T, rho_r, T_r, ao)
-
-                 ! Calculate Properties
-                 call zeta(delta, ar, Z)
-                 call isobaric_heat(delta, tau, R, ao, ar, cp)
-                 call isochoric_heat(tau, R, Ao, Ar, cv)
-                 call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
-
-                 ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
-                 P = Z*rho*T*R*1000.d0!*1.d-6
-                 call pressure(delta, rho, R, T, ar, P2)
-                 print *, Z, P*1d-6, P2*1d-6, P-P2
-              end do
-   end select
-End Program gerg
+!Program gerg
+!   use parameters
+!   use thermo_props
+!   Implicit None
+!   
+!   ! Variables
+!   real*8:: T, rho, tau, delta, X(21)
+!   
+!   ! Calculated variables
+!   real*8, dimension(3, 3):: ar, ao
+!   real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
+!   
+!   ! test_variables
+!   real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21), P2
+!   integer:: io
+!   
+!   ! Input args
+!   character(len=100):: arg
+!   integer:: i, j, k
+!
+!   ! Get the R constant, compound properties and equations parameters
+!   call get_params()
+!
+!   ! Propiedades de operación
+!   ! ------------------------
+!   call getarg(1, arg)
+!   rho = 1.d0
+!   T = 1.d0
+!   X = 0.d0
+!
+!   select case (arg)
+!   case ('bintest')
+!      open (1, file='GERG_test/binary/test_data')
+!      io = 0
+!      ! Reads until the file with test data ends
+!      do while (io == 0)
+!         X = 0
+!         read (1, *, iostat=io) i, X(i), j, X(j), T, rho, test_P, test_cv, test_cp, test_w
+!         if (io .ne. 0) then
+!            exit
+!         end if
+!
+!         mean_M = 0
+!         do k = 1, size(X)
+!            mean_M = mean_M + X(k)*M(k)
+!         end do
+!         mean_M = mean_M/1000.d0
+!
+!         ! Set delta and tau
+!         call reducing_funcs(X, rho_r, T_r)
+!         delta = rho/rho_r
+!         tau = T_r/T
+!         call residual_term(X, delta, tau, ar)
+!         call ideal_term(X, rho, T, rho_r, T_r, ao)
+!
+!         ! Calculate Properties
+!         call zeta(delta, ar, Z)
+!         call isobaric_heat(delta, tau, R, ao, ar, cp)
+!         call isochoric_heat(tau, R, Ao, Ar, cv)
+!         call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
+!
+!         ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
+!         P = Z*rho*T*R*1000.d0*1.d-6
+!
+!         print *, i, j, T, rho, P, cv, cp, w, test_P, test_cv, test_cp, test_w
+!         write (0, *) i, j, delta, tau, ar(3, 2), ao(3, 2), cv, test_cv
+!
+!      end do
+!      close (1)
+!   
+!   case ('ngas_test')
+!      open (1, file='tests/verification/GERG_test/NG/test_concentrations')
+!      io = 0
+!      ! Reads until the file with test data ends
+!      do while (io == 0)
+!         read (1, *, iostat=io) i, (X_ng(i,j), j=1,21)
+!         if (io .ne. 0) then
+!            exit
+!         end if
+!      end do
+!      close(1)
+!
+!      X_ng = X_ng/100.d0
+!      
+!      open (1, file='tests/verification/GERG_test/NG/test_values')
+!      io=0
+!      do while (io == 0)
+!         read (1, *, iostat=io) i, T, rho, test_P, test_cv, test_cp, test_w
+!         if (io .ne. 0) then
+!            exit
+!         end if
+!
+!         !write(0,*) i, X_ng(i,1:5)
+!
+!         mean_M = 0
+!         do k = 1, 21
+!            mean_M = mean_M + X_ng(i,k)*M(k)
+!         end do
+!         mean_M = mean_M/1000.d0
+!
+!         ! Set delta and tau
+!         call reducing_funcs(X_ng(i,:), rho_r, T_r)
+!         delta = rho/rho_r
+!         tau = T_r/T
+!
+!         call residual_term(X_ng(i,:), delta, tau, ar)
+!         call ideal_term(X_ng(i,:), rho, T, rho_r, T_r, ao)
+!
+!         ! Calculate Properties
+!         call zeta(delta, ar, Z)
+!         call isobaric_heat(delta, tau, R, ao, ar, cp)
+!         call isochoric_heat(tau, R, Ao, Ar, cv)
+!         call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
+!         
+!         ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
+!         P = Z*rho*T*R*1000.d0*1.d-6
+!
+!         print *, i, rho, t, P, test_P, P-test_P
+!
+!      end do
+!      case ("pure_methane")
+!              T=323.15
+!
+!              X = 0
+!              X(1) = 1.d0
+!              mean_M = 0
+!              do k = 1, size(X)
+!                 mean_M = mean_M + X(k)*M(k)
+!              end do
+!
+!              mean_M = mean_M/1000.d0
+!              call reducing_funcs(X, rho_r, T_r)
+!
+!              do rho=0.1,30,0.1
+!                 ! Set delta and tau
+!                 delta = rho/rho_r
+!                 tau = T_r/T
+!                 call residual_term(X, delta, tau, ar)
+!                 call ideal_term(X, rho, T, rho_r, T_r, ao)
+!
+!                 ! Calculate Properties
+!                 call zeta(delta, ar, Z)
+!                 call isobaric_heat(delta, tau, R, ao, ar, cp)
+!                 call isochoric_heat(tau, R, Ao, Ar, cv)
+!                 call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
+!
+!                 ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
+!                 P = Z*rho*T*R*1000.d0!*1.d-6
+!                 call pressure(delta, rho, R, T, ar, P2)
+!                 print *, Z, P*1d-6, P2*1d-6, P-P2
+!              end do
+!   end select
+!End Program gerg
