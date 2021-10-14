@@ -1,5 +1,4 @@
-from numpy.distutils.core import setup
-from numpy.distutils.core import Extension
+from numpy.distutils.core import Extension, setup
 
 gerg2008 = Extension(
     name="pyforfluids.fortran.gerg2008f",
