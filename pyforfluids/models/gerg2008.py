@@ -11,37 +11,39 @@ from ..fortran.thermo_props import thermo_props
 class GERG2008:
     """ """
 
-    def __init__(self):
-        self.name = "GERG2008"
+    name = "GERG2008"
 
-        self.valid_components = [
-            "methane",
-            "nitrogen",
-            "carbon_dioxide",
-            "ethane",
-            "propane",
-            "butane",
-            "isobutane",
-            "pentane",
-            "isopentane",
-            "hexane",
-            "heptane",
-            "octane",
-            "nonane",
-            "decane",
-            "hydrogen",
-            "oxygen",
-            "carbon_monoxide",
-            "water",
-            "hydrogen_sulfide",
-            "helium",
-            "argon",
-        ]
+    valid_components = [
+        "methane",
+        "nitrogen",
+        "carbon_dioxide",
+        "ethane",
+        "propane",
+        "butane",
+        "isobutane",
+        "pentane",
+        "isopentane",
+        "hexane",
+        "heptane",
+        "octane",
+        "nonane",
+        "decane",
+        "hydrogen",
+        "oxygen",
+        "carbon_monoxide",
+        "water",
+        "hydrogen_sulfide",
+        "helium",
+        "argon",
+    ]
 
     def validate_components(self, components):
         for component in components:
             if component not in self.valid_components:
-                raise ValueError(f"{component} ain't  a valid component")
+                warnings.warn(
+                    f'{self.name} Valid Components:\n{self.valid_components}'
+                )
+                raise ValueError(f"'{component}' ain't  a valid component")
 
     def validate_ranges(self, temperature, pressure):
         pass
