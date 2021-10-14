@@ -1,1 +1,1 @@
-from .gerg2008 import GERG2008
+from .gerg2008 import GERG2008  # noqa

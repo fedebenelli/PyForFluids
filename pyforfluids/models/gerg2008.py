@@ -4,7 +4,6 @@ import warnings
 import numpy as np
 
 from ..fortran import gerg2008f
-
 from ..fortran.thermo_props import thermo_props
 
 
@@ -41,7 +40,7 @@ class GERG2008:
         for component in components:
             if component not in self.valid_components:
                 warnings.warn(
-                    f'{self.name} Valid Components:\n{self.valid_components}'
+                    f"{self.name} Valid Components:\n{self.valid_components}"
                 )
                 raise ValueError(f"'{component}' ain't  a valid component")
 
