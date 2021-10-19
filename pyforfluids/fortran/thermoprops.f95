@@ -216,6 +216,7 @@ Contains
                 do i=1,size(X)
                 MM = MM + X(i)*M(i)
                 end do
+                MM = MM/1000 ! Translate to Kilograms
         End Subroutine mean_molecular_weight
 
    Subroutine zeta(delta, ar, z)
