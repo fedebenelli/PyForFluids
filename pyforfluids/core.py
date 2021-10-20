@@ -20,6 +20,7 @@ class Fluid:
         self.temperature = temperature
         self.pressure = pressure
         self.density = density
+        self.properties = {}
 
         model.validate_components(composition)
 
