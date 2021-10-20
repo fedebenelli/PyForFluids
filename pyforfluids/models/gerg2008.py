@@ -115,7 +115,7 @@ class GERG2008:
 
         x = self.set_concentration(composition)
 
-        m = thermo_props(x, molecular_weights)
+        m = thermo_props.mean_molecular_weight(x, molecular_weights)
 
         density_r, temperature_r = gerg2008f.reducing_funcs(x)
 
