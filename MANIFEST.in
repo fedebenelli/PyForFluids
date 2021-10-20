@@ -1,5 +1,6 @@
 include LICENSE
 include README.md
+include CODE_OF_CONDUCT.md
 include requirements.txt
 recursive-include pyforfluids *
 
