@@ -109,24 +109,27 @@ class GERG2008:
         self, temperature, pressure, density, composition
     ):
 
+        # General use parameteres
         gerg2008f.get_params()
         molecular_weights = gerg2008f.parameters.m
         r = gerg2008f.parameters.r
 
+        # Concentration dependant parameters
         x = self.set_concentration(composition)
-
         m = thermo_props.mean_molecular_weight(x, molecular_weights)
 
+        # Reducing functions
         density_r, temperature_r = gerg2008f.reducing_funcs(x)
-
         delta = density / density_r
         tau = temperature_r / temperature
 
+        # Model tems
         ao = gerg2008f.ideal_term(
             x, density, temperature, density_r, temperature_r
         )
         ar = gerg2008f.residual_term(x, delta, tau)
 
+        # Properties
         z = thermo_props.zeta(delta, ar)
         cv = thermo_props.isochoric_heat(tau, r, ao, ar)
         cp = thermo_props.isobaric_heat(delta, tau, r, ao, ar)
