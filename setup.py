@@ -18,7 +18,7 @@ EXTENSIONS = [
     ),
 ]
 
-packages = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
+PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
 
 if __name__ == "__main__":
     setup(
@@ -28,6 +28,6 @@ if __name__ == "__main__":
         url="https://github.com/fedebenelli/pyforfluids",
         author="Federico Benelli; María Candelaria Arpajou",
         author_email="federico.benelli@mi.unc.edu.ar",
-        packages=packages,
+        packages=PACKAGES,
         ext_modules=EXTENSIONS,
     )
