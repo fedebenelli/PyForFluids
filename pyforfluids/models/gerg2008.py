@@ -7,6 +7,14 @@ from ..fortran import gerg2008f
 from ..fortran.gerg2008f import thermo_props
 
 
+class NegativeValue(ValueError):
+    def __init__(
+        self, message="Pressure and Temperature cannot take negative values."
+    ):
+        self.message = message
+        super().__init__(self.message)
+
+
 class GERG2008:
     def __init__(self):
         self.name = "GERG2008"
@@ -168,3 +176,25 @@ class GERG2008:
             "b": b,
             "c": c,
         }
+
+    def validate_pt_values(self, pressure, temperature):
+
+        if temperature <= 0.0 or pressure <= 0.0:
+            raise NegativeValue()
+        elif temperature > 700.0 or temperature < 60.0:
+            warnings.warn(
+                "Working conditions belong to the invalid vality range"
+            )
+        elif pressure > 70.0:
+            warnings.warn(
+                "Working conditions belong to the invalid vality range"
+            )
+        elif (temperature >= 90.0 and temperature <= 450.0) and (
+            pressure <= 35.0
+        ):
+            return
+        else:
+            warnings.warn(
+                "Working conditions belong to the extended vality range"
+            )
+            return
