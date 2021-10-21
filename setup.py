@@ -1,3 +1,4 @@
+import setuptools  # noqa
 from numpy.distutils.core import Extension, setup
 
 EXTENSIONS = [
@@ -25,7 +26,7 @@ if __name__ == "__main__":
         version="0.0.1",
         description="Library for fluid thermodynamics calculations",
         url="https://github.com/fedebenelli/pyforfluids",
-        author="Federico Benelli",
+        author="Federico Benelli; María Candelaria Arpajou",
         author_email="federico.benelli@mi.unc.edu.ar",
         packages=packages,
         ext_modules=EXTENSIONS,
