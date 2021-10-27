@@ -7,14 +7,6 @@ from ..fortran import gerg2008f
 from ..fortran.gerg2008f import thermo_props
 
 
-class NegativeValue(ValueError):
-    def __init__(
-        self, message="Pressure and Temperature cannot take negative values."
-    ):
-        self.message = message
-        super().__init__(self.message)
-
-
 class GERG2008:
     def __init__(self):
         self.name = "GERG2008"
