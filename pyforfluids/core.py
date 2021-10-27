@@ -24,6 +24,9 @@ class Fluid:
 
         model.validate_components(composition)
 
+    def set_composition(self, composition):
+        self.composition = composition
+
     def set_temperature(self, temperature):
         self.temperature = temperature
 
