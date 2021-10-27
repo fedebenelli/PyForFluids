@@ -1,5 +1,7 @@
 """
 """
+import pickle as pkl
+
 import numpy as np
 import pytest
 
@@ -94,6 +96,26 @@ def test_fluid_pressure():
     assert fluid.pressure == 5
 
 
+def test_fluid_composition():
+    composition = {"methane": 1}
+    temperature = 200
+    density = 2
+    model = models.GERG2008()
+
+    fluid = pff.Fluid(
+        model=model,
+        composition=composition,
+        temperature=temperature,
+        density=density,
+    )
+
+    new_composition = {"ethane": 1}
+
+    fluid.set_composition(new_composition)
+
+    assert fluid.composition == new_composition
+
+
 def test_properties():
     composition = {"methane": 1}
     temperature = 200
@@ -145,10 +167,65 @@ def test_properties():
         "c": 0.004165029281375034,
     }
 
-    fluid.calculate_properties()
-
     for prop in test_props:
         test_prop = test_props[prop]
         calc_prop = fluid.properties[prop]
-        np.testing.assert_almost_equal(test_prop, calc_prop, 8)
-        # assert np.allclose(test_prop, calc_prop)
+        np.testing.assert_almost_equal(calc_prop, test_prop, 8)
+
+
+def test_isotherm():
+    composition = {"methane": 1}
+    temperature = 200
+    density = 2
+    model = models.GERG2008()
+
+    with open("tests/isotherm.pkl", "rb") as f:
+        test_values = pkl.load(f)
+
+    fluid = pff.Fluid(
+        model=model,
+        composition=composition,
+        temperature=temperature,
+        density=density,
+    )
+
+    density_range = np.linspace(0, 100, 5)
+
+    values = fluid.isotherm(density_range)
+
+    for prop in values:
+        np.testing.assert_almost_equal(values[prop], test_values[prop], 8)
+
+
+def test_getitem():
+    composition = {"methane": 1}
+    temperature = 200
+    density = 2
+    model = models.GERG2008()
+
+    fluid = pff.Fluid(
+        model=model,
+        composition=composition,
+        temperature=temperature,
+        density=density,
+    )
+
+    np.testing.assert_almost_equal(fluid["p"], 2683062.2604570426, 8)
+
+
+def test_repr():
+    composition = {"methane": 1}
+    temperature = 200
+    density = 2
+    model = models.GERG2008()
+
+    fluid = pff.Fluid(
+        model=model,
+        composition=composition,
+        temperature=temperature,
+        density=density,
+    )
+
+    test_string = "Fluid\n\n----------------\nComposition\nmethane\t:1\n----------------\n\ndensity_r\t: 10.139343\ntemperature_r\t: 190.564\ndelta\t: 0.197251\ntau\t: 0.95282\nao\t: [[-38.297854   0.         0.      ]\n [  5.069671 -51.939691   0.      ]\n [-25.701568  -3.368751   0.      ]]\nar\t: [[-0.201319  0.        0.      ]\n [-0.979741 -0.425357  0.      ]\n [ 0.41372  -0.29441  -2.104279]]\nz\t: 0.806745\ncv\t: 27.651097\ncp\t: 46.738949\nw\t: 332.129752\nisothermal_thermal_coefficent\t: -0.454781\ndp_dt\t: 19.991874\ndp_drho\t: 1046.935562\ndp_dv\t: -4187.742249\np\t: 2683062.260457\ns\t: -94.74583\nu\t: -82969.225026\nh\t: -81627.693896\ng\t: -62678.527828\njt\t: 1.073354\nk\t: 1.025332\nb\t: -0.104736\nc\t: 0.004165\n"  # noqa
+
+    assert fluid.__repr__() == test_string
