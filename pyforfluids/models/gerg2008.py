@@ -12,7 +12,7 @@ class GERG2008:
 
     name = "GERG2008"
 
-    valid_components = [
+    valid_components = {
         "methane",
         "nitrogen",
         "carbon_dioxide",
@@ -34,15 +34,17 @@ class GERG2008:
         "hydrogen_sulfide",
         "helium",
         "argon",
-    ]
+    }
 
     def validate_components(self, components):
-        for component in components:
-            if component not in self.valid_components:
-                warnings.warn(
-                    f"{self.name} Valid Components:\n{self.valid_components}"
-                )
-                raise ValueError(f"'{component}' ain't  a valid component")
+        given_components = set(components)
+
+        diff = given_components.difference(self.valid_components)
+        if len(diff) > 0:
+            warnings.warn(
+                f"{self.name} Valid Components:\n{self.valid_components}"
+            )
+            raise ValueError(f"'{diff}' ain't valid components")
 
     def validate_ranges(self, temperature, pressure):
         pass
