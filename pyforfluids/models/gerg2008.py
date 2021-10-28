@@ -4,41 +4,47 @@ import warnings
 import numpy as np
 
 from ..fortran import gerg2008f
-from ..fortran.gerg2008f import thermo_props
+from ..fortran.thermo_props import thermo_props
 
 
 class GERG2008:
-    def __init__(self):
-        self.name = "GERG2008"
+    """ """
 
-        self.valid_components = [
-            "methane",
-            "nitrogen",
-            "carbon_dioxide",
-            "ethane",
-            "propane",
-            "butane",
-            "isobutane",
-            "pentane",
-            "isopentane",
-            "hexane",
-            "heptane",
-            "octane",
-            "nonane",
-            "decane",
-            "hydrogen",
-            "oxygen",
-            "carbon_monoxide",
-            "water",
-            "hydrogen_sulfide",
-            "helium",
-            "argon",
-        ]
+    name = "GERG2008"
+
+    valid_components = {
+        "methane",
+        "nitrogen",
+        "carbon_dioxide",
+        "ethane",
+        "propane",
+        "butane",
+        "isobutane",
+        "pentane",
+        "isopentane",
+        "hexane",
+        "heptane",
+        "octane",
+        "nonane",
+        "decane",
+        "hydrogen",
+        "oxygen",
+        "carbon_monoxide",
+        "water",
+        "hydrogen_sulfide",
+        "helium",
+        "argon",
+    }
 
     def validate_components(self, components):
-        for component in components:
-            if component not in self.valid_components:
-                raise ValueError(f"{component} ain't  a valid component")
+        given_components = set(components)
+
+        diff = given_components.difference(self.valid_components)
+        if len(diff) > 0:
+            warnings.warn(
+                f"{self.name} Valid Components:\n{self.valid_components}"
+            )
+            raise ValueError(f"'{diff}' ain't valid components")
 
     def validate_ranges(self, temperature, pressure):
         pass
@@ -105,24 +111,27 @@ class GERG2008:
         self, temperature, pressure, density, composition
     ):
 
+        # General use parameteres
         gerg2008f.get_params()
         molecular_weights = gerg2008f.parameters.m
         r = gerg2008f.parameters.r
 
+        # Concentration dependant parameters
         x = self.set_concentration(composition)
+        m = thermo_props.mean_molecular_weight(x, molecular_weights)
 
-        m = thermo_props(x, molecular_weights)
-
+        # Reducing functions
         density_r, temperature_r = gerg2008f.reducing_funcs(x)
-
         delta = density / density_r
         tau = temperature_r / temperature
 
+        # Model tems
         ao = gerg2008f.ideal_term(
             x, density, temperature, density_r, temperature_r
         )
         ar = gerg2008f.residual_term(x, delta, tau)
 
+        # Properties
         z = thermo_props.zeta(delta, ar)
         cv = thermo_props.isochoric_heat(tau, r, ao, ar)
         cp = thermo_props.isobaric_heat(delta, tau, r, ao, ar)
@@ -140,8 +149,9 @@ class GERG2008:
         g = thermo_props.gibbs_free_energy(delta, r, temperature, ao, ar)
         jt = thermo_props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
         k = thermo_props.isentropic_exponent(delta, tau, ao, ar)
-        b = thermo_props.second_thermal_virial_coeff(density_r, ar)
-        c = thermo_props.third_thermal_virial_coeff(density_r, ar)
+        ar_virial = gerg2008f.residual_term(x, 1e-15, tau)
+        b = thermo_props.second_thermal_virial_coeff(density_r, ar_virial)
+        c = thermo_props.third_thermal_virial_coeff(density_r, ar_virial)
 
         return {
             "density_r": density_r,

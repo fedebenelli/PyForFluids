@@ -1,2 +1,1 @@
-from .core import Fluid
-from .models import *
+from .core import Fluid  # noqa
