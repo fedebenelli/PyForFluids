@@ -28,5 +28,7 @@ jobs:
         uses: egor-tensin/setup-mingw@v2
         with:
           platform: x64
+      - name: Develop install
+        run: pip install -e .        
       - name: Test with tox
-        run: tox -r
+        run: tox --develop
