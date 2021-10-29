@@ -3,10 +3,11 @@
 import pickle as pkl
 
 import numpy as np
-import pytest
 
 import pyforfluids as pff
 import pyforfluids.models as models
+
+import pytest
 
 
 def test_init():
