@@ -6,20 +6,21 @@ import os
 from numpy.distutils.core import Extension, setup
 
 rootdir = os.path.normpath(os.path.join(__file__, os.pardir))
+fortrandir = os.path.join(rootdir, "pyforfluids", "fortran")
 
 EXTENSIONS = [
     Extension(
         name="pyforfluids.fortran.gerg2008f",
         sources=[
-            os.path.join(rootdir, "pyforfluids/fortran/parameters.f95"),
-            os.path.join(rootdir, "pyforfluids/fortran/gerg.f95"),
+            os.path.join(fortrandir, "parameters.f95"),
+            os.path.join(fortrandir, "gerg.f95"),
         ],
     ),
     Extension(
         name="pyforfluids.fortran.thermo_props",
         sources=[
-            os.path.join(rootdir, "pyforfluids/fortran/parameters.f95"),
-            os.path.join(rootdir, "pyforfluids/fortran/thermoprops.f95"),
+            os.path.join(fortrandir, "parameters.f95"),
+            os.path.join(fortrandir, "thermoprops.f95"),
         ],
     ),
 ]
