@@ -1,7 +1,5 @@
 """
 """
-import pickle as pkl
-
 import numpy as np
 
 import pyforfluids as pff
@@ -174,14 +172,11 @@ def test_properties():
         np.testing.assert_almost_equal(calc_prop, test_prop, 8)
 
 
-def test_isotherm():
+def test_isotherm(isotherm):
     composition = {"methane": 1}
     temperature = 200
     density = 2
     model = models.GERG2008()
-
-    with open("tests/isotherm.pkl", "rb") as f:
-        test_values = pkl.load(f)
 
     fluid = pff.Fluid(
         model=model,
@@ -195,7 +190,7 @@ def test_isotherm():
     values = fluid.isotherm(density_range)
 
     for prop in values:
-        np.testing.assert_almost_equal(values[prop], test_values[prop], 8)
+        np.testing.assert_almost_equal(values[prop], isotherm[prop], 8)
 
 
 def test_getitem():
