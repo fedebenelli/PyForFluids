@@ -1,12 +1,39 @@
-"""PyForFluids
-   ===========
+"""PyForFluids.
 
-   Module that does stuff.....
+   Module that does stuff.
 """
 import numpy as np
 
 
 class Fluid:
+    """Class that describes a fluid based on a given model and it's properties.
+
+    density and pressure can't be defined at the same time. If pressure is
+    given, the density will be calculated with an iterative algorithm using
+    the derivatives given by the model.
+
+    Parameters
+    ----------
+    model:
+        Model to use in the properties calculation.
+    composition: dict
+        Dictionary with the compounds concentrations as:
+            {"methane": 0.8, "ethane": 0.1}
+        In some cases, as in GERG2008, the values will be normalized for the
+        calculations but won't be modified in the Fluid attribute
+    temperature: float
+        Fluid temperature in degrees Kelvin [K]
+    pressure: float
+        Fluid pressure in Pascals [Pa]
+    density: float
+        Fluid density in mol per liter [mol/L]
+
+    Attributes
+    ----------
+    properties: dict
+        Fluid properties calculated by it's model
+    """
+
     def __init__(
         self, model, composition, temperature, pressure=None, density=None
     ):
@@ -14,7 +41,9 @@ class Fluid:
             pressure,
             density,
         ):
-            raise ValueError("Presión y densidad no pueden ser ambos None....")
+            raise ValueError(
+                "Can't define pressure and density at the same time"
+            )
 
         self.composition = composition
         self.model = model
@@ -28,10 +57,10 @@ class Fluid:
         self.calculate_properties()
 
     def set_composition(self, composition):
-        """Change the fluid's composition
+        """Change the fluid's composition.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         composition: dict
             Dictionary with the fluid compounds as keys and their molar
             concentration as values
@@ -42,30 +71,30 @@ class Fluid:
         self.composition = composition
 
     def set_temperature(self, temperature):
-        """Change the fluid's density
+        """Change the fluid's temperature.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         temperature: float
             New temperature
         """
         self.temperature = temperature
 
     def set_density(self, density):
-        """Change the fluid's density
+        """Change the fluid's density.
 
-        Parameter
-        ---------
+        Parameters
+        ---------.
         density: float
             New density
         """
         self.density = density
 
     def set_pressure(self, pressure):
-        """Change the fluid's pressure
+        """Change the fluid's pressure.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         pressure: float
             New pressure
 
@@ -73,7 +102,7 @@ class Fluid:
         self.pressure = pressure
 
     def calculate_properties(self):
-        """Calculate the fluid's properties"""
+        """Calculate the fluid's properties."""
         self.properties = self.model.calculate_properties(
             self.temperature, self.pressure, self.density, self.composition
         )
