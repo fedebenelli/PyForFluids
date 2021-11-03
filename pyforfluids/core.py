@@ -1,14 +1,13 @@
-"""PyForFluids.
+"""PyForFluids."""
+import warnings
 
-   Module that does stuff.
-"""
 import numpy as np
 
 
 class Fluid:
     """Class that describes a fluid based on a given model and it's properties.
 
-    density and pressure can't be defined at the same time. If pressure is
+    Density and pressure can't be defined at the same time. If pressure is
     given, the density will be calculated with an iterative algorithm using
     the derivatives given by the model.
 
@@ -54,7 +53,27 @@ class Fluid:
 
         model.validate_components(composition)
 
+        if density is None:
+            # If no density was given calculate it
+            self.density = np.nan
+            density = self.density_iterator(pressure)[0]
+            self.density = density
+
         self.calculate_properties()
+
+    def copy(self):
+        """Return a copy of the fluid, taking density as independant variable.
+
+        Returns
+        -------
+        Fluid
+        """
+        return Fluid(
+            model=self.model,
+            composition=self.composition,
+            temperature=self.temperature,
+            density=self.density,
+        )
 
     def set_composition(self, composition):
         """Change the fluid's composition.
@@ -66,7 +85,7 @@ class Fluid:
             concentration as values
 
             example:
-                composition = {'methane': 0.1, 'ethane': 0.9}
+            composition = {'methane': 0.1, 'ethane': 0.9}
         """
         self.composition = composition
 
@@ -84,7 +103,7 @@ class Fluid:
         """Change the fluid's density.
 
         Parameters
-        ---------.
+        ----------
         density: float
             New density
         """
@@ -97,9 +116,10 @@ class Fluid:
         ----------
         pressure: float
             New pressure
-
         """
         self.pressure = pressure
+        new_density = self.density_iterator(pressure)[0]
+        self.density = new_density
 
     def calculate_properties(self):
         """Calculate the fluid's properties."""
@@ -108,29 +128,31 @@ class Fluid:
         )
 
     def isotherm(self, density_range):
-        """Calculate the properties at the fluid temperature along a
-        density range.
+        """Calculate isotherm along a density range.
+
+        Calculate the fluid's properties that it's model can give at constant
+        temperature along a density range.
 
         Parameters
         ----------
         density_range: array-like
-            Range of values of density where to calculate the properties
-        """
+            Range of values of density where to calculate the properties.
 
+        Returns
+        -------
+        isotherm: dict
+            Dictionary with all the properties that the model can calculate
+            along the density_range.
+        """
         # Define a new temporary fluid with the properties of the original one
-        fluid = Fluid(
-            self.model,
-            self.composition,
-            self.temperature,
-            self.pressure,
-            self.density,
-        )
+        fluid = self.copy()
 
         # Initialize a dictionary that will keep all the properties along
         #  the density range
         isotherm = dict()
         fluid.calculate_properties()
         isotherm["density"] = density_range
+
         for prop in fluid.properties:
             isotherm[prop] = []
 
@@ -143,10 +165,71 @@ class Fluid:
 
         return isotherm
 
+    def density_iterator(self, objective_pressure):
+        """With a given pressure and temperature value, get the fluid density.
+
+        Parameters
+        ----------
+        objective_pressure: float
+            Fluid pressure where to calculate density.
+        temperature: float
+            Fluid temperature where to calculate density.
+
+        Returns
+        -------
+        rho_i: float
+            Calculated density.
+        p:
+            Pressure where the density converged.
+        it:
+            Number of iterations.
+        """
+        fluid = self.copy()
+
+        t = fluid.temperature
+
+        fluid.set_temperature(t)
+
+        step = 1
+        it = 0
+        r = 8.31446261815324
+
+        rho_i = objective_pressure / (r * t) / 1000
+
+        fluid.set_density(rho_i)
+        fluid.calculate_properties()
+
+        p = fluid.properties["p"]
+        precision = 0.01
+
+        while abs(p - objective_pressure) > objective_pressure * precision:
+            it = it + 1
+
+            # Calculate properties on the new Newton point
+            fluid.set_density(rho_i)
+            fluid.calculate_properties()
+            p = fluid.properties["p"]
+            dp_drho = fluid.properties["dp_drho"] * 1000
+
+            delta = (p - objective_pressure) / dp_drho
+
+            rho_i = rho_i - step * delta
+
+            if it > 50:
+                warnings.warn(
+                    f" Couldn't converge with 50 iterations, \
+                    P:{objective_pressure}"
+                )
+                return rho_i, p, it
+
+        return rho_i, p, it
+
     def __getitem__(self, key):
+        """Access the fluid properties as a dictionary."""
         return self.properties[key]
 
     def __repr__(self):
+        """Give a summary table of the fluid properties."""
         rep = ""
         rep += "Fluid\n\n"
         rep += "----------------\n"
