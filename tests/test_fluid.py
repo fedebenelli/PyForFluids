@@ -49,6 +49,7 @@ def test_init():
 
     np.testing.assert_allclose(calc_density, test_density, 8)
 
+
 def test_density_iterator():
     composition = {"methane": 1}
     temperature = 200
@@ -71,6 +72,7 @@ def test_density_iterator():
     warning_pressure = 1e15
     with pytest.warns(RuntimeWarning):
         fluid.density_iterator(warning_pressure)
+
 
 def test_fluid_density():
     composition = {"methane": 1}
