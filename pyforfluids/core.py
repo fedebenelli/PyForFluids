@@ -217,8 +217,7 @@ class Fluid:
 
             if it > 50:
                 warnings.warn(
-                    f" Couldn't converge with 50 iterations, \
-                    P:{objective_pressure}"
+                    RuntimeWarning("Couldn't converge with 50 iterations")
                 )
                 return rho_i, p, it
 
