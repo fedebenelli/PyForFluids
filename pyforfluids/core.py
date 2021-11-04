@@ -179,9 +179,9 @@ class Fluid:
         -------
         rho_i: float
             Calculated density.
-        p:
+        p: float
             Pressure where the density converged.
-        it:
+        it: int
             Number of iterations.
         """
         fluid = self.copy()
