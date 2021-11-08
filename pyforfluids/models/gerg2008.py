@@ -1,4 +1,4 @@
-""""""
+"""PyForFluids."""
 import warnings
 
 import numpy as np
@@ -8,7 +8,10 @@ from ..fortran.thermo_props import thermo_props
 
 
 class GERG2008:
-    """ """
+    """Class that defines the GERG2008 equation of state.
+
+    The components must be those of the GERG2008 model.
+    """
 
     name = "GERG2008"
 
@@ -37,6 +40,16 @@ class GERG2008:
     }
 
     def validate_components(self, components):
+        """Validate fluid components.
+
+        Varify if the given fluid components are valid for the GERG2008 equation of state.
+        If not, a ValueError Exception is raised.
+
+        Parameters
+        ----------
+        components: set
+            Set of the fluid components to be verified.
+        """
         given_components = set(components)
 
         diff = given_components.difference(self.valid_components)
@@ -47,9 +60,39 @@ class GERG2008:
             raise ValueError(f"'{diff}' ain't valid components")
 
     def validate_ranges(self, temperature, pressure):
+        """Validate fluid temperature and pressure.
+
+        Verify whether the fluid temperature and pressure values belong to the normal,
+        extended or invalid use range of the GERG2008 equation of state.
+        A warning menssage is sent if the temperature and pressure conditions are those of
+        the extended or invalid range, and also if they take negative values.
+
+        Parameters
+        ----------
+        temperature: float
+            Fluid temperature in Kelvin degrees [K]
+        pressure: float
+            Fluid pressure in Pascal [Pa]
+
+        """
         pass
 
     def set_concentration(self, composition):
+        """Verify if the sum of the molar fractions of the fluid components is 1.
+
+        If not, a warninig message is sent and the composition is normalized.
+
+        Parameters
+        ----------
+        components: dict
+            Dictionary of the fluid compounds as keys and their molar
+            fraction as values.
+
+        Returns
+        -------
+        x: array
+            Array of the normalized fluid composition vector.
+        """
         methane = composition.get("methane", 0)
         nitrogen = composition.get("nitrogen", 0)
         carbon_dioxide = composition.get("carbon_dioxide", 0)
@@ -110,7 +153,26 @@ class GERG2008:
     def calculate_properties(
         self, temperature, pressure, density, composition
     ):
+        """Calculate the thermodynamic properties of the given fluid.
 
+        Parameters
+        ----------
+        temperature: float
+            Fluid temperature in Kelvin degrees [K]
+        pressure: float
+            Fluid pressure in Pascal [Pa]
+        density: float
+            Fluid density in mol per liter [mol/L]
+        composition: dict
+            Dictionary of the compounds concentrations as:
+                {"methane": 0.8, "ethane":0.2}
+            When necessary, the concentration values are normalized.
+
+        Return
+        ------
+        Dictionary of the thermodinamic properties of the given fluid calculated
+        with GERG2008 equation of state.
+        """
         # General use parameteres
         gerg2008f.get_params()
         molecular_weights = gerg2008f.parameters.m
