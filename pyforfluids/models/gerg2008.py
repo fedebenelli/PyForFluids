@@ -129,7 +129,7 @@ class GERG2008:
         ao = gerg2008f.ideal_term(
             x, density, temperature, density_r, temperature_r
         )
-        ar = gerg2008f.residual_term(x, delta, tau)
+        ar, arx = gerg2008f.residual_term(x, delta, tau)
 
         # Properties
         z = thermo_props.zeta(delta, ar)
@@ -149,7 +149,7 @@ class GERG2008:
         g = thermo_props.gibbs_free_energy(delta, r, temperature, ao, ar)
         jt = thermo_props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
         k = thermo_props.isentropic_exponent(delta, tau, ao, ar)
-        ar_virial = gerg2008f.residual_term(x, 1e-15, tau)
+        ar_virial, _ = gerg2008f.residual_term(x, 1e-15, tau)
         b = thermo_props.second_thermal_virial_coeff(density_r, ar_virial)
         c = thermo_props.third_thermal_virial_coeff(density_r, ar_virial)
 
