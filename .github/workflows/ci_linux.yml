@@ -1,6 +1,6 @@
 # Continuous Integratoin
 
-name: Linux Tests
+name: Tests
 
 on:
   - push
