@@ -42,8 +42,9 @@ class GERG2008:
     def validate_components(self, components):
         """Validate fluid components.
 
-        Varify if the given fluid components are valid for the GERG2008 equation of state.
-        If not, a ValueError Exception is raised.
+        Verify if the given fluid components are valid
+        for the GERG2008 equation of state.If not, a
+        ValueError Exception is raised.
 
         Parameters
         ----------
@@ -62,10 +63,12 @@ class GERG2008:
     def validate_ranges(self, temperature, pressure):
         """Validate fluid temperature and pressure.
 
-        Verify whether the fluid temperature and pressure values belong to the normal,
-        extended or invalid use range of the GERG2008 equation of state.
-        A warning menssage is sent if the temperature and pressure conditions are those of
-        the extended or invalid range, and also if they take negative values.
+        Verify whether the fluid temperature and pressure
+        values belong to the normal, extended or invalid
+        use range of the GERG2008 equation of state.
+        A warning menssage is sent if the temperature and
+        pressure conditions are those of the extended or
+        invalid range, and also if they take negative values.
 
         Parameters
         ----------
@@ -170,8 +173,9 @@ class GERG2008:
 
         Return
         ------
-        Dictionary of the thermodinamic properties of the given fluid calculated
-        with GERG2008 equation of state.
+        Dictionary of the thermodynamic properties
+        of the given fluid calculated with GERG2008
+        equation of state.
         """
         # General use parameteres
         gerg2008f.get_params()
