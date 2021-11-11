@@ -1,8 +1,6 @@
 import numpy as np
 
-
 import pyforfluids.models as models
-
 
 import pytest
 
@@ -12,10 +10,9 @@ def test_components():
     valid_components = model.valid_components
     model.validate_components(valid_components)
 
-    with pytest.raises(Exception) as e_info:
+    with pytest.raises(Exception):
         wrong_component = "other_string"
         model.validate_components(valid_components + [wrong_component])
-    print(e_info)
 
 
 def test_validate_pt_values_no_warnings():
@@ -76,6 +73,5 @@ def test_validate_pt_values_negative_range():
     random_negative_temp = -np.random.uniform(0.1, 100.0)
     model = models.GERG2008()
 
-    with pytest.warns(UserWarning) as w_info:
+    with pytest.warns(UserWarning):
         model.validate_pt_values(random_nagetive_press, random_negative_temp)
-    print(w_info)
