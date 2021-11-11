@@ -321,6 +321,11 @@ Subroutine get_params()
       Gv(i, j) = red_params(i, j, 2)
       Bt(i, j) = red_params(i, j, 3)
       Gt(i, j) = red_params(i, j, 4)
+
+      Bv(j, i) = 1.d0 / Bv(i, j)
+      Gv(j, i) = Gv(j, i)
+      Bt(j, i) = 1.d0 / Bt(i, j)
+      Gt(j, i) = Gt(j, i)
    end do
    end do
 
