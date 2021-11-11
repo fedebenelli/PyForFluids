@@ -1,4 +1,4 @@
-"""PyForFluids."""
+"""Core module."""
 import warnings
 
 import numpy as np
