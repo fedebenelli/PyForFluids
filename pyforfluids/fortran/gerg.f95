@@ -7,7 +7,7 @@
 ! -------------------
 ! GERG 2008 Functions
 ! -------------------
-Subroutine reducing_funcs(X, rho_r, T_r)
+Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
    ! REDUCING DENSITY AND TEMPERATURE
    ! input:
    ! - X      (array): molar fractions
@@ -18,12 +18,14 @@ Subroutine reducing_funcs(X, rho_r, T_r)
    ! - rho_c  (array): citical densities
    ! - T_c    (array): citical temperatures
    ! output:
-   ! - rho_r  (float): Reducing density (1/rhor)
+   ! - rho_r  (float): Reducing density
    ! - T_r    (float): reducing temperature (Tr)
    use parameters
    real(8), dimension(21), intent(in) :: X
-   real(8), intent(out) :: rho_r, T_r
-   integer :: i, j
+   real(8), intent(out) :: rho_r, T_r, T_r_x(21), V_r_x(21)
+   integer :: i, j, k
+   ! Internal variables
+   real(8) :: vki, tki, c_v, c_t, x_sum, x_pro, xki, Bv_xki, Bt_xki, fv_ki, ft_ki
    call get_params()
 
    rho_r = 0.d0
@@ -55,6 +57,56 @@ Subroutine reducing_funcs(X, rho_r, T_r)
    end do
    ! Actually, the reducing volume was calculated, let's make it into density
    rho_r = 1 / rho_r
+
+   ! Compositional derivatives
+   T_r_x = 0
+   V_r_x = 0
+
+   do i = 1, N
+           T_r_x(i) = 2.d0*X(i)*T_c(i)
+           V_r_x(i) = 2.d0*X(i)/(rho_(i))
+
+   do k = 1, i-1
+           vki = 1.d0 / 8.d0 * (rho_c(k) ** (- 1.d0 / 3.d0) + rho_c(i) ** (- 1.d0 / 3.d0)) ** 3
+           tki = sqrt((T_c(k) * T_c(i)))
+           c_v = 2*Bv(k, i) * Gv(k, i) * vki
+           c_t = 2*Bt(k, i) * Gt(k, i) * tki
+
+           x_sum = X(k) + X(i)
+           x_pro = X(k) * X(i)
+           xki = X(k) + X(i)
+
+           Bv_xki = Bv(k, i)**2*X(k) + X(i)
+           Bt_xki = Bt(k, i)**2*X(k) + X(i)
+
+           fv_ki = X(k)*x_sum/Bv_xki + x_pro/Bv_xki * (1.d0 - x_sum/Bv_xki)
+           ft_ki = X(k)*x_sum/Bt_xki + x_pro/Bt_xki * (1.d0 - x_sum/Bt_xki)
+
+           V_r_x(i) = T_r_x(i) + c_v*fv_ki
+           T_r_x(i) = V_r_x(i) + c_t*ft_ki
+           
+   end do
+   do k = i+1, N
+           vik = 1.d0 / 8.d0 * (rho_c(i) ** (- 1.d0 / 3.d0) + rho_c(k) ** (- 1.d0 / 3.d0)) ** 3
+           tik = sqrt((T_c(i) * T_c(k)))
+           c_v = 2*Bv(i, k) * Gv(i, k) * vik
+           c_t = 2*Bt(i, k) * Gt(i, k) * tik
+
+           x_sum = X(i) + X(k)
+           x_pro = X(i) * X(k)
+           xki = X(i) + X(k)
+
+           Bv_xik = Bv(i, k)**2*X(i) + X(k)
+           Bt_xik = Bt(i, k)**2*X(i) + X(k)
+
+           fv_ik = X(i)*x_sum/Bv_xik + x_pro/Bv_xik * (1.d0 - x_sum/Bv_xik)
+           ft_ik = X(i)*x_sum/Bt_xik + x_pro/Bt_xik * (1.d0 - x_sum/Bt_xik)
+
+           V_r_x(i) = T_r_x(i) + c_v*fv_ik
+           T_r_x(i) = V_r_x(i) + c_t*ft_ik
+   end do
+   end do
+
 End Subroutine reducing_funcs
 
 ! Pure Compound Helmholtz Energy (and derivatives) Calculations
