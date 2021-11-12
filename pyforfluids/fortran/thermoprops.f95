@@ -375,4 +375,34 @@ Contains
       C = Ar(3, 1) / (rho_r ** 2)
    End Subroutine third_thermal_virial_coeff
 
+   Subroutine helmholtz_per_mol(x, delta, tau, rho_r, T_r, ar, ar_x, ar_dx, v_r_x, T_r_x, dar_dn, dadr_dn)
+           real(8), intent(in) :: x(21), delta, tau, rho_r, T_r, &
+                   ar(3,3), ar_x(21), ar_dx(21), v_r_x(21), T_r_x(21)
+           real(8), dimension(21), intent(out) :: dar_dn, dadr_dn
+           real(8), dimension(21) :: drhor_dn, dtr_dn
+           integer :: i
+
+           dar_dn = 0.d0
+           dadr_dn = 0.d0
+
+           drhor_dn = -rho_r**2*v_r_x
+           dtr_dn = v_r_x
+
+           do i=1, size(dtr_dn)
+                drhor_dn = drhor_dn - (-x(i)*(-rho_r**2*v_r_x(i)))
+                dtr_dn = dtr_dn - x(i)*t_r_x(i)
+           end do
+
+           dar_dn = delta*ar(2, 1)*(1.d0 - 1.d0/rho_r * dtr_dn)
+           dar_dn = dar_dn + tau*ar(2, 2)/T_r * dtr_dn + ar_x
+
+           dadr_dn = delta*ar(3, 1)*(1.d0 - 1.d0/rho_r * dtr_dn)
+           dadr_dn = dadr_dn + tau*ar(3, 3)/T_r * dtr_dn + ar_dx
+
+           do i = 1, size(dtr_dn)
+                   dar_dn = dar_dn - X(i)*ar_x(i)
+                   dadr_dn = dadr_dn - X(i)*ar_dx(i)
+           end do
+   End Subroutine helmholtz_per_mol
+
 End Module thermo_props

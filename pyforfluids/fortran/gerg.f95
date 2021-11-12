@@ -30,6 +30,8 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
 
    rho_r = 0.d0
    T_r = 0.d0
+   t_r_x = 0.d0
+   v_r_x = 0.d0
 
    do i = 1, N
    if (X(i) > eps) then
@@ -59,14 +61,12 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
    rho_r = 1 / rho_r
 
    ! Compositional derivatives
-   T_r_x = 0
-   V_r_x = 0
-
    do i = 1, N
+   if (x(i) > eps) then
            T_r_x(i) = 2.d0 * X(i) * T_c(i)
            V_r_x(i) = 2.d0 * X(i) / (rho_c(i))
 
-   do k = 1, i - 1
+           do k = 1, i - 1
            vki = 1.d0 / 8.d0 * (rho_c(k) ** (- 1.d0 / 3.d0) + rho_c(i) ** (- 1.d0 / 3.d0)) ** 3
            tki = sqrt((T_c(k) * T_c(i)))
            c_v = 2 * Bv(k, i) * Gv(k, i) * vki
@@ -85,8 +85,8 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
            V_r_x(i) = T_r_x(i) + c_v * fv_ki
            T_r_x(i) = V_r_x(i) + c_t * ft_ki
            
-   end do
-   do k = i + 1, N
+           end do
+           do k = i + 1, N
            vik = 1.d0 / 8.d0 * (rho_c(i) ** (- 1.d0 / 3.d0) + rho_c(k) ** (- 1.d0 / 3.d0)) ** 3
            tik = sqrt((T_c(i) * T_c(k)))
            c_v = 2 * Bv(i, k) * Gv(i, k) * vik
@@ -104,7 +104,8 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
 
            V_r_x(i) = T_r_x(i) + c_v * fv_ik
            T_r_x(i) = V_r_x(i) + c_t * ft_ik
-   end do
+           end do
+   end if
    end do
 
 End Subroutine reducing_funcs
