@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 
 from ..fortran import gerg2008f
-from ..fortran.thermo_props import thermo_props
+from ..fortran.thermo_props import thermo_props as props
 
 
 class GERG2008:
@@ -118,51 +118,66 @@ class GERG2008:
 
         # Concentration dependant parameters
         x = self.set_concentration(composition)
-        m = thermo_props.mean_molecular_weight(x, molecular_weights)
+        m = props.mean_molecular_weight(x, molecular_weights)
 
         # Reducing functions
         reducing_variables = gerg2008f.reducing_funcs(x)
-        density_r = reducing_variables[0]
-        temperature_r = reducing_variables[1]
+        reducing_density = reducing_variables[0]
+        reducing_temperature = reducing_variables[1]
+        dtr_dx = reducing_variables[2]
+        dvr_dx = reducing_variables[3]
 
-        delta = density / density_r
-        tau = temperature_r / temperature
+        delta = density / reducing_density
+        tau = reducing_temperature / temperature
 
         # Model tems
         ao = gerg2008f.ideal_term(
-            x, density, temperature, density_r, temperature_r
+            x, density, temperature, reducing_density, reducing_temperature
         )
-        ar, *arx = gerg2008f.residual_term(x, delta, tau)
+        ar, ar_x, ar_dx, ar_tx, ar_xx, = gerg2008f.residual_term(x, delta, tau)
 
         # Properties
-        z = thermo_props.zeta(delta, ar)
-        cv = thermo_props.isochoric_heat(tau, r, ao, ar)
-        cp = thermo_props.isobaric_heat(delta, tau, r, ao, ar)
-        w = thermo_props.sound_speed(delta, tau, r, temperature, m, ao, ar)
+        z = props.zeta(delta, ar)
+        cv = props.isochoric_heat(tau, r, ao, ar)
+        cp = props.isobaric_heat(delta, tau, r, ao, ar)
+        w = props.sound_speed(delta, tau, r, temperature, m, ao, ar)
         isothermal_thermal_coefficent = (
-            thermo_props.isothermal_thermal_coefficent(delta, tau, density, ar)
+            props.isothermal_thermal_coefficent(delta, tau, density, ar)
         )
-        dp_dt = thermo_props.dp_dt(density, delta, tau, r, ar)
-        dp_drho = thermo_props.dp_drho(temperature, delta, r, ar)
-        dp_dv = thermo_props.dp_dv(density, delta, temperature, r, ar)
-        p = thermo_props.pressure(delta, density, r, temperature, ar)
-        s = thermo_props.entropy(tau, r, ao, ar)
-        u = thermo_props.internal_energy(tau, r, temperature, ao, ar)
-        h = thermo_props.enthalpy(delta, tau, r, temperature, ao, ar)
-        g = thermo_props.gibbs_free_energy(delta, r, temperature, ao, ar)
-        jt = thermo_props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
-        k = thermo_props.isentropic_exponent(delta, tau, ao, ar)
+        dp_dt = props.dp_dt(density, delta, tau, r, ar)
+        dp_drho = props.dp_drho(temperature, delta, r, ar)
+        dp_dv = props.dp_dv(density, delta, temperature, r, ar)
+        dar_dn, dadr_dn = props.helmholtz_per_mol(
+            x, delta, tau, reducing_density, reducing_temperature,
+            ar, ar_x, ar_dx, dvr_dx, dtr_dx
+        )
+        dnar_dn = ar[0, 0] + dar_dn
+        p = props.pressure(delta, density, r, temperature, ar)
+        s = props.entropy(tau, r, ao, ar)
+        u = props.internal_energy(tau, r, temperature, ao, ar)
+        h = props.enthalpy(delta, tau, r, temperature, ao, ar)
+        g = props.gibbs_free_energy(delta, r, temperature, ao, ar)
+        jt = props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
+        k = props.isentropic_exponent(delta, tau, ao, ar)
         ar_virial, *_ = gerg2008f.residual_term(x, 1e-15, tau)
-        b = thermo_props.second_thermal_virial_coeff(density_r, ar_virial)
-        c = thermo_props.third_thermal_virial_coeff(density_r, ar_virial)
+        b = props.second_thermal_virial_coeff(reducing_density, ar_virial)
+        c = props.third_thermal_virial_coeff(reducing_density, ar_virial)
+        fugacity_coefficent = dnar_dn - np.log(1 + delta*ar[1, 0])
 
         return {
-            "density_r": density_r,
-            "temperature_r": temperature_r,
+            "reducing_density": reducing_density,
+            "reducing_temperature": reducing_temperature,
             "delta": delta,
             "tau": tau,
             "ao": ao,
             "ar": ar,
+            "ar": ar,
+            "ar_x": ar_x,
+            "ar_dx": ar_dx,
+            "ar_tx": ar_tx,
+            "ar_xx": ar_xx,
+            "dvr_dx": dvr_dx,
+            "dtr_dx": dtr_dx,
             "z": z,
             "cv": cv,
             "cp": cp,
@@ -180,4 +195,7 @@ class GERG2008:
             "k": k,
             "b": b,
             "c": c,
+            "dar_dn": dar_dn,
+            "dadr_dn": dadr_dn,
+            "fugacity_coefficent": fugacity_coefficent
         }
