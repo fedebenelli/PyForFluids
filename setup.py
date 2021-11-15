@@ -30,10 +30,6 @@ PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
 
 ON_RTD = os.environ.get("READTHEDOCS") == "True"
 
-if ON_RTD:
-    EXENSIONS = []
-    PACKAGES = ["pyforfluids", "pyforfluids.models"]
-
 setup(
     name="PyForFluids",
     version="0.0.1",
@@ -42,6 +38,6 @@ setup(
     author="Federico Benelli; María Candelaria Arpajou",
     author_email="federico.benelli@mi.unc.edu.ar",
     packages=PACKAGES,
-    # ext_modules=EXTENSIONS,
+    ext_modules=EXTENSIONS if not ON_RTD else None,
     install_requires=REQUIREMENTS,
 )
