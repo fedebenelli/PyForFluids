@@ -89,7 +89,27 @@ class GERG2008:
         pressure: float
             Fluid pressure in Pascal [Pa]
         """
-        pass
+        if temperature <= 0.0 or pressure <= 0.0:
+            warnings.warn(
+                "Pressure and Temperature cannot take negative values."
+            )
+        elif temperature > 700.0 or temperature < 60.0:
+            warnings.warn(
+                "Working conditions belong to the invalid vality range."
+            )
+        elif pressure > 70.0:
+            warnings.warn(
+                "Working conditions belong to the invalid vality range."
+            )
+        elif (temperature >= 90.0 and temperature <= 450.0) and (
+            pressure <= 35.0
+        ):
+            return
+        else:
+            warnings.warn(
+                "Working conditions belong to the extended vality range."
+            )
+            return
 
     def set_concentration(self, composition):
         """Verify if the sum of the molar fractions of the fluid components is 1.
