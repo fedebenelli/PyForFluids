@@ -15,6 +15,17 @@ def test_components():
         model.validate_components(valid_components + [wrong_component])
 
 
+# -- Valid ranges tests -------------------------------------------------------
+
+
+@pytest.mark.skip(reason="no way of currently testing this")
+def test_validate_pt_values_no_warnings():
+    random_normal_press = np.random.uniform(0.0, 35.0)
+    random_normal_temp = np.random.uniform(90.0, 450.0)
+    model = models.GERG2008()
+    model.validate_ranges(random_normal_press, random_normal_temp)
+
+
 def test_validate_pt_values_min_extended_range():
     random_extended_press = np.random.uniform(35.1, 70.0)
     min_random_extended_temp = np.random.uniform(60.0, 89.9)
@@ -58,3 +69,6 @@ def test_validate_pt_values_negative_range():
 
     with pytest.warns(UserWarning):
         model.validate_ranges(random_nagetive_press, random_negative_temp)
+
+
+# -----------------------------------------------------------------------------
