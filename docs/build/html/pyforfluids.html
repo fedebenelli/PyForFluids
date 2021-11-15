@@ -64,22 +64,22 @@
 </section>
 <section id="module-pyforfluids.core">
 <span id="pyforfluids-core-module"></span><h2>pyforfluids.core module<a class="headerlink" href="#module-pyforfluids.core" title="Permalink to this headline">¶</a></h2>
-<p>PyForFluids.</p>
+<p>Core module.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyforfluids.core.Fluid">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyforfluids.core.</span></span><span class="sig-name descname"><span class="pre">Fluid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pressure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyforfluids.core.Fluid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class that describes a fluid based on a given model and it’s properties.</p>
+<p>Describes a fluid based on a given model and it’s properties.</p>
 <p>Density and pressure can’t be defined at the same time. If pressure is
 given, the density will be calculated with an iterative algorithm using
 the derivatives given by the model.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<dt><strong>model:</strong></dt><dd><p>Model to use in the properties calculation.</p>
+<dt><strong>model: pyforfluids model_like</strong></dt><dd><p>Model to use in the properties calculation.</p>
 </dd>
-<dt><strong>composition: dict</strong></dt><dd><dl class="simple">
-<dt>Dictionary with the compounds concentrations as:</dt><dd><p>{“methane”: 0.8, “ethane”: 0.1}</p>
+<dt><strong>composition</strong><span class="classifier">dict</span></dt><dd><dl class="simple">
+<dt>Dictionary with the compounds concentrations as:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">{'methane':</span> <span class="pre">0.8,</span> <span class="pre">'ethane':</span> <span class="pre">0.1}</span></code></p>
 </dd>
 </dl>
 <p>In some cases, as in GERG2008, the values will be normalized for the
@@ -95,11 +95,41 @@ calculations but won’t be modified in the Fluid attribute</p>
 </dd>
 <dt class="field-even">Attributes</dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>properties: dict</strong></dt><dd><p>Fluid properties calculated by it’s model</p>
+<dt><strong>properties</strong><span class="classifier">dict</span></dt><dd><p>Fluid properties calculated by it’s model.</p>
 </dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 71%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>copy:</strong></p></td>
+<td><p>Returns a copy of the Fluid.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_composition:</strong></p></td>
+<td><p>Change the Fluid’s composition.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_temperature:</strong></p></td>
+<td><p>Change the Fluid’s temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_density:</strong></p></td>
+<td><p>Change the Fluid’s density.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>calculate_properties:</strong></p></td>
+<td><p>Calculate the Fluids properties, returns as a dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>isotherm:</strong></p></td>
+<td><p>Calculate the Fluid properties along a density range.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>density_iterator:</strong></p></td>
+<td><p>Calculate the Fluid’s density based on a specified pressure.</p></td>
+</tr>
+</tbody>
+</table>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyforfluids.core.Fluid.calculate_properties">
 <span class="sig-name descname"><span class="pre">calculate_properties</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyforfluids.core.Fluid.calculate_properties" title="Permalink to this definition">¶</a></dt>
@@ -134,11 +164,11 @@ calculations but won’t be modified in the Fluid attribute</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>rho_i: float</dt><dd><p>Calculated density.</p>
+<dt>float</dt><dd><p>Calculated density.</p>
 </dd>
-<dt>p: float</dt><dd><p>Pressure where the density converged.</p>
+<dt>float</dt><dd><p>Pressure where the density converged.</p>
 </dd>
-<dt>it: int</dt><dd><p>Number of iterations.</p>
+<dt>int</dt><dd><p>Number of iterations.</p>
 </dd>
 </dl>
 </dd>
@@ -160,7 +190,7 @@ temperature along a density range.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>isotherm: dict</dt><dd><p>Dictionary with all the properties that the model can calculate
+<dt>dict</dt><dd><p>Dictionary with all the properties that the model can calculate
 along the density_range.</p>
 </dd>
 </dl>
@@ -232,6 +262,8 @@ composition = {‘methane’: 0.1, ‘ethane’: 0.9}</p>
 </section>
 <section id="module-pyforfluids">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyforfluids" title="Permalink to this headline">¶</a></h2>
+<p>PyForFluids.</p>
+<p>Fluid properties simulation based on Ecuations of State.</p>
 </section>
 </section>
 

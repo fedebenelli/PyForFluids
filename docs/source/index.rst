@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to PyForFluids's documentation!
-=======================================
+PyForFluids
+===========
 
 |image1| |image2|
 
@@ -14,12 +14,14 @@ Welcome to PyForFluids's documentation!
    :target: https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml
 
 
-**PyForFluids** (Python-Fortran-Fluids) is a Python package focused in the 
+**PyForFluids** (Python-Fortran-Fluids) is a Python package focused in the
 calculation of Fluid properties based on Ecuations of State (EoS). It provides
 a simple interface to work from Python but also exploits the high performance
-Fortran code for the more heavy calculations. 
-It's designed with modularity in mind, in a way that new thermodyinamic models
-are easy to add, they even can be written either in Python or Fortran.
+Fortran code for the more heavy calculations.
+
+It's designed with modularity in
+mind, in a way that new thermodyinamic models are easy to add, they even can be
+written either in Python or Fortran.
 
 .. toctree::
    :maxdepth: 2

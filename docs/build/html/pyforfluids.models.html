@@ -44,14 +44,66 @@
 </section>
 <section id="module-pyforfluids.models.gerg2008">
 <span id="pyforfluids-models-gerg2008-module"></span><h2>pyforfluids.models.gerg2008 module<a class="headerlink" href="#module-pyforfluids.models.gerg2008" title="Permalink to this headline">¶</a></h2>
+<p>GERG2008 EoS.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyforfluids.models.gerg2008.GERG2008">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyforfluids.models.gerg2008.</span></span><span class="sig-name descname"><span class="pre">GERG2008</span></span><a class="headerlink" href="#pyforfluids.models.gerg2008.GERG2008" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>GERG2008 equation of state.</p>
+<p>The components must be those of the GERG2008 model.
+This class use imported methods from Fortran subroutines for high speed
+calculation of properties.</p>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 71%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>validate_components:</strong></p></td>
+<td><p>Check if the components belong to the EOS.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>validate_ranges:</strong></p></td>
+<td><p>Check in which range of validity are the pressure and density.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_concentration:</strong></p></td>
+<td><p>Normalize the composition as molar fractios.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>calculate_properties:</strong></p></td>
+<td><p>Calculate the properties.</p></td>
+</tr>
+</tbody>
+</table>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyforfluids.models.gerg2008.GERG2008.calculate_properties">
 <span class="sig-name descname"><span class="pre">calculate_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pressure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">composition</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyforfluids.models.gerg2008.GERG2008.calculate_properties" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calculate the thermodynamic properties of the given fluid.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>temperature: float</strong></dt><dd><p>Fluid temperature in Kelvin degrees [K]</p>
+</dd>
+<dt><strong>pressure: float</strong></dt><dd><p>Fluid pressure in Pascal [Pa]</p>
+</dd>
+<dt><strong>density: float</strong></dt><dd><p>Fluid density in mol per liter [mol/L]</p>
+</dd>
+<dt><strong>composition: dict</strong></dt><dd><dl class="simple">
+<dt>Dictionary of the compounds concentrations as:</dt><dd><p>{“methane”: 0.8, “ethane”:0.2}</p>
+</dd>
+</dl>
+<p>When necessary, the concentration values are normalized.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Dictionary of the thermodynamic properties</dt><dd></dd>
+<dt>of the given fluid calculated with GERG2008</dt><dd></dd>
+<dt>equation of state.</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pyforfluids.models.gerg2008.GERG2008.name">
@@ -61,7 +113,24 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="pyforfluids.models.gerg2008.GERG2008.set_concentration">
 <span class="sig-name descname"><span class="pre">set_concentration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">composition</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyforfluids.models.gerg2008.GERG2008.set_concentration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Verify if the sum of the molar fractions of the fluid components is 1.</p>
+<p>If not, a warninig message is sent and the composition is normalized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>components: dict</strong></dt><dd><p>Dictionary of the fluid compounds as keys and their molar
+fraction as values.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>x: array</dt><dd><p>Array of the normalized fluid composition vector.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pyforfluids.models.gerg2008.GERG2008.valid_components">
@@ -71,18 +140,48 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="pyforfluids.models.gerg2008.GERG2008.validate_components">
 <span class="sig-name descname"><span class="pre">validate_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">components</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyforfluids.models.gerg2008.GERG2008.validate_components" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Validate fluid components.</p>
+<p>Verify if the given fluid components are valid
+for the GERG2008 equation of state.If not, a
+ValueError Exception is raised.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>components: set</strong></dt><dd><p>Set of the fluid components to be verified.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyforfluids.models.gerg2008.GERG2008.validate_ranges">
 <span class="sig-name descname"><span class="pre">validate_ranges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pressure</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyforfluids.models.gerg2008.GERG2008.validate_ranges" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Validate fluid temperature and pressure.</p>
+<p>Verify whether the fluid temperature and pressure values belong to the
+normal, extended or invalid use range of the GERG2008 equation of
+state.  A warning menssage is sent if the temperature and pressure
+conditions are those of the extended or invalid range, and also if they
+take negative values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>temperature: float</strong></dt><dd><p>Fluid temperature in Kelvin degrees [K]</p>
+</dd>
+<dt><strong>pressure: float</strong></dt><dd><p>Fluid pressure in Pascal [Pa]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="module-pyforfluids.models">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyforfluids.models" title="Permalink to this headline">¶</a></h2>
+<p>Models.</p>
+<p>Modules that contains the multiple models to estimate fluid’s properties.</p>
 </section>
 </section>
 

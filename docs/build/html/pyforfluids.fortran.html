@@ -48,12 +48,12 @@
 Functions:</p>
 <blockquote>
 <div><p>get_params()
-rho_r,t_r,t_r_x,v_r_x = reducing_funcs(x)
+rho_r,t_r = reducing_funcs(x)
 aoio = a_oio(rho,t,rho_c,t_c,n,v)
 aoir = a_oir(delta,tau,kpol,kexp,n,d,t,c)
 aijr = a_ijr(delta,tau,kpolij,kexpij,n,d,t,eta,eps,gamm,beta)
 ao = ideal_term(x,rho,t,rho_r,t_r)
-ar,ar_x,ar_dx,ar_tx,ar_xx = residual_term(x,delta,tau)</p>
+ar = residual_term(x,delta,tau)</p>
 </div></blockquote>
 <dl class="simple">
 <dt>Fortran 90/95 modules:</dt><dd><p>parameters — n,max_residual_terms,generalized_departure,red_params,bv,gv,bt,gt,noik,toik,doik,coik,kpol,kexp,fij,tij,nij,ethaij,epsij,betaij,gammaij,dij,kpolij,kexpij,t_c,rho_c,m,tmp1,tmp2,n0i,th0i,r,eps.</p>
@@ -68,12 +68,14 @@ Functions:</p>
 <div><p>get_params()</p>
 </div></blockquote>
 <dl class="simple">
-<dt>Fortran 90/95 modules:</dt><dd><p>parameters — n,max_residual_terms,generalized_departure,red_params,bv,gv,bt,gt,noik,toik,doik,coik,kpol,kexp,fij,tij,nij,ethaij,epsij,betaij,gammaij,dij,kpolij,kexpij,t_c,rho_c,m,tmp1,tmp2,n0i,th0i,r,eps  read_params — read_parameters()  thermo_props — mean_molecular_weight(),zeta(),isochoric_heat(),isobaric_heat(),sound_speed(),isothermal_thermal_coefficent(),dp_dt(),dp_drho(),dp_dv(),pressure(),entropy(),internal_energy(),enthalpy(),gibbs_free_energy(),joule_thomson_coeff(),isentropic_exponent(),second_thermal_virial_coeff(),third_thermal_virial_coeff(),helmholtz_per_mol().</p>
+<dt>Fortran 90/95 modules:</dt><dd><p>parameters — n,max_residual_terms,generalized_departure,red_params,bv,gv,bt,gt,noik,toik,doik,coik,kpol,kexp,fij,tij,nij,ethaij,epsij,betaij,gammaij,dij,kpolij,kexpij,t_c,rho_c,m,tmp1,tmp2,n0i,th0i,r,eps  read_params — read_parameters()  thermo_props — mean_molecular_weight(),zeta(),isochoric_heat(),isobaric_heat(),sound_speed(),isothermal_thermal_coefficent(),dp_dt(),dp_drho(),dp_dv(),pressure(),entropy(),internal_energy(),enthalpy(),gibbs_free_energy(),joule_thomson_coeff(),isentropic_exponent(),second_thermal_virial_coeff(),third_thermal_virial_coeff().</p>
 </dd>
 </dl>
 </section>
 <section id="module-pyforfluids.fortran">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyforfluids.fortran" title="Permalink to this headline">¶</a></h2>
+<p>Fortran.</p>
+<p>Subroutines for high performance calculations.</p>
 </section>
 </section>
 
