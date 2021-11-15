@@ -4,3 +4,4 @@ nbsphinx
 numpy
 sphinx
 numpydoc
+mock
