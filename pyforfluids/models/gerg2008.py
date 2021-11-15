@@ -1,4 +1,4 @@
-"""PyForFluids."""
+"""GERG2008 EoS."""
 import warnings
 
 import numpy as np
@@ -8,9 +8,22 @@ from ..fortran.thermo_props import thermo_props
 
 
 class GERG2008:
-    """Class that defines the GERG2008 equation of state.
+    """GERG2008 equation of state.
 
     The components must be those of the GERG2008 model.
+    This class use imported methods from Fortran subroutines for high speed
+    calculation of properties.
+
+    Methods
+    -------
+    validate_components:
+        Check if the components belong to the EOS.
+    validate_ranges:
+        Check in which range of validity are the pressure and density.
+    set_concentration:
+        Normalize the composition as molar fractios.
+    calculate_properties:
+        Calculate the properties.
     """
 
     name = "GERG2008"
@@ -63,12 +76,11 @@ class GERG2008:
     def validate_ranges(self, temperature, pressure):
         """Validate fluid temperature and pressure.
 
-        Verify whether the fluid temperature and pressure
-        values belong to the normal, extended or invalid
-        use range of the GERG2008 equation of state.
-        A warning menssage is sent if the temperature and
-        pressure conditions are those of the extended or
-        invalid range, and also if they take negative values.
+        Verify whether the fluid temperature and pressure values belong to the
+        normal, extended or invalid use range of the GERG2008 equation of
+        state.  A warning menssage is sent if the temperature and pressure
+        conditions are those of the extended or invalid range, and also if they
+        take negative values.
 
         Parameters
         ----------
@@ -76,7 +88,6 @@ class GERG2008:
             Fluid temperature in Kelvin degrees [K]
         pressure: float
             Fluid pressure in Pascal [Pa]
-
         """
         pass
 
@@ -171,8 +182,8 @@ class GERG2008:
                 {"methane": 0.8, "ethane":0.2}
             When necessary, the concentration values are normalized.
 
-        Return
-        ------
+        Returns
+        -------
         Dictionary of the thermodynamic properties
         of the given fluid calculated with GERG2008
         equation of state.

@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Fluid:
-    """Class that describes a fluid based on a given model and it's properties.
+    """Describes a fluid based on a given model and it's properties.
 
     Density and pressure can't be defined at the same time. If pressure is
     given, the density will be calculated with an iterative algorithm using
@@ -13,11 +13,11 @@ class Fluid:
 
     Parameters
     ----------
-    model:
+    model: pyforfluids model_like
         Model to use in the properties calculation.
-    composition: dict
+    composition : dict
         Dictionary with the compounds concentrations as:
-            {"methane": 0.8, "ethane": 0.1}
+            ``{'methane': 0.8, 'ethane': 0.1}``
         In some cases, as in GERG2008, the values will be normalized for the
         calculations but won't be modified in the Fluid attribute
     temperature: float
@@ -29,8 +29,25 @@ class Fluid:
 
     Attributes
     ----------
-    properties: dict
-        Fluid properties calculated by it's model
+    properties : dict
+        Fluid properties calculated by it's model.
+
+    Methods
+    -------
+    copy:
+        Returns a copy of the Fluid.
+    set_composition:
+        Change the Fluid's composition.
+    set_temperature:
+        Change the Fluid's temperature.
+    set_density:
+        Change the Fluid's density.
+    calculate_properties:
+        Calculate the Fluids properties, returns as a dictionary.
+    isotherm:
+        Calculate the Fluid properties along a density range.
+    density_iterator:
+        Calculate the Fluid's density based on a specified pressure.
     """
 
     def __init__(
@@ -140,7 +157,7 @@ class Fluid:
 
         Returns
         -------
-        isotherm: dict
+        dict
             Dictionary with all the properties that the model can calculate
             along the density_range.
         """
@@ -177,11 +194,11 @@ class Fluid:
 
         Returns
         -------
-        rho_i: float
+        float
             Calculated density.
-        p: float
+        float
             Pressure where the density converged.
-        it: int
+        int
             Number of iterations.
         """
         fluid = self.copy()
