@@ -42,6 +42,6 @@ setup(
     author="Federico Benelli; María Candelaria Arpajou",
     author_email="federico.benelli@mi.unc.edu.ar",
     packages=PACKAGES,
-    ext_modules=EXTENSIONS,
+    # ext_modules=EXTENSIONS,
     install_requires=REQUIREMENTS,
 )
