@@ -38,6 +38,6 @@ setup(
     author="Federico Benelli; María Candelaria Arpajou",
     author_email="federico.benelli@mi.unc.edu.ar",
     packages=PACKAGES,
-    ext_modules=EXTENSIONS if not ON_RTD else None,
+    ext_modules=EXTENSIONS if not ON_RTD else [],
     install_requires=REQUIREMENTS,
 )
