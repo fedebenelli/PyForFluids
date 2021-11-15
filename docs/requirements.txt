@@ -1,3 +1,6 @@
+ipykernel
+ipython
+nbsphinx
 numpy
 sphinx
 numpydoc
