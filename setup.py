@@ -32,6 +32,7 @@ ON_RTD = os.environ.get("READTHEDOCS", None) == "True"
 
 if ON_RTD:
     EXENSIONS = []
+    PACKAGES = ["pyforfluids", "pyforfluids.models"]
 
 setup(
     name="PyForFluids",
