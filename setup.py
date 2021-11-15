@@ -28,10 +28,9 @@ EXTENSIONS = [
 
 PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
 
-ON_RTD = os.environ.get("READTHEDOCS", None) == "True"
+ON_RTD = os.environ.get("READTHEDOCS") == "True"
 
 if ON_RTD:
-    from setuptools import setup
     EXENSIONS = []
     PACKAGES = ["pyforfluids", "pyforfluids.models"]
 
