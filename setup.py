@@ -8,6 +8,8 @@ from numpy.distutils.core import Extension, setup
 rootdir = os.path.normpath(os.path.join(__file__, os.pardir))
 fortrandir = os.path.join(rootdir, "pyforfluids", "fortran")
 
+REQUIREMENTS = ["numpy>=1.21.2"]
+
 EXTENSIONS = [
     Extension(
         name="pyforfluids.fortran.gerg2008f",
@@ -36,4 +38,5 @@ setup(
     author_email="federico.benelli@mi.unc.edu.ar",
     packages=PACKAGES,
     ext_modules=EXTENSIONS,
+    install_requires=REQUIREMENTS,
 )
