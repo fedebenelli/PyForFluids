@@ -2,8 +2,9 @@
 """
 
 import os
+import setuptools # noqa
 
-from numpy.distutils.core import Extension, setup
+from numpy.distutils.core import Extension, setup # noqa
 
 ROOT_DIR = os.path.normpath(os.path.join(__file__, os.pardir))
 FORTRAN_DIR = os.path.join(ROOT_DIR, "pyforfluids", "fortran")
