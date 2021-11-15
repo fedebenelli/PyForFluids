@@ -26,7 +26,7 @@ EXTENSIONS = [
     ),
 ]
 
-PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
+PACKAGES = ["pyforfluids", "pyforfluids.models"]
 
 ON_RTD = os.environ.get("READTHEDOCS") == "True"
 
