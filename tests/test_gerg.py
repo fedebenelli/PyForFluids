@@ -23,7 +23,7 @@ def test_validate_pt_values_no_warnings():
     random_normal_press = np.random.uniform(0.0, 35.0)
     random_normal_temp = np.random.uniform(90.0, 450.0)
     model = models.GERG2008()
-    model.validate_ranges(random_normal_press, random_normal_temp)
+    model.validate_ranges(random_normal_temp, random_normal_press)
 
 
 def test_validate_pt_values_min_extended_range():
@@ -32,7 +32,7 @@ def test_validate_pt_values_min_extended_range():
     model = models.GERG2008()
 
     with pytest.warns(UserWarning):
-        model.validate_ranges(random_extended_press, min_random_extended_temp)
+        model.validate_ranges(min_random_extended_temp, random_extended_press)
 
 
 def test_validate_pt_values_max_extended_range():
@@ -41,7 +41,7 @@ def test_validate_pt_values_max_extended_range():
     model = models.GERG2008()
 
     with pytest.warns(UserWarning):
-        model.validate_ranges(random_extended_press, max_random_extended_temp)
+        model.validate_ranges(max_random_extended_temp, random_extended_press)
 
 
 def test_validate_pt_values_min_invalid_range():
@@ -50,7 +50,7 @@ def test_validate_pt_values_min_invalid_range():
     model = models.GERG2008()
 
     with pytest.warns(UserWarning):
-        model.validate_ranges(random_invalid_press, min_random_invalid_temp)
+        model.validate_ranges(min_random_invalid_temp, random_invalid_press)
 
 
 def test_validate_pt_values_max_invalid_range():
@@ -59,7 +59,7 @@ def test_validate_pt_values_max_invalid_range():
     model = models.GERG2008()
 
     with pytest.warns(UserWarning):
-        model.validate_ranges(random_invalid_press, max_random_invalid_temp)
+        model.validate_ranges(max_random_invalid_temp, random_invalid_press)
 
 
 def test_validate_pt_values_negative_range():
@@ -68,7 +68,7 @@ def test_validate_pt_values_negative_range():
     model = models.GERG2008()
 
     with pytest.warns(UserWarning):
-        model.validate_ranges(random_nagetive_press, random_negative_temp)
+        model.validate_ranges(random_negative_temp, random_nagetive_press)
 
 
 # -----------------------------------------------------------------------------
