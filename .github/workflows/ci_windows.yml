@@ -23,6 +23,8 @@ jobs:
         run: pip install numpy tox tox-gh-actions
       - name: build
         run: pip install -e .
+      - name: how was it built?
+        run: tree pyforfluids
       - name: Test py39
         run: tox -re py39
       - name: Coverage
