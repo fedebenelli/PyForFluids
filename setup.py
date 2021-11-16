@@ -11,14 +11,12 @@ ROOT_DIR = os.path.normpath(os.path.join(__file__, os.pardir))
 FORTRAN_DIR = os.path.join(ROOT_DIR, "pyforfluids", "fortran")
 REQUIREMENTS = ["numpy>=1.21.2"]
 ON_WINDOWS = platform.system() == "Windows"
+ON_RTD = os.environ.get("READTHEDOCS") == "True"
 
 if ON_WINDOWS:
-    print("Running on Windows!")
     extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
 else:
     extra_link_args = []
-
-print("extra_link_args:",extra_link_args)
 
 EXTENSIONS = [
     Extension(
@@ -40,8 +38,6 @@ EXTENSIONS = [
 ]
 
 PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
-
-ON_RTD = os.environ.get("READTHEDOCS") == "True"
 
 setup(
     name="PyForFluids",
