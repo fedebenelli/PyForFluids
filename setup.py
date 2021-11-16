@@ -13,9 +13,12 @@ REQUIREMENTS = ["numpy>=1.21.2"]
 ON_WINDOWS = platform.system() == "Windows"
 
 if ON_WINDOWS:
+    print("Running on Windows!")
     extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
 else:
     extra_link_args = []
+
+print("extra_link_args:",extra_link_args)
 
 EXTENSIONS = [
     Extension(
