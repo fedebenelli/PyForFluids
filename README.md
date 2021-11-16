@@ -4,7 +4,7 @@
 <a href="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml">
 <img src="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml/badge.svg">
 </a>
-<img src="https://github.com/fedebenelli/pyforfluids/actions/workflows/coverage.svg">
+<img src="https://github.com/fedebenelli/pyforfluids/.github/workflows/coverage.svg">
 </a>
 
 PyForFluids is a WIP tool to calculate thermodynamical properties of fluids with
