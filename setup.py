@@ -41,7 +41,7 @@ PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
 
 setup(
     name="PyForFluids",
-    version="0.0.1",
+    version="0.1.0-alpha",
     description="Library for fluid thermodynamics calculations",
     url="https://github.com/fedebenelli/pyforfluids",
     author="Federico Benelli; María Candelaria Arpajou",
