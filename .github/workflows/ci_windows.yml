@@ -22,7 +22,7 @@ jobs:
       - name: Install tox
         run: pip install numpy tox tox-gh-actions
       - name: build
-        run: pip install -e .
+        run: pip install -ve .
       - name: Move dlls
         run: move pyforfluids\.libs\* pyforfluids\fortran\
       - name: Test py39
