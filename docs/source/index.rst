@@ -27,6 +27,8 @@ written either in Python or Fortran.
    :maxdepth: 2
    :caption: Contents:
 
+   modules
+
 
 
 Indices and tables

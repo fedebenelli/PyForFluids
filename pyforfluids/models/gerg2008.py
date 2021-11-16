@@ -124,7 +124,7 @@ class GERG2008:
 
         Returns
         -------
-        x: array
+        array
             Array of the normalized fluid composition vector.
         """
         methane = composition.get("methane", 0)
@@ -189,6 +189,9 @@ class GERG2008:
     ):
         """Calculate the thermodynamic properties of the given fluid.
 
+        Calculation of the thermodynamic properties of the fluid at it's given
+        temperature and density.
+
         Parameters
         ----------
         temperature: float
@@ -199,14 +202,14 @@ class GERG2008:
             Fluid density in mol per liter [mol/L]
         composition: dict
             Dictionary of the compounds concentrations as:
-                {"methane": 0.8, "ethane":0.2}
+            ``{"methane": 0.8, "ethane":0.2}``
             When necessary, the concentration values are normalized.
 
         Returns
         -------
-        Dictionary of the thermodynamic properties
-        of the given fluid calculated with GERG2008
-        equation of state.
+        dict
+            Dictionary of the thermodynamic properties of the given fluid
+            calculated with GERG2008 equation of state.
         """
         # General use parameteres
         gerg2008f.get_params()

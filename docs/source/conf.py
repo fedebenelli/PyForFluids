@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 import mock
 
-MOCK_MODULES = ['fortran', 'pyforfluids.fortran']
+MOCK_MODULES = ['fortran', 'pyforfluids.fortran.thermo_props', 'pyforfluids.fortran.gerg2008f']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 

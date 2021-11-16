@@ -17,7 +17,7 @@ class Fluid:
         Model to use in the properties calculation.
     composition : dict
         Dictionary with the compounds concentrations as:
-            ``{'methane': 0.8, 'ethane': 0.1}``
+        ``{'methane': 0.8, 'ethane': 0.1}``
         In some cases, as in GERG2008, the values will be normalized for the
         calculations but won't be modified in the Fluid attribute
     temperature: float
