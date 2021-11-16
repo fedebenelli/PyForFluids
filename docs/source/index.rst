@@ -6,12 +6,18 @@
 PyForFluids
 ===========
 
-|image1| |image2|
+|image1| |image2| |image3|
 
 .. |image1| image:: https://api.codeclimate.com/v1/badges/3551471cd4cdf37e226f/maintainability
    :target: https://codeclimate.com/github/fedebenelli/PyForFluids/maintainability
+   :alt: Maintanibility
 .. |image2| image:: https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml/badge.svg
    :target: https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml
+   :alt: Tests
+.. |image3| image:: https://readthedocs.org/projects/pyforfluids/badge/?version=latest
+   :target: https://pyforfluids.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
 
 
 **PyForFluids** (Python-Fortran-Fluids) is a Python package focused in the
