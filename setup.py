@@ -2,13 +2,20 @@
 """
 
 import os
-import setuptools # noqa
+import platform
+import setuptools  # noqa
 
-from numpy.distutils.core import Extension, setup # noqa
+from numpy.distutils.core import Extension, setup  # noqa
 
 ROOT_DIR = os.path.normpath(os.path.join(__file__, os.pardir))
 FORTRAN_DIR = os.path.join(ROOT_DIR, "pyforfluids", "fortran")
 REQUIREMENTS = ["numpy>=1.21.2"]
+ON_WINDOWS = platform.system() == "Windows"
+
+if ON_WINDOWS:
+    extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
+else:
+    extra_link_args = []
 
 EXTENSIONS = [
     Extension(
@@ -17,6 +24,7 @@ EXTENSIONS = [
             os.path.join(FORTRAN_DIR, "parameters.f95"),
             os.path.join(FORTRAN_DIR, "gerg.f95"),
         ],
+        extra_link_args=extra_link_args,
     ),
     Extension(
         name="pyforfluids.fortran.thermo_props",
@@ -24,6 +32,7 @@ EXTENSIONS = [
             os.path.join(FORTRAN_DIR, "parameters.f95"),
             os.path.join(FORTRAN_DIR, "thermoprops.f95"),
         ],
+        extra_link_args=extra_link_args,
     ),
 ]
 
