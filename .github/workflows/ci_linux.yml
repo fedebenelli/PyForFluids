@@ -7,7 +7,6 @@ on:
 
 jobs:
   test:
-
     strategy:
       matrix:
         platform: [ubuntu-latest]
