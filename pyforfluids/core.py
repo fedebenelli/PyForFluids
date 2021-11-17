@@ -183,6 +183,7 @@ class Fluid:
             Number of iterations.
         """
         def find_root(fluid, rho_i, objective_pressure):
+            step = 0.5
             it = 0
             p = fluid['p']
 
@@ -204,7 +205,7 @@ class Fluid:
                     dlnv_dlnP = -p/rho_i/dp_drho
                     delta = dlnv_dlnP*(np.log(p) - np.log(objective_pressure))
 
-                    ln_vi = ln_vi - delta
+                    ln_vi = ln_vi - step*delta
                     rho_i = np.exp(-ln_vi)
 
                 if it > 200:
@@ -220,23 +221,23 @@ class Fluid:
         t = fluid.temperature
         fluid.set_temperature(t)
 
-        step = 0.1
         r = 8.314472
-        # r = 8.31446261815324
         precision = 0.00001
 
         # LIQUID ROOT
-        rho_i = 20 # fluid['reducing_density']
-        print(rho_i)
+        rho_i = 25  # fluid['reducing_density']
         fluid.set_density(rho_i)
         fluid.calculate_properties()
+
         rho_L = find_root(fluid, rho_i, objective_pressure)
+
         # ---------------------------------------------------------
 
         # GAS ROOT
         rho_i = objective_pressure / (r * t) / 1000
         fluid.set_density(rho_i)
         fluid.calculate_properties()
+
         rho_G = find_root(fluid, rho_i, objective_pressure)
 
         return rho_L, rho_G
