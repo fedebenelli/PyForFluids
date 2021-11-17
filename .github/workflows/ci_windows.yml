@@ -22,11 +22,11 @@ jobs:
       - name: Install tox
         run: pip install numpy tox tox-gh-actions
       - name: build
-        run: python setup.py build_ext --inplace
-      - name: Move dlls
-        run: 
-          tree pyforfluids
-          move pyforfluids\.libs\* pyforfluids\fortran\
+        run: python setup.py build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f
+      - name: Tree
+        run: tree pyforfluids
+    # - name: Move dlls
+    #   run: move pyforfluids\.libs\* pyforfluids\fortran\
       - name: Test py39
         run: tox -re py39
       - name: Coverage
