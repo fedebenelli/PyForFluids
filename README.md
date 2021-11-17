@@ -20,15 +20,15 @@ Equations of State. Right now it supports:
 - Speed of sound (w)
 - Isothermal throttling coefficent (δ)
 - Pressure derivatives:
-	- <img src="https://render.githubusercontent.com/render/math?math=dp_dT">
-	- <img src="https://render.githubusercontent.com/render/math?math=dp_d\rho">
-	- <img src="https://render.githubusercontent.com/render/math?math=dp_dT">
+	- Temperature
+	- Density
+	- Volume
 - Pressure (P)
 - Entropy (S)
 - Gibbs Free Energy (G)
 - Enthalpy (H)
-- Joule-Thompson coefficent (<img src="https://render.githubusercontent.com/render/math?math=\mu_{JT}">)
-- Isoentropic exponent (<img src="https://render.githubusercontent.com/render/math?math=\kappa">
+- Joule-Thompson coefficent
+- Isoentropic exponent
 - Virial Terms:
 	- B
 	- C
@@ -40,5 +40,5 @@ Equations of State. Right now it supports:
 ### Requirements
 
 ## Authors
-Federico E. Benelli ![email](federico.benelli@mi.unc.edu.ar); M. Candelaria
+Federico E. Benelli (![email](federico.benelli@mi.unc.edu.ar)); M. Candelaria
 Arpajou
