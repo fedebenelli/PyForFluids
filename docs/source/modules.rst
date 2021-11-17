@@ -5,3 +5,4 @@ pyforfluids
    :maxdepth: 4
 
    pyforfluids
+   pyforfluids.models
