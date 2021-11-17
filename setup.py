@@ -18,6 +18,9 @@ if ON_WINDOWS:
 else:
     extra_link_args = []
 
+with open("README.md") as fp:
+    LONG_DESCRIPTION = fp.read()
+
 EXTENSIONS = [
     Extension(
         name="pyforfluids.fortran.gerg2008f",
@@ -41,11 +44,30 @@ PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
 
 setup(
     name="PyForFluids",
-    version="0.1.0-alpha",
-    description="Library for fluid thermodynamics calculations",
-    url="https://github.com/fedebenelli/pyforfluids",
-    author="Federico Benelli; María Candelaria Arpajou",
+    version="0.0.1-alpha",
+    description="Fluid's thermodynamic properties",
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type="text/markdown",
+    author="Federico E. Benelli; M. Candelaria Arpajou",
     author_email="federico.benelli@mi.unc.edu.ar",
+    url="https://github.com/fedebenelli/pyforfluids",
+    licence="MIT",
+    keywords="Thermodynamic, Fluids, Properties, EoS",
+    classifiers=[
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Fortran",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Topic :: Scientific/Engineering",
+    ],
     packages=PACKAGES,
     ext_modules=EXTENSIONS if not ON_RTD else [],
     install_requires=REQUIREMENTS,
