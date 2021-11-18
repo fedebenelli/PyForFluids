@@ -4,8 +4,13 @@
 <img src="https://github.com/fedebenelli/PyForFluids/blob/main/.github/workflows/coverage.svg">
 <a href='https://pyforfluids.readthedocs.io/en/latest/?badge=latest'><img src='https://readthedocs.org/projects/pyforfluids/badge/?version=latest' alt='Documentation Status' /></a>
 
-PyForFluids is a tool to calculate thermodynamical properties of fluids with
-Equations of State. Right now it supports:
+PyForFluids (Python-Fortran-Fluids) is a Python package focused in the
+calculation of Fluid properties based on Ecuations of State (EoS). It provides
+a simple interface to work from Python but also exploits the high performance
+Fortran code for the more heavy calculations.
+
+It’s designed with modularity in mind, in a way that new thermodyinamic models
+are easy to add, they even can be written either in Python or Fortran.
 
 - Multifluid equations:
 	- GERG-2008 ![Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
@@ -34,10 +39,58 @@ Equations of State. Right now it supports:
 	- C
 
 ## Motivation
+While nowadays there are a lot of tools for calculation of thermodynamic
+properties of fluids, most of them either are hard to mantain and don't have an
+integrated testing system or are embeded to other softwares (as spredsheat
+software) limiting the things that can be done to that enviroment.
+
+PyForFluids aims to be a tool:
+	- With high performance, since most of it's calculations are done in
+	Fortran
+	- Easy to scale due to it's modular design using the power of Python
+	objects.
+	- Continuosly tested (at every `push`)to spot any problems as soon as
+	  possible.
 
 ## Instalation
+For installing _PyForFluid_ you just need to:
+
+```sh
+pip install pyforfluids
+```
+
+Make sure to check the requirements first!
 
 ### Requirements
+Be sure to install `numpy`and a fortran compiler previously, since both are
+needed for the compilation of `Fortran` code.
+
+#### NumPy
+```sh
+pip install numpy
+```
+
+#### Fortran Compiler
+
+##### Linux
+- **Debian-based** (Debian, Ubuntu, Mint,...)
+
+```sh
+sudo apt install gfortran
+```
+
+- **Arch-based** (Arch, Manjaro, Garuda, ...)
+
+```sh
+sudo pacman -S gfortran
+```
+
+##### Windows
+We recommended using the Windows Subsystem for Linux 
+![WSL](https://www.windowscentral.com/install-windows-subsystem-linux-windows-10)
+
+##### MacOS
+
 
 ## Authors
 Federico E. Benelli (![email](federico.benelli@mi.unc.edu.ar)); M. Candelaria
