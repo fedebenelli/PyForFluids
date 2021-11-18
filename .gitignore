@@ -9,3 +9,4 @@ test_params.f90
 tmp*
 log
 *.cpython*
+*.pyc
