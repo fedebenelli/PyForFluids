@@ -45,12 +45,10 @@ integrated testing system or are embeded to other softwares (as spredsheat
 software) limiting the things that can be done to that enviroment.
 
 PyForFluids aims to be a tool:
-	- With high performance, since most of it's calculations are done in
-	Fortran
-	- Easy to scale due to it's modular design using the power of Python
-	objects.
-	- Continuosly tested (at every `push`)to spot any problems as soon as
-	  possible.
+
+- With high performance, since most of it's calculations are done in Fortran
+- Easy to scale due to it's modular design using the power of Python objects.
+- Continuosly tested (at every `push`)to spot any problems as soon as possible.
 
 ## Instalation
 For installing _PyForFluid_ you just need to:
