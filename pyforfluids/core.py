@@ -248,17 +248,9 @@ class Fluid:
 
     def __repr__(self):
         """Give a summary table of the fluid properties."""
-        rep = ""
-        rep += "Fluid\n\n"
-        rep += "----------------\n"
-        rep += "Composition\n"
-
-        for compound in self.composition:
-            rep += f"{compound}\t:{self.composition[compound]}\n"
-        rep += "----------------\n\n"
-
-        for prop in self.properties:
-            prop_value = np.round(self.properties[prop], 6)
-            rep += f"{prop}\t: {prop_value}\n"
-
+        rep = (
+            f"Fluid(model={self.model}, temperature={self.temperature}, "
+            f"pressure={self.pressure}, density={self.density}, "
+            f"composition={self.composition})"
+        )
         return rep

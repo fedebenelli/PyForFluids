@@ -162,7 +162,7 @@ class GERG2008:
         ar_virial, *_ = gerg2008f.residual_term(x, 1e-15, tau)
         b = props.second_thermal_virial_coeff(reducing_density, ar_virial)
         c = props.third_thermal_virial_coeff(reducing_density, ar_virial)
-        fugacity_coefficent = dnar_dn - np.log(1 + delta*ar[1, 0])
+        fugacity_coefficent = dnar_dn - np.log(z)
 
         return {
             "reducing_density": reducing_density,
