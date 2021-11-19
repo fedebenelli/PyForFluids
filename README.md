@@ -86,7 +86,7 @@ sudo pacman -S gfortran
 
 ##### Windows
 We recommended using the Windows Subsystem for Linux 
-![WSL](https://www.windowscentral.com/install-windows-subsystem-linux-windows-10)
+[WSL](https://www.windowscentral.com/install-windows-subsystem-linux-windows-10)
 
 ##### MacOS
 
