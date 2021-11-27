@@ -22,6 +22,8 @@ jobs:
           python-version: ${{ matrix.python-version}}
       - name: Install tox
         run: pip install numpy tox tox-gh-actions 
+      - name: Install pandoc
+        run: sudo apt-get install pandoc
       - name: Test py39
         run: tox -re py39
       - name: Coverage
