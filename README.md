@@ -1,9 +1,13 @@
-# PyForFluids
-<a href="https://codeclimate.com/github/fedebenelli/PyForFluids/maintainability"><img src="https://api.codeclimate.com/v1/badges/3551471cd4cdf37e226f/maintainability"/></a> 
-<a href="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml"><img src="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml/badge.svg"> </a>
-<img src="https://github.com/fedebenelli/PyForFluids/blob/main/.github/workflows/coverage.svg">
-<a href='https://pyforfluids.readthedocs.io/en/latest/?badge=latest'><img src='https://readthedocs.org/projects/pyforfluids/badge/?version=latest' alt='Documentation Status' /></a>
-<a href="https://github.com/leliel12/diseno_sci_sfw"><img src="https://camo.githubusercontent.com/69644832889fa9dfcdb974614129be2fda8e4591989fd713a983a21e7fd8d1ad/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4469536f6674436f6d7043692d46414d41462d666664613030"></a>
+# PyForFluids 
+<a href="https://codeclimate.com/github/fedebenelli/PyForFluids/maintainability">
+<img src="https://api.codeclimate.com/v1/badges/3551471cd4cdf37e226f/maintainability"/></a>
+<a href="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml">
+<img src="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml/badge.svg">
+</a> 
+<a href='https://pyforfluids.readthedocs.io/en/latest/?badge=latest'>
+<img src='https://readthedocs.org/projects/pyforfluids/badge/?version=latest'
+alt='Documentation Status'/></a> <a href="https://github.com/leliel12/diseno_sci_sfw">
+<img src="https://camo.githubusercontent.com/69644832889fa9dfcdb974614129be2fda8e4591989fd713a983a21e7fd8d1ad/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4469536f6674436f6d7043692d46414d41462d666664613030"></a>
 
 PyForFluids (Python-Fortran-Fluids) is a Python package focused in the
 calculation of Fluid properties based on Ecuations of State (EoS). It provides
@@ -14,7 +18,7 @@ It’s designed with modularity in mind, in a way that new thermodyinamic models
 are easy to add, they even can be written either in Python or Fortran.
 
 - Multifluid equations:
-	- GERG-2008 ![Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
+	- GERG-2008 [Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
 
 ## Available properties
 - Reduced Temperature and Density
@@ -52,7 +56,7 @@ PyForFluids aims to be a tool:
 - Continuosly tested (at every `push`)to spot any problems as soon as possible.
 
 ## Instalation
-For installing _PyForFluid_ you just need to:
+For installing _PyForFluids_ you just need to:
 
 ```sh
 pip install pyforfluids
@@ -90,6 +94,9 @@ We recommended using the Windows Subsystem for Linux
 
 ##### MacOS
 
+```sh
+brew install gfortran
+```
 
 ## Authors
 Federico E. Benelli (![email](federico.benelli@mi.unc.edu.ar)); M. Candelaria

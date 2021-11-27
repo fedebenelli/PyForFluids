@@ -7,7 +7,6 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   pyforfluids.fortran
    pyforfluids.models
 
 Submodules

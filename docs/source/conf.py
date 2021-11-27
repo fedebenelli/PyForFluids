@@ -39,6 +39,7 @@ release = '0.1.0-alpha'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'nbsphinx',
     'numpydoc',
 ]
 

@@ -43,7 +43,7 @@ EXTENSIONS = [
 PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
 
 setup(
-    name="PyForFluids",
+    name="pyforfluids",
     version="0.0.1-alpha",
     description="Fluid's thermodynamic properties",
     long_description=LONG_DESCRIPTION,

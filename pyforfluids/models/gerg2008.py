@@ -10,6 +10,8 @@ from ..fortran.thermo_props import thermo_props
 class GERG2008:
     """GERG2008 equation of state.
 
+    GERG2008 Equation of state described by O. Kunz and W. Wagner [1]_
+
     The components must be those of the GERG2008 model.
     This class use imported methods from Fortran subroutines for high speed
     calculation of properties.
@@ -24,6 +26,14 @@ class GERG2008:
         Normalize the composition as molar fractios.
     calculate_properties:
         Calculate the properties.
+
+    References
+    ----------
+    .. [1] O. Kunz and W. Wagner,
+       "The GERG-2008 Wide-Range Equation of State for Natural Gases and
+       Other Mixtures: An Expansion of GERG-2004", J. Chem. Eng. Data 2012,
+       57, 11, 3032–3091. doi:10.1021/je300655b.
+       `<https://pubs.acs.org/doi/10.1021/je300655b>`_
     """
 
     name = "GERG2008"
@@ -69,7 +79,8 @@ class GERG2008:
         diff = given_components.difference(self.valid_components)
         if len(diff) > 0:
             warnings.warn(
-                f"{self.name} Valid Components:\n{self.valid_components}"
+                f"{self.name} Valid Components:\n{self.valid_components}",
+                category=UserWarning,
             )
             raise ValueError(f"'{diff}' ain't valid components")
 
@@ -91,15 +102,18 @@ class GERG2008:
         """
         if temperature <= 0.0 or pressure <= 0.0:
             warnings.warn(
-                "Pressure and Temperature cannot take negative values."
+                "Pressure and Temperature cannot take negative values.",
+                category=UserWarning,
             )
         elif temperature > 700.0 or temperature < 60.0:
             warnings.warn(
-                "Working conditions belong to the invalid vality range."
+                "Working conditions belong to the invalid vality range.",
+                category=UserWarning,
             )
         elif pressure > 70.0:
             warnings.warn(
-                "Working conditions belong to the invalid vality range."
+                "Working conditions belong to the invalid vality range.",
+                category=UserWarning,
             )
         elif (temperature >= 90.0 and temperature <= 450.0) and (
             pressure <= 35.0
@@ -107,7 +121,8 @@ class GERG2008:
             return
         else:
             warnings.warn(
-                "Working conditions belong to the extended vality range."
+                "Working conditions belong to the extended vality range.",
+                category=UserWarning,
             )
             return
 
@@ -179,7 +194,10 @@ class GERG2008:
         sum_value = x.sum()
 
         if sum_value > 1.0001 or sum_value < 0.9999:
-            warnings.warn("Composition doesn't add '1', will be normalized")
+            warnings.warn(
+                "Composition doesn't add '1', will be normalized",
+                category=UserWarning,
+            )
             x = x / sum_value
 
         return x

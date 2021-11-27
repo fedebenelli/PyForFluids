@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Fluid:
-    """Describes a fluid based on a given model and it's properties.
+    """Describes a fluid based on a given model and it's thermo variables.
 
     Density and pressure can't be defined at the same time. If pressure is
     given, the density will be calculated with an iterative algorithm using
@@ -42,6 +42,8 @@ class Fluid:
         Change the Fluid's temperature.
     set_density:
         Change the Fluid's density.
+    set_pressure:
+        Change the FLuid's pressure.
     calculate_properties:
         Calculate the Fluids properties, returns as a dictionary.
     isotherm:
