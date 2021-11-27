@@ -26,6 +26,8 @@ PyForFluids
    :caption: Contents:
 
    modules
+   installation.rst
+   tutorial.ipynb
 
 **PyForFluids** (Python-Fortran-Fluids) is a Python package focused in the
 calculation of Fluid properties based on Ecuations of State (EoS). It provides
