@@ -14,7 +14,7 @@ It’s designed with modularity in mind, in a way that new thermodyinamic models
 are easy to add, they even can be written either in Python or Fortran.
 
 - Multifluid equations:
-	- GERG-2008 ![Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
+	- GERG-2008 [Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
 
 ## Available properties
 - Reduced Temperature and Density
@@ -90,6 +90,9 @@ We recommended using the Windows Subsystem for Linux
 
 ##### MacOS
 
+```sh
+brew install gfortran
+```
 
 ## Authors
 Federico E. Benelli (![email](federico.benelli@mi.unc.edu.ar)); M. Candelaria
