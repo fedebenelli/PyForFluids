@@ -83,9 +83,9 @@ jobs:
          python-version: '3.9'
      - name: Publish
        env:
-         TWINE_USERNAME: ${{ PyPI.USER }}
-         TWINE_PASSWORD: ${{ PyPI.PASS }}
+         TWINE_USERNAME: ${{ secrets.PyPI_USER }}
+         TWINE_PASSWORD: ${{ secrets.PyPI_PASS }}
        run: |
          python -m pip install --upgrade pip
          pip install twine
-         twine upload --skip-existing --repository dist/*
+         twine upload --skip-existing dist/*
