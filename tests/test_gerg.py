@@ -5,6 +5,9 @@ import pyforfluids.models as models
 import pytest
 
 
+# -- Components related tests -------------------------------------------------
+
+
 def test_components():
     model = models.GERG2008()
     valid_components = model.valid_components
@@ -13,6 +16,14 @@ def test_components():
     with pytest.raises(Exception):
         wrong_component = "other_string"
         model.validate_components(valid_components + [wrong_component])
+
+
+def test_normalizer():
+    model = models.GERG2008()
+    composition = {"methane": 0.5, "ethane": 2}
+
+    with pytest.warns(UserWarning):
+        model.set_concentration(composition)
 
 
 # -- Valid ranges tests -------------------------------------------------------
