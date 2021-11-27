@@ -58,7 +58,7 @@ PyForFluids aims to be a tool:
 - Continuosly tested (at every `push`)to spot any problems as soon as possible.
 
 ## Instalation
-For installing _PyForFluid_ you just need to:
+For installing _PyForFluids_ you just need to:
 
 ```sh
 pip install pyforfluids
