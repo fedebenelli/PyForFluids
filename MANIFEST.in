@@ -9,5 +9,4 @@ exclude pyproject.toml
 
 recursive-exclude tests *
 recursive-exclude pyforfluids *.mod *.log *.pyc
-recursive-exclude tools *
 recursive-exclude docs *
