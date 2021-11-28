@@ -28,7 +28,7 @@ copyright = '2021, Benelli, Federico E.; Arpajou, M. Candelaria'
 author = 'Benelli, Federico E.; Arpajou, M. Candelaria'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1-alpha'
+release = '0.0.1-a1'
 
 
 # -- General configuration ---------------------------------------------------
