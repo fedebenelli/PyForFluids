@@ -92,6 +92,9 @@ sudo pacman -S gfortran
 We recommended using the Windows Subsystem for Linux 
 [WSL](https://www.windowscentral.com/install-windows-subsystem-linux-windows-10)
 
+If WSL ain't being used, the native Windows wheels will be download instead,
+so no need to worry!
+
 ##### MacOS
 
 ```sh
@@ -99,5 +102,5 @@ brew install gfortran
 ```
 
 ## Authors
-Federico E. Benelli (![email](federico.benelli@mi.unc.edu.ar)); M. Candelaria
+Federico E. Benelli (<a href=federico.benelli@mi.unc.edu.ar>federico.benelli@mi.unc.edu.ar</a>); M. Candelaria
 Arpajou
