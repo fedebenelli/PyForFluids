@@ -87,7 +87,7 @@ jobs:
         path: dist
 
   deploy:
-     needs: [build]
+     needs: [build, manylinux]
      if: github.ref == 'refs/heads/release'
      runs-on: ubuntu-latest
      steps:
