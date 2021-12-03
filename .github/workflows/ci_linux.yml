@@ -1,5 +1,5 @@
-# Continuous Integratoin
-name: Tests
+# Continuous Integration
+name: Continuous Integration
 
 on:
   - push
