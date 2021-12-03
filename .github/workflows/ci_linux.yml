@@ -39,17 +39,16 @@ jobs:
 
   build:
        needs: linux-test
-       if: github.ref == 'refs/heads/release'
        runs-on: ${{ matrix.os }}
        strategy:
          matrix:
-           os: [ubuntu-latest]
-           python-version: ['3.9']
-           exclude:
-             - os: ubuntu-latest
-               python-version: '3.7'
-             - os: ubuntu-latest
-               python-version: '3.8'
+           os: [ubuntu-latest, windows-latest]
+           python-version: ['3.7', '3.8', '3.9']
+             #exclude:
+             #  - os: ubuntu-latest
+             #    python-version: '3.7'
+             #  - os: ubuntu-latest
+             #    python-version: '3.8'
        steps:
        - uses: actions/checkout@v2
        - name: Set up Python
@@ -63,8 +62,7 @@ jobs:
        - uses: knicknic/os-specific-run@v1
          with:
            linux: python setup.py sdist
-             #macos: python setup.py bdist_wheel
-             #windows: python setup.py bdist_wheel
+           windows: python setup.py bdist_wheel build_ext --fcompiler=gnu95 --compiler=mingw32
        - uses: actions/upload-artifact@v2
          with:
            name: dist
@@ -72,6 +70,7 @@ jobs:
 
   deploy:
      needs: [build]
+     if: github.ref == 'refs/heads/release'
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v2
