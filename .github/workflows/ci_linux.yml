@@ -44,11 +44,11 @@ jobs:
          matrix:
            os: [ubuntu-latest, windows-latest]
            python-version: ['3.7', '3.8', '3.9']
-             #exclude:
-             #  - os: ubuntu-latest
-             #    python-version: '3.7'
-             #  - os: ubuntu-latest
-             #    python-version: '3.8'
+           exclude:
+             - os: ubuntu-latest
+               python-version: '3.7'
+             - os: ubuntu-latest
+               python-version: '3.8'
        steps:
        - uses: actions/checkout@v2
        - name: Set up Python
@@ -67,6 +67,24 @@ jobs:
          with:
            name: dist
            path: dist
+
+  build-manylinux:
+    needs: linux-test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: RalfG/python-wheels-manylinux-build@v0.3.4-manylinux2010_x86_64
+      with:
+        python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39'
+        build-requirements: 'numpy'
+        pip-wheel-args: '-w ./dist --no-deps'
+    - name: Remove non-compatible packages
+      run: |
+        sudo rm dist/*linux_x86_64.whl
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: dist
 
   deploy:
      needs: [build]
