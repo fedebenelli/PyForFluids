@@ -21,9 +21,9 @@ class GERG2008:
     validate_components:
         Check if the components belong to the EOS.
     validate_ranges:
-        Check in which range of validity are the pressure and density.
+        Check in which range of validity are the temperature and pressure.
     set_concentration:
-        Normalize the composition as molar fractios.
+        Normalize the composition as molar fractions.
     calculate_properties:
         Calculate the properties.
 
@@ -110,13 +110,13 @@ class GERG2008:
                 "Working conditions belong to the invalid vality range.",
                 category=UserWarning,
             )
-        elif pressure > 70.0:
+        elif pressure > 70.0e6:
             warnings.warn(
                 "Working conditions belong to the invalid vality range.",
                 category=UserWarning,
             )
         elif (temperature >= 90.0 and temperature <= 450.0) and (
-            pressure <= 35.0
+            pressure <= 35.0e6
         ):
             return
         else:
