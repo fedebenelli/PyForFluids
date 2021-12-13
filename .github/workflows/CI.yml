@@ -20,8 +20,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version}}
-      - name: Test run
-        run: echo ${{ github.event_name }}
       - name: Install tox
         run: pip install numpy tox tox-gh-actions 
       - name: Install pandoc
@@ -90,7 +88,7 @@ jobs:
 
   deploy:
      needs: [build, build-manylinux]
-     if: github.ref == 'refs/heads/release'
+     if: github.event_name == 'release'
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v2
