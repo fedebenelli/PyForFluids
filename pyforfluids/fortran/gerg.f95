@@ -25,7 +25,8 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
    real(8), intent(out) :: rho_r, T_r, T_r_x(21), V_r_x(21)
    integer :: i, j, k
    ! Internal variables
-   real(8) :: vki, tki, c_v, c_t, x_sum, x_pro, xki, Bv_xki, Bt_xki, fv_ki, ft_ki
+   real(8) :: vki, tki, c_v, c_t, x_sum, x_pro, xki, Bv_xki, Bt_xki, &
+              fv_ki, ft_ki, vik, tik, Bv_xik, Bt_xik, fv_ik, ft_ik
    call get_params()
 
    rho_r = 0.d0
@@ -47,7 +48,8 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
       rho_r = rho_r + &
               2.d0 * X(i) * X(j) * Bv(i, j) * Gv(i, j) &
               * (X(i) + X(j)) / (Bv(i, j) ** 2 * X(i) + X(j)) &
-              * 1.d0 / 8.d0 * (rho_c(i) ** (- 1.d0 / 3.d0) + rho_c(j) ** (- 1.d0 / 3.d0)) ** 3
+              * 1.d0 / 8.d0 * (rho_c(i) ** (- 1.d0 / 3.d0) &
+                          + rho_c(j) ** (- 1.d0 / 3.d0)) ** 3
 
       T_r = T_r + &
             2.d0 * X(i) * X(j) * Bt(i, j) * Gt(i, j) &
@@ -63,48 +65,54 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
    ! Compositional derivatives
    do i = 1, N
    if (x(i) > eps) then
-           T_r_x(i) = 2.d0 * X(i) * T_c(i)
-           V_r_x(i) = 2.d0 * X(i) / (rho_c(i))
+      T_r_x(i) = 2.d0 * X(i) * T_c(i)
+      V_r_x(i) = 2.d0 * X(i) / (rho_c(i))
 
-           do k = 1, i - 1
-           vki = 1.d0 / 8.d0 * (rho_c(k) ** (- 1.d0 / 3.d0) + rho_c(i) ** (- 1.d0 / 3.d0)) ** 3
-           tki = sqrt((T_c(k) * T_c(i)))
-           c_v = 2 * Bv(k, i) * Gv(k, i) * vki
-           c_t = 2 * Bt(k, i) * Gt(k, i) * tki
+      do k = 1, i - 1
+         vki = 1.d0 / 8.d0 * (rho_c(k) ** (- 1.d0 / 3.d0) &
+                          + rho_c(i) ** (- 1.d0 / 3.d0)) ** 3
+         tki = sqrt((T_c(k) * T_c(i)))
+         c_v = 2 * Bv(k, i) * Gv(k, i) * vki
+         c_t = 2 * Bt(k, i) * Gt(k, i) * tki
 
-           x_sum = X(k) + X(i)
-           x_pro = X(k) * X(i)
-           xki = X(k) + X(i)
+         x_sum = X(k) + X(i)
+         x_pro = X(k) * X(i)
+         xki = X(k) + X(i)
 
-           Bv_xki = Bv(k, i) ** 2 * X(k) + X(i)
-           Bt_xki = Bt(k, i) ** 2 * X(k) + X(i)
+         Bv_xki = Bv(k, i) ** 2 * X(k) + X(i)
+         Bt_xki = Bt(k, i) ** 2 * X(k) + X(i)
 
-           fv_ki = X(k) * x_sum / Bv_xki + x_pro / Bv_xki * (1.d0 - x_sum / Bv_xki)
-           ft_ki = X(k) * x_sum / Bt_xki + x_pro / Bt_xki * (1.d0 - x_sum / Bt_xki)
+         fv_ki = X(k) * x_sum / Bv_xki + x_pro / Bv_xki &
+                 * (1.d0 - x_sum / Bv_xki)
+         ft_ki = X(k) * x_sum / Bt_xki + x_pro / Bt_xki &
+                 * (1.d0 - x_sum / Bt_xki)
 
-           V_r_x(i) = T_r_x(i) + c_v * fv_ki
-           T_r_x(i) = V_r_x(i) + c_t * ft_ki
-           
-           end do
-           do k = i + 1, N
-           vik = 1.d0 / 8.d0 * (rho_c(i) ** (- 1.d0 / 3.d0) + rho_c(k) ** (- 1.d0 / 3.d0)) ** 3
-           tik = sqrt((T_c(i) * T_c(k)))
-           c_v = 2 * Bv(i, k) * Gv(i, k) * vik
-           c_t = 2 * Bt(i, k) * Gt(i, k) * tik
+         V_r_x(i) = T_r_x(i) + c_v * fv_ki
+         T_r_x(i) = V_r_x(i) + c_t * ft_ki
 
-           x_sum = X(i) + X(k)
-           x_pro = X(i) * X(k)
-           xki = X(i) + X(k)
+      end do
+      do k = i + 1, N
+         vik = 1.d0 / 8.d0 * (rho_c(i) ** (- 1.d0 / 3.d0) &
+                          + rho_c(k) ** (- 1.d0 / 3.d0)) ** 3
+         tik = sqrt((T_c(i) * T_c(k)))
+         c_v = 2 * Bv(i, k) * Gv(i, k) * vik
+         c_t = 2 * Bt(i, k) * Gt(i, k) * tik
 
-           Bv_xik = Bv(i, k) ** 2 * X(i) + X(k)
-           Bt_xik = Bt(i, k) ** 2 * X(i) + X(k)
+         x_sum = X(i) + X(k)
+         x_pro = X(i) * X(k)
+         xki = X(i) + X(k)
 
-           fv_ik = X(i) * x_sum / Bv_xik + x_pro / Bv_xik * (1.d0 - x_sum / Bv_xik)
-           ft_ik = X(i) * x_sum / Bt_xik + x_pro / Bt_xik * (1.d0 - x_sum / Bt_xik)
+         Bv_xik = Bv(i, k) ** 2 * X(i) + X(k)
+         Bt_xik = Bt(i, k) ** 2 * X(i) + X(k)
 
-           V_r_x(i) = T_r_x(i) + c_v * fv_ik
-           T_r_x(i) = V_r_x(i) + c_t * ft_ik
-           end do
+         fv_ik = X(i) * x_sum / Bv_xik &
+                 + x_pro / Bv_xik * (1.d0 - x_sum / Bv_xik)
+         ft_ik = X(i) * x_sum / Bt_xik &
+                 + x_pro / Bt_xik * (1.d0 - x_sum / Bt_xik)
+
+         V_r_x(i) = T_r_x(i) + c_v * fv_ik
+         T_r_x(i) = V_r_x(i) + c_t * ft_ik
+      end do
    end if
    end do
 
@@ -132,10 +140,12 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
    ! d(aoio)/dd    |     d(aoio)/dt   |    0             |
    ! d2(aoio)/dd2  |     d2(aoio)/dt2 |    d2(aoio)/dddt |
    ! ----------------------------------------------------|
+   Implicit None
    real(8), intent(in) :: rho, T, rho_c, T_c
    real(8), intent(in), dimension(7) :: n, v
    real(8), intent(out) :: aoio(3, 3)
    real(8) :: r, Tr, Dr, eps = 1d-10
+   integer :: k
 
    r = 8.314510d0 / 8.314472d0
 
@@ -145,23 +155,14 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
 
    do k = 4, 7
       if (v(k) > eps) then
-         if (k == 4) then
+         if (k == 4 .or. k == 6) then
             aoio(1, 1) = aoio(1, 1) + r * (n(k) * log(abs(dsinh(v(k) * Tr))))
             aoio(2, 2) = aoio(2, 2) + r * (n(k) * v(k) / dtanh(v(k) * Tr))
-            aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dsinh(v(k) * Tr) ** 2)
-         else if (k == 5 .or. k == 6) then
-            aoio(1, 1) = aoio(1, 1) + r * (n(k) * log(abs(dsinh(v(k) * Tr))))
-            aoio(1, 1) = aoio(1, 1) - r * (n(k) * log(dcosh(v(k) * Tr)))
-
-            aoio(2, 2) = aoio(2, 2) + r * (n(k) * v(k) / dtanh(v(k) * Tr))
-            aoio(2, 2) = aoio(2, 2) - r * (n(k) * v(k) * dtanh(v(k) * Tr))
-
-            aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dsinh(v(k) * Tr) ** 2)
-            aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dcosh(v(k) * Tr) ** 2)
+            aoio(3, 2) = aoio(3, 2) - n(k) * (v(k) / dsinh(v(k) * Tr)) ** 2
          else
             aoio(1, 1) = aoio(1, 1) - r * (n(k) * log(dcosh(v(k) * Tr)))
             aoio(2, 2) = aoio(2, 2) - r * (n(k) * v(k) * dtanh(v(k) * Tr))
-            aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dcosh(v(k) * Tr) ** 2)
+            aoio(3, 2) = aoio(3, 2) - n(k) * (v(k) / dcosh(v(k) * Tr)) ** 2
          end if
       end if
    end do
@@ -169,8 +170,12 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
    aoio(1, 1) = aoio(1, 1) + log(Dr) + r * (n(1) + n(2) * Tr + n(3) * log(Tr))
    aoio(2, 1) = 1.d0 / Dr
    aoio(3, 1) = - 1.d0 / Dr ** 2
+
    aoio(2, 2) = aoio(2, 2) + r * (n(2) + n(3) / Tr)
-   aoio(3, 2) = aoio(3, 2) + r * (- n(3) * (T / T_c) ** 2)
+
+   aoio(3, 2) = aoio(3, 2) - (n(3) * (T / T_c) ** 2)
+   aoio(3, 2) = r * aoio(3, 2) 
+
    aoio(3, 3) = 0.d0
 End Subroutine a_oio
 
@@ -208,7 +213,7 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
    aoir = 0.d0
    ! Residual Helmholtz Energy
    do k = 1, Kpol
-        ! !write (0, *) k, n(k), d(k), t(k), c(k)
+      ! !write (0, *) k, n(k), d(k), t(k), c(k)
       aoir(1, 1) = aoir(1, 1) + &
                    n(k) * delta ** d(k) &
                    * tau ** t(k)
@@ -217,7 +222,7 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
                    n(k) * t(k) * delta ** d(k) &
                    * tau ** (t(k) - 1.d0)
       aoir(3, 1) = aoir(3, 1) + &
-                   n(k) * d(k) * (d(k) - 1) * delta ** (d(k) - 2) * tau ** t(k)
+                   n(k) * d(k) * (d(k) - 1.d0) * delta ** (d(k) - 2.d0) * tau ** t(k)
       aoir(3, 2) = aoir(3, 2) + &
                    n(k) * t(k) * (t(k) - 1.d0) &
                    * delta ** d(k) * tau ** (t(k) - 2.d0)
@@ -226,7 +231,6 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
                    * delta ** (d(k) - 1) * tau ** (t(k) - 1.d0)
    end do
    do k = Kpol + 1, Kpol + Kexp
-        ! !write (0, *) k, n(k), d(k), t(k), c(k)
       aoir(1, 1) = aoir(1, 1) + &
                    n(k) * delta ** d(k) &
                    * tau ** t(k) &
@@ -243,10 +247,10 @@ Subroutine a_oir(delta, tau, Kpol, Kexp, n, d, t, c, aoir)
                    * exp(- delta ** c(k))
       ! Second Derivative with reduced density
       aoir(3, 1) = aoir(3, 1) + &
-                   n(k) * delta ** (d(k) - 2) * ( &
+                   n(k) * delta ** (d(k) - 2.d0) * ( &
                    (d(k) - c(k) * delta ** c(k)) &
-                   * (d(k) - 1 - c(k) * delta ** c(k)) &
-                   - c(k) ** 2 * delta ** c(k)) &
+                   * (d(k) - 1.d0 - c(k) * delta ** c(k)) &
+                   - c(k) ** 2.d0 * delta ** c(k)) &
                    * tau ** t(k) * exp(- delta ** c(k))
       ! Second Derivative with reduced temperature
       aoir(3, 2) = aoir(3, 2) + &
@@ -288,6 +292,7 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
    ! d(aijr)/dd     |      d(aijr)/dt   |   0             |
    ! d2(aijr)/dd2   |      d2(aijr)/dt2 |   d2(aijr)/dddt |
    ! -----------------------------------------------------|
+   Implicit None
    real(8), intent(in) :: delta, tau
    integer, intent(in) :: Kpolij, Kexpij
    real(8), dimension(24), intent(in) :: n, t, eta, eps, gamm, beta
@@ -296,58 +301,58 @@ Subroutine a_ijr(delta, tau, Kpolij, Kexpij, &
    integer :: k
 
    aijr = 0.d0
-   ! Departure function
    do k = 1, Kpolij
       aijr(1, 1) = aijr(1, 1) + &
                    n(k) * delta ** d(k) * tau ** t(k)
       aijr(2, 1) = aijr(2, 1) + &
-                   n(k) * d(k) * delta ** (d(k) - 1) * tau ** t(k)
+                   n(k) * d(k) * delta ** (d(k) - 1.d0) * tau ** t(k)
       aijr(3, 1) = aijr(3, 1) + &
-                   n(k) * d(k) * (d(k) - 1) * delta ** (d(k) - 2) * tau ** t(k)
+                   n(k) * d(k) * (d(k) - 1.d0) * delta ** (d(k) - 2.d0) * tau ** t(k)
       aijr(2, 2) = aijr(2, 2) + &
-                   n(k) * t(k) * delta ** d(k) * tau ** (t(k) - 1)
+                   n(k) * t(k) * delta ** d(k) * tau ** (t(k) - 1.d0)
       aijr(3, 2) = aijr(3, 2) + &
-                   n(k) * t(k) * (t(k) - 1) * delta ** d(k) * tau ** (t(k) - 2)
+                   n(k) * t(k) * (t(k) - 1.d0) * delta ** d(k) * tau ** (t(k) - 2.d0)
       aijr(3, 3) = aijr(3, 3) + &
                    n(k) * d(k) * t(k) &
-                   * delta ** (d(k) - 1) * tau ** (t(k) - 1)
+                   * delta ** (d(k) - 1.d0) * tau ** (t(k) - 1.d0)
    end do
    do k = Kpolij + 1, Kpolij + Kexpij
       aijr(1, 1) = aijr(1, 1) + &
                    n(k) * delta ** d(k) * tau ** t(k) &
                    * exp( &
-                   - eta(k) * (delta - eps(k)) ** 2 &
+                   - eta(k) * (delta - eps(k)) ** 2.d0 &
                    - beta(k) * (delta - gamm(k)) &
                    )
       aijr(2, 1) = aijr(2, 1) + &
                    n(k) * delta ** d(k) * tau ** t(k) &
                    * exp( &
-                   - eta(k) * (delta - eps(k)) ** 2 &
+                   - eta(k) * (delta - eps(k)) ** 2.d0 &
                    - beta(k) * (delta - gamm(k)) &
                    ) &
-                   * (d(k) / delta - 2 * eta(k) * (delta - eps(k)) - beta(k))
+                   * (d(k) / delta - 2.d0 * eta(k) * (delta - eps(k)) - beta(k))
       aijr(3, 1) = aijr(3, 1) + &
                    n(k) * delta ** d(k) * tau ** t(k) * exp( &
                    - eta(k) * (delta - eps(k)) ** 2 - beta(k) * (delta - gamm(k))) &
-                   * ((d(k) / delta - 2 * eta(k) * (delta - eps(k)) - beta(k)) ** 2 - d(k) / delta ** 2 - 2 * eta(k))
+                   * ((d(k) / delta - 2.d0 * eta(k) &
+                      * (delta - eps(k)) - beta(k)) ** 2.d0 - d(k) / delta ** 2.d0 - 2.d0 * eta(k))
       aijr(2, 2) = aijr(2, 2) + &
-                   n(k) * t(k) * delta ** d(k) * tau ** (t(k) - 1) &
+                   n(k) * t(k) * delta ** d(k) * tau ** (t(k) - 1.d0) &
                    * exp( &
-                   - eta(k) * (delta - eps(k)) ** 2 &
+                   - eta(k) * (delta - eps(k)) ** 2.d0 &
                    - beta(k) * (delta - gamm(k)) &
                    )
       aijr(3, 2) = aijr(3, 2) + &
-                   n(k) * t(k) * (t(k) - 1) * delta ** d(k) * tau ** (t(k) - 2) &
+                   n(k) * t(k) * (t(k) - 1.d0) * delta ** d(k) * tau ** (t(k) - 2.d0) &
                    * exp( &
-                   - eta(k) * (delta - eps(k)) ** 2 - beta(k) * (delta - gamm(k)) &
+                   - eta(k) * (delta - eps(k)) ** 2.d0 - beta(k) * (delta - gamm(k)) &
                    )
       aijr(3, 3) = aijr(3, 3) + &
                    n(k) * t(k) * delta ** d(k) * tau ** (t(k) - 1) &
                    * exp( &
-                   - eta(k) * (delta - eps(k)) ** 2 &
+                   - eta(k) * (delta - eps(k)) ** 2.d0 &
                    - beta(k) * (delta - gamm(k)) &
                    ) &
-                   * (d(k) / delta - 2 * eta(k) * (delta - eps(k)) - beta(k))
+                   * (d(k) / delta - 2.d0 * eta(k) * (delta - eps(k)) - beta(k))
    end do
 
 End Subroutine a_ijr
@@ -365,6 +370,7 @@ Subroutine ideal_term(X, rho, T, rho_r, T_r, ao)
       if (X(i) > eps) then
          aoio = 0
          call a_oio(rho, T, rho_c(i), T_c(i), n0i(i, :), th0i(i, :), aoio)
+
          xi = X(i)
          ao(1, 1) = ao(1, 1) + xi * (aoio(1, 1) + log(xi))
 
@@ -374,19 +380,20 @@ Subroutine ideal_term(X, rho, T, rho_r, T_r, ao)
          ao(2, 2) = ao(2, 2) + xi * (T_c(i) / T_r) * aoio(2, 2)
          ao(3, 2) = ao(3, 2) + xi * (T_c(i) / T_r) ** 2 * aoio(3, 2)
 
-         ! ao(3,3) should always be zero, based on the paper
+         ao(3, 3) = 0
       end if
    end do
 End Subroutine ideal_term
 
 Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
    use parameters
+   Implicit None
    real(8), intent(in) :: delta, tau, X(21)
    real(8), dimension(3, 3), intent(out) :: ar
    real(8), dimension(21), intent(out) :: ar_x, ar_dx, ar_tx, ar_xx
    real(8), dimension(3, 3) :: aoir, aijr
    real(8) :: F
-   integer :: i, j, temp_i, temp_k
+   integer :: i, j, k, temp_i, temp_k
 
    call get_params()
 
@@ -409,213 +416,59 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
          ar(3, 1) = ar(3, 1) + X(i) * aoir(3, 1)
          ar(3, 2) = ar(3, 2) + X(i) * aoir(3, 2)
          ar(3, 3) = ar(3, 3) + X(i) * aoir(3, 3)
-      
+
          ar_x(i) = ar(1, 1)
          ar_dx(i) = ar(2, 1)
          ar_tx(i) = ar(2, 2)
          ar_xx(i) = 0
 
+         ! Compositional derivatives
          do k = 1, N
-         temp_i = i
-         temp_k = k
-         F = Fij(temp_i, temp_k)
-         if (F < eps .and. Fij(k, i) > eps) then
-                 ! Invert variables for cases like i=2, k=1
-                 ! TODO: NOT SURE IF THIS SHOULD BE DONE!
-                 temp_i = k
-                 temp_k = i
-                 F = Fij(temp_i, temp_k)
-         end if
-         if (k /= i .and. X(k) > eps .and. F > eps) then
-         aijr = 0.0
-         call a_ijr(delta, tau, Kpolij(temp_i, temp_k), Kexpij(i, temp_k), &
-                 nij(temp_i, temp_k, :), dij(temp_i, temp_k, :),&
-                 tij(temp_i, temp_k, :), ethaij(temp_i, temp_k, :), &
-                 epsij(temp_i, temp_k, :), gammaij(temp_i, temp_k, :),&
-                 betaij(temp_i, temp_k, :), aijr)
+            temp_i = i
+            temp_k = k
+            F = Fij(temp_i, temp_k)
+            if (F < eps .and. Fij(k, i) > eps) then
+               ! Invert variables for cases like i=2, k=1
+               ! TODO: NOT SURE IF THIS SHOULD BE DONE!
+               temp_i = k
+               temp_k = i
+               F = Fij(temp_i, temp_k)
+            end if
+            if (k /= i .and. X(k) > eps .and. F > eps) then
+               aijr = 0.d0
+               call a_ijr(delta, tau, Kpolij(temp_i, temp_k), Kexpij(i, temp_k), &
+                          nij(temp_i, temp_k, :), dij(temp_i, temp_k, :), &
+                          tij(temp_i, temp_k, :), ethaij(temp_i, temp_k, :), &
+                          epsij(temp_i, temp_k, :), gammaij(temp_i, temp_k, :), &
+                          betaij(temp_i, temp_k, :), aijr)
 
-         ar_x(i) = ar_x(i) + X(k) * Fij(i, k) * aijr(1, 1)
-         ar_dx(i) = ar_dx(i) + X(k) * Fij(i, k) * aijr(2, 1)
-         ar_tx(i) = ar_tx(i) + X(k) * Fij(i, k) * aijr(2, 2)
-         end if
+               ar_x(i) = ar_x(i) + X(k) * Fij(i, k) * aijr(1, 1)
+               ar_dx(i) = ar_dx(i) + X(k) * Fij(i, k) * aijr(2, 1)
+               ar_tx(i) = ar_tx(i) + X(k) * Fij(i, k) * aijr(2, 2)
+            end if
          end do
-   end if
+      end if
    end do
 
    do i = 1, N - 1
-   do j = i + 1, N
-   if (Fij(i, j) > eps .and. X(i) > eps .and. X(j) > eps) then
-      call a_ijr(delta, tau, Kpolij(i, j), Kexpij(i, j), &
-                 nij(i, j, :), dij(i, j, :), tij(i, j, :), ethaij(i, j, :), &
-                 epsij(i, j, :), gammaij(i, j, :), betaij(i, j, :), &
-                 aijr)
-      ar(1, 1) = ar(1, 1) + X(i) * X(j) * Fij(i, j) * aijr(1, 1)
-      ar(2, 1) = ar(2, 1) + X(i) * X(j) * Fij(i, j) * aijr(2, 1)
-      ar(2, 2) = ar(2, 2) + X(i) * X(j) * Fij(i, j) * aijr(2, 2)
-      ar(3, 1) = ar(3, 1) + X(i) * X(j) * Fij(i, j) * aijr(3, 1)
-      ar(3, 2) = ar(3, 2) + X(i) * X(j) * Fij(i, j) * aijr(3, 2)
-      ar(3, 3) = ar(3, 3) + X(i) * X(j) * Fij(i, j) * aijr(3, 3)
-   end if
-   end do
+      do j = i + 1, N
+      if (Fij(i, j) > eps .and. X(i) > eps .and. X(j) > eps) then
+         call a_ijr(delta, tau, Kpolij(i, j), Kexpij(i, j), &
+                    nij(i, j, :), dij(i, j, :), tij(i, j, :), ethaij(i, j, :), &
+                    epsij(i, j, :), gammaij(i, j, :), betaij(i, j, :), &
+                    aijr)
+         ar(1, 1) = ar(1, 1) + X(i) * X(j) * Fij(i, j) * aijr(1, 1)
+         ar(2, 1) = ar(2, 1) + X(i) * X(j) * Fij(i, j) * aijr(2, 1)
+         ar(2, 2) = ar(2, 2) + X(i) * X(j) * Fij(i, j) * aijr(2, 2)
+         ar(3, 1) = ar(3, 1) + X(i) * X(j) * Fij(i, j) * aijr(3, 1)
+         ar(3, 2) = ar(3, 2) + X(i) * X(j) * Fij(i, j) * aijr(3, 2)
+         ar(3, 3) = ar(3, 3) + X(i) * X(j) * Fij(i, j) * aijr(3, 3)
+      end if
+      end do
    end do
 
-   
 End Subroutine residual_term
 
-program main
-        print *, "this only exists to compile with gfortran"
-end program main
-
-! Program gerg
-! use parameters
-! use thermo_props
-! Implicit None
-!   
-! ! Variables
-! real*8:: T, rho, tau, delta, X(21)
-!   
-! ! Calculated variables
-! real*8, dimension(3, 3):: ar, ao
-! real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
-!   
-! ! test_variables
-! real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21), P2
-! integer:: io
-!   
-! ! Input args
-! character(len=100):: arg
-! integer:: i, j, k
-!
-! ! Get the R constant, compound properties and equations parameters
-! call get_params()
-!
-! ! Propiedades de operación
-! ! ------------------------
-! call getarg(1, arg)
-! rho = 1.d0
-! T = 1.d0
-! X = 0.d0
-!
-! select case (arg)
-! case ('bintest')
-! open (1, file='GERG_test/binary/test_data')
-! io = 0
-! ! Reads until the file with test data ends
-! do while (io == 0)
-! X = 0
-! read (1, *, iostat=io) i, X(i), j, X(j), T, rho, test_P, test_cv, test_cp, test_w
-! if (io .ne. 0) then
-! exit
-! end if
-!
-! mean_M = 0
-! do k = 1, size(X)
-! mean_M = mean_M + X(k)*M(k)
-! end do
-! mean_M = mean_M/1000.d0
-!
-! ! Set delta and tau
-! call reducing_funcs(X, rho_r, T_r)
-! delta = rho/rho_r
-! tau = T_r/T
-! call residual_term(X, delta, tau, ar)
-! call ideal_term(X, rho, T, rho_r, T_r, ao)
-!
-! ! Calculate Properties
-! call zeta(delta, ar, Z)
-! call isobaric_heat(delta, tau, R, ao, ar, cp)
-! call isochoric_heat(tau, R, Ao, Ar, cv)
-! call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
-!
-! ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
-! P = Z*rho*T*R*1000.d0*1.d-6
-!
-! print *, i, j, T, rho, P, cv, cp, w, test_P, test_cv, test_cp, test_w
-! write (0, *) i, j, delta, tau, ar(3, 2), ao(3, 2), cv, test_cv
-!
-! end do
-! close (1)
-!   
-! case ('ngas_test')
-! open (1, file='tests/verification/GERG_test/NG/test_concentrations')
-! io = 0
-! ! Reads until the file with test data ends
-! do while (io == 0)
-! read (1, *, iostat=io) i, (X_ng(i,j), j=1,21)
-! if (io .ne. 0) then
-! exit
-! end if
-! end do
-! close(1)
-!
-! X_ng = X_ng/100.d0
-!      
-! open (1, file='tests/verification/GERG_test/NG/test_values')
-! io=0
-! do while (io == 0)
-! read (1, *, iostat=io) i, T, rho, test_P, test_cv, test_cp, test_w
-! if (io .ne. 0) then
-! exit
-! end if
-!
-! !write(0,*) i, X_ng(i,1:5)
-!
-! mean_M = 0
-! do k = 1, 21
-! mean_M = mean_M + X_ng(i,k)*M(k)
-! end do
-! mean_M = mean_M/1000.d0
-!
-! ! Set delta and tau
-! call reducing_funcs(X_ng(i,:), rho_r, T_r)
-! delta = rho/rho_r
-! tau = T_r/T
-!
-! call residual_term(X_ng(i,:), delta, tau, ar)
-! call ideal_term(X_ng(i,:), rho, T, rho_r, T_r, ao)
-!
-! ! Calculate Properties
-! call zeta(delta, ar, Z)
-! call isobaric_heat(delta, tau, R, ao, ar, cp)
-! call isochoric_heat(tau, R, Ao, Ar, cv)
-! call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
-!         
-! ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
-! P = Z*rho*T*R*1000.d0*1.d-6
-!
-! print *, i, rho, t, P, test_P, P-test_P
-!
-! end do
-! case ("pure_methane")
-! T=323.15
-!
-! X = 0
-! X(1) = 1.d0
-! mean_M = 0
-! do k = 1, size(X)
-! mean_M = mean_M + X(k)*M(k)
-! end do
-!
-! mean_M = mean_M/1000.d0
-! call reducing_funcs(X, rho_r, T_r)
-!
-! do rho=0.1,30,0.1
-! ! Set delta and tau
-! delta = rho/rho_r
-! tau = T_r/T
-! call residual_term(X, delta, tau, ar)
-! call ideal_term(X, rho, T, rho_r, T_r, ao)
-!
-! ! Calculate Properties
-! call zeta(delta, ar, Z)
-! call isobaric_heat(delta, tau, R, ao, ar, cp)
-! call isochoric_heat(tau, R, Ao, Ar, cv)
-! call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
-!
-! ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
-! P = Z*rho*T*R*1000.d0!*1.d-6
-! call pressure(delta, rho, R, T, ar, P2)
-! print *, Z, P*1d-6, P2*1d-6, P-P2
-! end do
-! end select
-! End Program gerg
+Program main
+        print *, "This only exist to compile with gfortran"
+End Program main
