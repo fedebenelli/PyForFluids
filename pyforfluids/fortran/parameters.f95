@@ -11,7 +11,7 @@ Module parameters
    integer, dimension(21, 21) :: Kpolij, Kexpij
    real(8), dimension(21) :: T_c, rho_c, M, P_c, acentric_factor
    integer :: tmp1(3), tmp2(14) ! This variables are used to define indexes for repeated terms
-   real(8), dimension(21, 12) :: n0i, th0i
+   real(8), dimension(21, 7) :: n0i, th0i
    real(8) :: R, eps = 1d-10
 
 End Module
