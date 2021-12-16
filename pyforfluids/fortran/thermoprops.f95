@@ -282,7 +282,7 @@ Contains
       real(8), intent(out) :: dpdrho
       real(8), dimension(3, 3), intent(in) :: Ar
 
-      dpdrho = T * R * (1.d0 + 2.d0 * delta * Ar(2, 1) + (delta ** 2) * Ar(3, 1))
+      dpdrho = R * T * (1.d0 + 2.d0 * delta * Ar(2, 1) + (delta ** 2) * Ar(3, 1))
 
    End Subroutine dp_drho
 
@@ -375,7 +375,8 @@ Contains
       C = Ar(3, 1) / (rho_r ** 2)
    End Subroutine third_thermal_virial_coeff
 
-   Subroutine helmholtz_per_mol(x, delta, tau, rho_r, T_r, ar, ar_x, ar_dx, v_r_x, T_r_x, dar_dn, dadr_dn)
+   Subroutine helmholtz_per_mol(x, delta, tau, rho_r, T_r, ar, ar_x, ar_dx, &
+                                v_r_x, T_r_x, dar_dn, dadr_dn)
            real(8), intent(in) :: x(21), delta, tau, rho_r, T_r, &
                    ar(3,3), ar_x(21), ar_dx(21), v_r_x(21), T_r_x(21)
            real(8), dimension(21), intent(out) :: dar_dn, dadr_dn
