@@ -352,8 +352,6 @@ Subroutine residual_term(X, delta, tau, ar)
       end if
    end do
 
-   ! write (0, *) "Normal:", ar(2, 1), ar(3, 1), ar(2, 2), ar(3, 2), ar(3, 3)
-
    do i = 1, N - 1
    do j = i + 1, N
    if (Fij(i, j) > eps .and. X(i) > eps .and. X(j) > eps) then

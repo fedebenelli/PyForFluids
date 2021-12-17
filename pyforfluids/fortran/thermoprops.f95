@@ -238,8 +238,8 @@ Contains
       real(8), intent(out) :: cp
       real(8) :: up, down
 
-      up = (1.d0 + delta * Ar(2, 1) - delta * tau * Ar(3, 3)) ** 2
-      down = 1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2 * Ar(3, 1)
+      up = (1.d0 + delta * Ar(2, 1) - delta * tau * Ar(3, 3)) ** 2.d0
+      down = 1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2.d0 * Ar(3, 1)
 
       cp = - tau ** 2.d0 * (Ao(3, 2) + Ar(3, 2)) + up / down
       cp = cp * R
