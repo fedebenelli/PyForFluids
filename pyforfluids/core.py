@@ -121,10 +121,11 @@ class Fluid:
         new_density = self.density_iterator(pressure)[0]
         self.density = new_density
 
-    def calculate_properties(self):
+    def calculate_properties(self, ideal=False):
         """Calculate the fluid's properties."""
         self.properties = self.model.calculate_properties(
-            self.temperature, self.pressure, self.density, self.composition
+            self.temperature, self.pressure, self.density, self.composition,
+            ideal,
         )
 
     def isotherm(self, density_range):
@@ -208,13 +209,13 @@ class Fluid:
                     ln_vi = ln_vi - step*delta
                     rho_i = np.exp(-ln_vi)
 
-                if it > 200:
+                if it > 100:
                     warnings.warn(
                         RuntimeWarning("Couldn't converge with 100 iterations")
                     )
                     break
 
-            stable = True if dp_drho > 0 else False
+                stable = True if dp_drho > 0 else False
             return rho_i, p, it, stable
 
         fluid = self.copy()
@@ -225,7 +226,7 @@ class Fluid:
         precision = 0.00001
 
         # LIQUID ROOT
-        rho_i = 25  # fluid['reducing_density']
+        rho_i = 25
         fluid.set_density(rho_i)
         fluid.calculate_properties()
 
