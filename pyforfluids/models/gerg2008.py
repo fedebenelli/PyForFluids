@@ -108,7 +108,7 @@ class GERG2008:
         return x
 
     def calculate_properties(
-        self, temperature, pressure, density, composition
+        self, temperature, pressure, density, composition, ideal=False
     ):
 
         # General use parameteres
@@ -134,7 +134,15 @@ class GERG2008:
         ao = gerg2008f.ideal_term(
             x, density, temperature, reducing_density, reducing_temperature
         )
+
         ar, ar_x, ar_dx, ar_tx, ar_xx, = gerg2008f.residual_term(x, delta, tau)
+
+        if ideal:
+            ar = np.zeros_like(ar)
+            ar_x = np.zeros_like(ar_x)
+            ar_dx = np.zeros_like(ar_dx)
+            ar_tx = np.zeros_like(ar_tx)
+            ar_xx = np.zeros_like(ar_xx)
 
         # Properties
         z = props.zeta(delta, ar)
@@ -162,40 +170,37 @@ class GERG2008:
         ar_virial, *_ = gerg2008f.residual_term(x, 1e-15, tau)
         b = props.second_thermal_virial_coeff(reducing_density, ar_virial)
         c = props.third_thermal_virial_coeff(reducing_density, ar_virial)
-        fugacity_coefficent = dnar_dn - np.log(z)
+        fugacity_coefficent = np.exp(dnar_dn - np.log(z))
 
         return {
-            "reducing_density": reducing_density,
-            "reducing_temperature": reducing_temperature,
-            "delta": delta,
-            "tau": tau,
-            "ao": ao,
-            "ar": ar,
-            "ar": ar,
+            "critical_density": reducing_density,
+            "critical_temperature": reducing_temperature,
+            "ideal_helmholtz": ao,
+            "residual_helmholtz": ar,
             "ar_x": ar_x,
             "ar_dx": ar_dx,
             "ar_tx": ar_tx,
             "ar_xx": ar_xx,
             "dvr_dx": dvr_dx,
             "dtr_dx": dtr_dx,
-            "z": z,
-            "cv": cv,
-            "cp": cp,
-            "w": w,
+            "dar_dn": dar_dn,
+            "dadr_dn": dadr_dn,
+            "compressibility_factor": z,
+            "isochoric_heat": cv,
+            "isobaric_heat": cp,
+            "sound_speed": w,
             "isothermal_thermal_coefficent": isothermal_thermal_coefficent,
             "dp_dt": dp_dt,
             "dp_drho": dp_drho,
             "dp_dv": dp_dv,
-            "p": p,
-            "s": s,
-            "u": u,
-            "h": h,
-            "g": g,
-            "jt": jt,
-            "k": k,
-            "b": b,
-            "c": c,
-            "dar_dn": dar_dn,
-            "dadr_dn": dadr_dn,
+            "pressure": p,
+            "entropy": s,
+            "internal_energy": u,
+            "enthalpy": h,
+            "gibbs_free_energy": g,
+            "joule_thomson_coefficent": jt,
+            "isentropic_exponent": k,
+            "second_thermal_virial_coeff": b,
+            "third_thermal_virial_coeff": c,
             "fugacity_coefficent": fugacity_coefficent
         }
