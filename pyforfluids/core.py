@@ -49,17 +49,16 @@ class Fluid:
         self.temperature = temperature
         self.pressure = pressure
         self.density = density
-        self.properties = {}
 
+        # Validate the fluid's components before any calculation is made
         model.validate_components(composition)
 
         if density is None:
-            # If no density was given calculate it
-            self.density = np.nan
-            density = self.density_iterator(pressure)[0]
-            self.density = density
+            # If no density was given calculate it and use the gas value
+            self.set_pressure(pressure)
 
         self.calculate_properties()
+        self.pressure = self["pressure"]
 
     def copy(self):
         """Return a copy of the fluid, taking density as independant variable.
@@ -118,8 +117,18 @@ class Fluid:
             New pressure
         """
         self.pressure = pressure
-        new_density = self.density_iterator(pressure)[0]
-        self.density = new_density
+        self.density = np.nan
+        density_liquid, density_gas = self.density_iterator(pressure)
+        same_root = np.allclose(density_liquid[0], density_gas[0])
+        density = density_gas[0]
+
+        if not same_root:
+            warnings.warn(
+                "Two roots were found! Gas value will be used",
+                category=UserWarning,
+            )
+
+        self.density = density
 
     def calculate_properties(self, ideal=False):
         """Calculate the fluid's properties."""
@@ -127,6 +136,8 @@ class Fluid:
             self.temperature, self.pressure, self.density, self.composition,
             ideal,
         )
+        # Update the pressure with the new pressure value
+        self.pressure = self.properties["pressure"]
 
     def isotherm(self, density_range):
         """Calculate isotherm along a density range.
@@ -150,19 +161,20 @@ class Fluid:
 
         # Initialize a dictionary that will keep all the properties along
         #  the density range
-        isotherm = dict()
+        isotherm = {}
         fluid.calculate_properties()
         isotherm["density"] = density_range
 
         for prop in fluid.properties:
-            isotherm[prop] = []
+            isotherm[prop] = np.array([])
 
         for density in density_range:
             fluid.set_density(density)
             fluid.calculate_properties()
 
             for prop in fluid.properties:
-                isotherm[prop].append(fluid.properties[prop])
+                value = fluid[prop]
+                isotherm[prop] = np.append(isotherm[prop], value)
 
         return isotherm
 
@@ -186,7 +198,7 @@ class Fluid:
         def find_root(fluid, rho_i, objective_pressure):
             step = 0.5
             it = 0
-            p = fluid['p']
+            p = fluid['pressure']
 
             while abs(p - objective_pressure) > objective_pressure * precision:
                 it = it + 1
@@ -194,7 +206,7 @@ class Fluid:
                 # Calculate properties on the new Newton point
                 fluid.set_density(rho_i)
                 fluid.calculate_properties()
-                p = fluid.properties["p"]
+                p = fluid.properties["pressure"]
                 dp_drho = fluid.properties["dp_drho"] * 1000
                 ln_vi = -np.log(rho_i)
 
