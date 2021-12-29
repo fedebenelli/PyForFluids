@@ -218,7 +218,7 @@ class Fluid:
         fluid.set_density(rho_i)
         fluid.calculate_properties()
 
-        p = fluid.properties["p"]
+        p = fluid.properties["pressure"]
         precision = 0.01
 
         while abs(p - objective_pressure) > objective_pressure * precision:
@@ -227,7 +227,7 @@ class Fluid:
             # Calculate properties on the new Newton point
             fluid.set_density(rho_i)
             fluid.calculate_properties()
-            p = fluid.properties["p"]
+            p = fluid.properties["pressure"]
             dp_drho = fluid.properties["dp_drho"] * 1000
 
             delta = (p - objective_pressure) / dp_drho
@@ -247,18 +247,10 @@ class Fluid:
         return self.properties[key]
 
     def __repr__(self):
-        """Give a summary table of the fluid properties."""
-        rep = ""
-        rep += "Fluid\n\n"
-        rep += "----------------\n"
-        rep += "Composition\n"
-
-        for compound in self.composition:
-            rep += f"{compound}\t:{self.composition[compound]}\n"
-        rep += "----------------\n\n"
-
-        for prop in self.properties:
-            prop_value = np.round(self.properties[prop], 6)
-            rep += f"{prop}\t: {prop_value}\n"
-
+        """Object repr"""
+        rep = (
+            f"Fluid(model={self.model}, temperature={self.temperature}, "
+            f"pressure={self.pressure}, density={self.density}, "
+            f"composition={self.composition})"
+        )
         return rep
