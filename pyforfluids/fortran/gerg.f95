@@ -19,7 +19,7 @@ Subroutine reducing_funcs(X, rho_r, T_r, T_r_x, V_r_x)
    ! - T_c    (array): citical temperatures
    ! output:
    ! - rho_r  (float): Reducing density
-   ! - T_r    (float): reducing temperature (Tr)
+   ! - T_r    (float): Reducing temperature (Tr)
    use parameters
    real(8), dimension(21), intent(in) :: X
    real(8), intent(out) :: rho_r, T_r, T_r_x(21), V_r_x(21)
@@ -470,5 +470,5 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
 End Subroutine residual_term
 
 Program main
-        print *, "This only exist to compile with gfortran"
+        print *, "gogo"
 End Program main
