@@ -337,11 +337,12 @@ Contains
       real(8), intent(out) :: JT
       real(8) :: up, down_1, down_2
 
-      up = delta * Ar(2, 1) + delta ** 2 * Ar(3, 1) + delta * tau * Ar(2, 3)
-      down_1 = (1.d0 + delta * Ar(2, 1) - delta * tau * Ar(2, 3)) ** 2
-      down_2 = - (tau ** 2 * (Ao(3, 2) + Ar(3, 2)) * (1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2 * Ar(3, 1)))
+      up = -(delta* Ar(2,1) + delta**2*Ar(3,1) + delta*tau*Ar(3,3))
+      down_1 = (1.d0 + delta * Ar(2,1) - delta * tau * Ar (3,3))**2
+      down_2 = -tau**2 *(Ao(3,2) + Ar(3,2))*(1.d0 + 2.d0*delta*Ar(2,1)+delta**2 * Ar(3,1))
 
-      JT = - up / (down_1 + down_2) * R * rho
+      JT = up/(down_1 + down_2) /(R * rho*1000)
+
    End Subroutine joule_thomson_coeff
 
    Subroutine isentropic_exponent(delta, tau, Ao, Ar, k)
