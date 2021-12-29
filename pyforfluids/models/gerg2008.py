@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 
 from ..fortran import gerg2008f
-from ..fortran.thermo_props import thermo_props
+from ..fortran.thermo_props import thermo_props as tp
 
 
 class GERG2008:
@@ -236,63 +236,61 @@ class GERG2008:
 
         # Concentration dependant parameters
         x = self.set_concentration(composition)
-        m = thermo_props.mean_molecular_weight(x, molecular_weights)
+        m = tp.mean_molecular_weight(x, molecular_weights)
 
         # Reducing functions
-        density_r, temperature_r = gerg2008f.reducing_funcs(x)
-        delta = density / density_r
-        tau = temperature_r / temperature
+        reducing_density, reducing_temperature = gerg2008f.reducing_funcs(x)
+        delta = density / reducing_density
+        tau = reducing_temperature / temperature
 
         # Model tems
         ao = gerg2008f.ideal_term(
-            x, density, temperature, density_r, temperature_r
+            x, density, temperature, reducing_density, reducing_temperature
         )
         ar = gerg2008f.residual_term(x, delta, tau)
 
         # Properties
-        z = thermo_props.zeta(delta, ar)
-        cv = thermo_props.isochoric_heat(tau, r, ao, ar)
-        cp = thermo_props.isobaric_heat(delta, tau, r, ao, ar)
-        w = thermo_props.sound_speed(delta, tau, r, temperature, m, ao, ar)
+        z = tp.zeta(delta, ar)
+        cv = tp.isochoric_heat(tau, r, ao, ar)
+        cp = tp.isobaric_heat(delta, tau, r, ao, ar)
+        w = tp.sound_speed(delta, tau, r, temperature, m, ao, ar)
         isothermal_thermal_coefficent = (
-            thermo_props.isothermal_thermal_coefficent(delta, tau, density, ar)
+            tp.isothermal_thermal_coefficent(delta, tau, density, ar)
         )
-        dp_dt = thermo_props.dp_dt(density, delta, tau, r, ar)
-        dp_drho = thermo_props.dp_drho(temperature, delta, r, ar)
-        dp_dv = thermo_props.dp_dv(density, delta, temperature, r, ar)
-        p = thermo_props.pressure(delta, density, r, temperature, ar)
-        s = thermo_props.entropy(tau, r, ao, ar)
-        u = thermo_props.internal_energy(tau, r, temperature, ao, ar)
-        h = thermo_props.enthalpy(delta, tau, r, temperature, ao, ar)
-        g = thermo_props.gibbs_free_energy(delta, r, temperature, ao, ar)
-        jt = thermo_props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
-        k = thermo_props.isentropic_exponent(delta, tau, ao, ar)
+        dp_dt = tp.dp_dt(density, delta, tau, r, ar)
+        dp_drho = tp.dp_drho(temperature, delta, r, ar)
+        dp_dv = tp.dp_dv(density, delta, temperature, r, ar)
+        p = tp.pressure(delta, density, r, temperature, ar)
+        s = tp.entropy(tau, r, ao, ar)
+        u = tp.internal_energy(tau, r, temperature, ao, ar)
+        h = tp.enthalpy(delta, tau, r, temperature, ao, ar)
+        g = tp.gibbs_free_energy(delta, r, temperature, ao, ar)
+        jt = tp.joule_thomson_coeff(delta, tau, density, r, ao, ar)
+        k = tp.isentropic_exponent(delta, tau, ao, ar)
         ar_virial = gerg2008f.residual_term(x, 1e-15, tau)
-        b = thermo_props.second_thermal_virial_coeff(density_r, ar_virial)
-        c = thermo_props.third_thermal_virial_coeff(density_r, ar_virial)
+        b = tp.second_thermal_virial_coeff(reducing_density, ar_virial)
+        c = tp.third_thermal_virial_coeff(reducing_density, ar_virial)
 
         return {
-            "density_r": density_r,
-            "temperature_r": temperature_r,
-            "delta": delta,
-            "tau": tau,
-            "ao": ao,
-            "ar": ar,
-            "z": z,
-            "cv": cv,
-            "cp": cp,
-            "w": w,
+            "critical_density": reducing_density,
+            "critical_temperature": reducing_temperature,
+            "ideal_helmholtz": ao,
+            "residual_helmholtz": ar,
+            "compressibility_factor": z,
+            "isochoric_heat": cv,
+            "isobaric_heat": cp,
+            "sound_speed": w,
             "isothermal_thermal_coefficent": isothermal_thermal_coefficent,
             "dp_dt": dp_dt,
             "dp_drho": dp_drho,
             "dp_dv": dp_dv,
-            "p": p,
-            "s": s,
-            "u": u,
-            "h": h,
-            "g": g,
-            "jt": jt,
-            "k": k,
-            "b": b,
-            "c": c,
+            "pressure": p,
+            "entropy": s,
+            "internal_energy": u,
+            "enthalpy": h,
+            "gibbs_free_energy": g,
+            "joule_thomson_coefficent": jt,
+            "isentropic_exponent": k,
+            "second_thermal_virial_coeff": b,
+            "third_thermal_virial_coeff": c,
         }
