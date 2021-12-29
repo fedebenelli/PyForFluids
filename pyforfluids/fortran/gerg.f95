@@ -92,19 +92,10 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
 
    do k = 4, 7
       if (v(k) > eps) then
-         if (k == 4) then
+         if (k == 4 .or. k == 6) then
             aoio(1, 1) = aoio(1, 1) + r * (n(k) * log(abs(dsinh(v(k) * Tr))))
             aoio(2, 2) = aoio(2, 2) + r * (n(k) * v(k) / dtanh(v(k) * Tr))
             aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dsinh(v(k) * Tr) ** 2)
-         else if (k == 5 .or. k == 6) then
-            aoio(1, 1) = aoio(1, 1) + r * (n(k) * log(abs(dsinh(v(k) * Tr))))
-            aoio(1, 1) = aoio(1, 1) - r * (n(k) * log(dcosh(v(k) * Tr)))
-
-            aoio(2, 2) = aoio(2, 2) + r * (n(k) * v(k) / dtanh(v(k) * Tr))
-            aoio(2, 2) = aoio(2, 2) - r * (n(k) * v(k) * dtanh(v(k) * Tr))
-
-            aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dsinh(v(k) * Tr) ** 2)
-            aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dcosh(v(k) * Tr) ** 2)
          else
             aoio(1, 1) = aoio(1, 1) - r * (n(k) * log(dcosh(v(k) * Tr)))
             aoio(2, 2) = aoio(2, 2) - r * (n(k) * v(k) * dtanh(v(k) * Tr))
