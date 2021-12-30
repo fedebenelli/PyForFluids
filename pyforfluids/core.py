@@ -145,6 +145,7 @@ class Fluid:
         self.properties = self.model.calculate_properties(
             self.temperature, self.pressure, self.density, self.composition
         )
+        self.pressure = self.properties["pressure"]
 
     def isotherm(self, density_range):
         """Calculate isotherm along a density range.
@@ -250,7 +251,7 @@ class Fluid:
         """Object repr"""
         rep = (
             f"Fluid(model={self.model}, temperature={self.temperature}, "
-            f"pressure={self.pressure}, density={self.density}, "
+            f"pressure={self.pressure:.4f}, density={self.density:.4f}, "
             f"composition={self.composition})"
         )
         return rep
