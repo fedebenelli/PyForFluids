@@ -248,7 +248,7 @@ class Fluid:
         return self.properties[key]
 
     def __repr__(self):
-        """Object repr"""
+        """Object repr."""
         rep = (
             f"Fluid(model={self.model}, temperature={self.temperature}, "
             f"pressure={self.pressure:.4f}, density={self.density:.4f}, "
