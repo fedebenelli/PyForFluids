@@ -1,8 +1,8 @@
 # PyForFluids 
 <a href="https://codeclimate.com/github/fedebenelli/PyForFluids/maintainability">
 <img src="https://api.codeclimate.com/v1/badges/3551471cd4cdf37e226f/maintainability"/></a>
-<a href="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml">
-<img src="https://github.com/fedebenelli/pyforfluids/actions/workflows/ci_linux.yml/badge.svg">
+<a href="https://github.com/fedebenelli/pyforfluids/actions/workflows/CI.yml">
+<img src="https://github.com/fedebenelli/pyforfluids/actions/workflows/CI.yml/badge.svg">
 </a> 
 <a href='https://pyforfluids.readthedocs.io/en/latest/?badge=latest'>
 <img src='https://readthedocs.org/projects/pyforfluids/badge/?version=latest'
