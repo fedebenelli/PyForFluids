@@ -254,8 +254,8 @@ class GERG2008:
         cv = tp.isochoric_heat(tau, r, ao, ar)
         cp = tp.isobaric_heat(delta, tau, r, ao, ar)
         w = tp.sound_speed(delta, tau, r, temperature, m, ao, ar)
-        isothermal_thermal_coefficent = (
-            tp.isothermal_thermal_coefficent(delta, tau, density, ar)
+        isothermal_thermal_coefficent = tp.isothermal_thermal_coefficent(
+            delta, tau, density, ar
         )
         dp_dt = tp.dp_dt(density, delta, tau, r, ar)
         dp_drho = tp.dp_drho(temperature, delta, r, ar)
@@ -294,3 +294,7 @@ class GERG2008:
             "second_thermal_virial_coeff": b,
             "third_thermal_virial_coeff": c,
         }
+
+    def __repr__(self):
+        """Model Name."""
+        return self.name
