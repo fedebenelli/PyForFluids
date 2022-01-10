@@ -51,7 +51,7 @@ setup(
     author="Federico E. Benelli; M. Candelaria Arpajou",
     author_email="federico.benelli@mi.unc.edu.ar",
     url="https://github.com/fedebenelli/pyforfluids",
-    licence="MIT",
+    license="MIT",
     keywords="Thermodynamic, Fluids, Properties, EoS",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
