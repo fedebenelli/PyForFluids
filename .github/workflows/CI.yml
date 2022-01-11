@@ -4,6 +4,7 @@ name: Continuous Integration
 on:
   - push
   - pull_request
+  - release
 
 jobs:
   linux-test:
