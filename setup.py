@@ -1,5 +1,6 @@
-"""
-"""
+"""This file is for the distribution of pyforfluids."""
+
+# -> IMPORTS ------------------------------------------------------------------
 
 import os
 import platform
@@ -7,19 +8,54 @@ import setuptools  # noqa
 
 from numpy.distutils.core import Extension, setup  # noqa
 
-ROOT_DIR = os.path.normpath(os.path.join(__file__, os.pardir))
-FORTRAN_DIR = os.path.join(ROOT_DIR, "pyforfluids", "fortran")
+# -----------------------------------------------------------------------------
+
+
+# -> CONSTANTS ----------------------------------------------------------------
+
+PATH = os.path.normpath(os.path.join(__file__, os.pardir))
+
+
+PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
+
+with open("README.md") as fp:
+    LONG_DESCRIPTION = fp.read()
+
+# -----------------------------------------------------------------------------
+
+
+# -> REQUIREMENTS -------------------------------------------------------------
+
 REQUIREMENTS = ["numpy>=1.21.2"]
-ON_WINDOWS = platform.system() == "Windows"
+
+# -----------------------------------------------------------------------------
+
+
+# -> VERSION ------------------------------------------------------------------
+
+pyforfluids_INIT_PATH = os.path.join(PATH, "pyforfluids", "__init__.py")
+
+with open(pyforfluids_INIT_PATH, "r") as f:
+    for line in f:
+        if line.startswith("__version__"):
+            VERSION = line.split("=", 1)[-1].replace('"', "").strip()
+            break
+
+# -----------------------------------------------------------------------------
+
+
+# -> FORTRAN EXTENSIONS -------------------------------------------------------
+
 ON_RTD = os.environ.get("READTHEDOCS") == "True"
+
+ON_WINDOWS = platform.system() == "Windows"
+
+FORTRAN_DIR = os.path.join(PATH, "pyforfluids", "fortran")
 
 if ON_WINDOWS:
     extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
 else:
     extra_link_args = []
-
-with open("README.md") as fp:
-    LONG_DESCRIPTION = fp.read()
 
 EXTENSIONS = [
     Extension(
@@ -40,7 +76,10 @@ EXTENSIONS = [
     ),
 ]
 
-PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
+# -----------------------------------------------------------------------------
+
+
+# -> SETUP --------------------------------------------------------------------
 
 setup(
     name="pyforfluids",
@@ -72,3 +111,5 @@ setup(
     ext_modules=EXTENSIONS if not ON_RTD else [],
     install_requires=REQUIREMENTS,
 )
+
+# -----------------------------------------------------------------------------
