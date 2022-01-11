@@ -3,6 +3,8 @@ import warnings
 
 import numpy as np
 
+import pandas as pd
+
 
 class Fluid:
     """Describes a fluid based on a given model and it's thermo variables.
@@ -147,6 +149,8 @@ class Fluid:
         )
         self.pressure = self.properties["pressure"]
 
+        self.properties = pd.Series(self.properties)
+
     def isotherm(self, density_range):
         """Calculate isotherm along a density range.
 
@@ -173,15 +177,19 @@ class Fluid:
         fluid.calculate_properties()
         isotherm["density"] = density_range
 
-        for prop in fluid.properties:
+        properties = fluid.properties.index
+
+        for prop in properties:
             isotherm[prop] = []
 
         for density in density_range:
             fluid.set_density(density)
             fluid.calculate_properties()
 
-            for prop in fluid.properties:
+            for prop in properties:
                 isotherm[prop].append(fluid.properties[prop])
+
+        isotherm = pd.DataFrame(isotherm)
 
         return isotherm
 
