@@ -33,9 +33,9 @@ REQUIREMENTS = ["numpy>=1.21.2"]
 
 # -> VERSION ------------------------------------------------------------------
 
-pyforfluids_INIT_PATH = os.path.join(PATH, "pyforfluids", "__init__.py")
+INIT_PATH = os.path.join(PATH, "pyforfluids", "__init__.py")
 
-with open(pyforfluids_INIT_PATH, "r") as f:
+with open(INIT_PATH, "r") as f:
     for line in f:
         if line.startswith("__version__"):
             VERSION = line.split("=", 1)[-1].replace('"', "").strip()
