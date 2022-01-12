@@ -1,1 +1,2 @@
 gfortran
+python3-matplotlib
