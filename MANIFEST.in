@@ -6,6 +6,7 @@ recursive-include pyforfluids *
 
 exclude tox.ini
 exclude pyproject.toml
+exclude apt.txt
 
 recursive-exclude tests *
 recursive-exclude pyforfluids *.mod *.log *.pyc
