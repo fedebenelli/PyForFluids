@@ -133,7 +133,10 @@ class Fluid:
     def calculate_properties(self, ideal=False):
         """Calculate the fluid's properties."""
         self.properties = self.model.calculate_properties(
-            self.temperature, self.pressure, self.density, self.composition,
+            self.temperature,
+            self.pressure,
+            self.density,
+            self.composition,
             ideal,
         )
         # Update the pressure with the new pressure value
@@ -195,11 +198,12 @@ class Fluid:
         it: int
             Number of iterations.
         """
+
         def find_root(fluid, rho_i, objective_pressure, precision=1e-6):
             step = 0.5
             it = 0
-            p = fluid['pressure']
-            stable = True if fluid['dp_drho'] > 0 else False
+            p = fluid["pressure"]
+            stable = True if fluid["dp_drho"] > 0 else False
 
             while abs(p - objective_pressure) > objective_pressure * precision:
                 it = it + 1
@@ -216,10 +220,12 @@ class Fluid:
                     delta = (p - objective_pressure) / dp_drho
                     rho_i = rho_i - step * delta
                 else:
-                    dlnv_dlnP = -p/rho_i/dp_drho
-                    delta = dlnv_dlnP*(np.log(p) - np.log(objective_pressure))
+                    dlnv_dlnP = -p / rho_i / dp_drho
+                    delta = dlnv_dlnP * (
+                        np.log(p) - np.log(objective_pressure)
+                    )
 
-                    ln_vi = ln_vi - step*delta
+                    ln_vi = ln_vi - step * delta
                     rho_i = np.exp(-ln_vi)
 
                 if it > 10000:
