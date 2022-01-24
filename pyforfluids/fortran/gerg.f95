@@ -51,11 +51,11 @@ Subroutine reducing_funcs(X, rho_r, T_r, dtr_dx, dvr_dx)
    end if
    end do
    ! Actually, the reducing volume was calculated, let's make it into density
-   rho_r = 1 / rho_r
+   rho_r = 1.d0 / rho_r
 
    ! Compositional derivatives
-   dtr_dx = 2 * X * T_c
-   dvr_dx = 2 * X / rho_c
+   dtr_dx = 2.d0 * X * T_c
+   dvr_dx = 2.d0 * X / rho_c
 
    do i = 1, N
    if ( X(i) > eps ) then
@@ -391,14 +391,14 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
          ar(3, 2) = ar(3, 2) + X(i) * aoir(3, 2)
          ar(3, 3) = ar(3, 3) + X(i) * aoir(3, 3)
 
-         ar_x(i) = ar(1, 1)
-         ar_dx(i) = ar(2, 1)
-         ar_tx(i) = ar(2, 2)
+         ar_x(i) = aoir(1, 1)
+         ar_dx(i) = aoir(2, 1)
+         ar_tx(i) = aoir(2, 2)
          ar_xx(i) = 0
 
          ! Compositional derivatives
          do k = 1, N
-            if (k /= i .and. Fij(i, k) > eps) then
+            if (i /= k .and. Fij(i, k) > eps) then
                call a_ijr(delta, tau, Kpolij(i, k), Kexpij(i, k), &
                           nij(i, k, :), dij(i, k, :), &
                           tij(i, k, :), ethaij(i, k, :), &
