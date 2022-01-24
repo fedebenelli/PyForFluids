@@ -13,27 +13,12 @@ class GERG2008:
     name = "GERG2008"
 
     valid_components = {
-        "methane",
-        "nitrogen",
-        "carbon_dioxide",
-        "ethane",
-        "propane",
-        "butane",
-        "isobutane",
-        "pentane",
-        "isopentane",
-        "hexane",
-        "heptane",
-        "octane",
-        "nonane",
-        "decane",
-        "hydrogen",
-        "oxygen",
-        "carbon_monoxide",
-        "water",
-        "hydrogen_sulfide",
-        "helium",
-        "argon",
+        "methane", "nitrogen", "carbon_dioxide", "ethane",
+        "propane", "butane", "isobutane", "pentane",
+        "isopentane", "hexane", "heptane", "octane",
+        "nonane", "decane", "hydrogen", "oxygen",
+        "carbon_monoxide", "water", "hydrogen_sulfide",
+        "helium", "argon",
     }
 
     def validate_components(self, components):
@@ -75,26 +60,11 @@ class GERG2008:
         x = np.array(
             [
                 methane,
-                nitrogen,
-                carbon_dioxide,
-                ethane,
-                propane,
-                butane,
-                isobutane,
-                pentane,
-                isopentane,
-                hexane,
-                heptane,
-                octane,
-                nonane,
-                decane,
-                hydrogen,
-                oxygen,
-                carbon_monoxide,
-                water,
-                hydrogen_sulfide,
-                helium,
-                argon,
+                nitrogen, carbon_dioxide, ethane, propane,
+                butane, isobutane, pentane, isopentane,
+                hexane, heptane, octane, nonane,
+                decane, hydrogen, oxygen, carbon_monoxide,
+                water, hydrogen_sulfide, helium, argon,
             ],
             dtype="d",
         )
@@ -146,20 +116,6 @@ class GERG2008:
 
         # Properties
         z = props.zeta(delta, ar)
-        cv = props.isochoric_heat(tau, r, ao, ar)
-        cp = props.isobaric_heat(delta, tau, r, ao, ar)
-        w = props.sound_speed(delta, tau, r, temperature, m, ao, ar)
-        isothermal_thermal_coefficent = (
-            props.isothermal_thermal_coefficent(delta, tau, density, ar)
-        )
-        dp_dt = props.dp_dt(density, delta, tau, r, ar)
-        dp_drho = props.dp_drho(temperature, delta, r, ar)
-        dp_dv = props.dp_dv(density, delta, temperature, r, ar)
-        dar_dn, dadr_dn = props.helmholtz_per_mol(
-            x, delta, tau, reducing_density, reducing_temperature,
-            ar, ar_x, ar_dx, dvr_dx, dtr_dx
-        )
-        dnar_dn = ar[0, 0] + dar_dn
         p = props.pressure(delta, density, r, temperature, ar)
         s = props.entropy(tau, r, ao, ar)
         u = props.internal_energy(tau, r, temperature, ao, ar)
@@ -167,10 +123,31 @@ class GERG2008:
         g = props.gibbs_free_energy(delta, r, temperature, ao, ar)
         jt = props.joule_thomson_coeff(delta, tau, density, r, ao, ar)
         k = props.isentropic_exponent(delta, tau, ao, ar)
+        cv = props.isochoric_heat(tau, r, ao, ar)
+        cp = props.isobaric_heat(delta, tau, r, ao, ar)
+        w = props.sound_speed(delta, tau, r, temperature, m, ao, ar)
+        isothermal_thermal_coefficent = (
+            props.isothermal_thermal_coefficent(delta, tau, density, ar)
+        )
+
+        dp_dt = props.dp_dt(density, delta, tau, r, ar)
+        dp_drho = props.dp_drho(temperature, delta, r, ar)
+        dp_dv = props.dp_dv(density, delta, temperature, r, ar)
+
+        dar_dn, dadr_dn = props.helmholtz_per_mol(
+            x, delta, tau, reducing_density, reducing_temperature,
+            ar, ar_x, ar_dx, dvr_dx, dtr_dx
+        )
+        dnar_dn = ar[0, 0] + dar_dn
+
+        fugacity_coefficent = dnar_dn - np.log(z)
+        fugacity = x * density * r * temperature * np.exp(dnar_dn)
+
+
         ar_virial, *_ = gerg2008f.residual_term(x, 1e-15, tau)
         b = props.second_thermal_virial_coeff(reducing_density, ar_virial)
         c = props.third_thermal_virial_coeff(reducing_density, ar_virial)
-        fugacity_coefficent = np.exp(dnar_dn - np.log(z))
+        
 
         return {
             "critical_density": reducing_density,
@@ -202,5 +179,6 @@ class GERG2008:
             "isentropic_exponent": k,
             "second_thermal_virial_coeff": b,
             "third_thermal_virial_coeff": c,
-            "fugacity_coefficent": fugacity_coefficent
+            "fugacity_coefficent": fugacity_coefficent,
+            "fugacity": fugacity,
         }
