@@ -195,10 +195,11 @@ class Fluid:
         it: int
             Number of iterations.
         """
-        def find_root(fluid, rho_i, objective_pressure):
+        def find_root(fluid, rho_i, objective_pressure, precision=1e-6):
             step = 0.5
             it = 0
             p = fluid['pressure']
+            stable = True if fluid['dp_drho'] > 0 else False
 
             while abs(p - objective_pressure) > objective_pressure * precision:
                 it = it + 1
@@ -207,11 +208,11 @@ class Fluid:
                 fluid.set_density(rho_i)
                 fluid.calculate_properties()
                 p = fluid.properties["pressure"]
+
                 dp_drho = fluid.properties["dp_drho"] * 1000
                 ln_vi = -np.log(rho_i)
 
-                if p <= 0:
-                    print('Negative P')
+                if p <= 0 or True:
                     delta = (p - objective_pressure) / dp_drho
                     rho_i = rho_i - step * delta
                 else:
@@ -221,7 +222,7 @@ class Fluid:
                     ln_vi = ln_vi - step*delta
                     rho_i = np.exp(-ln_vi)
 
-                if it > 100:
+                if it > 10000:
                     warnings.warn(
                         RuntimeWarning("Couldn't converge with 100 iterations")
                     )
@@ -231,11 +232,7 @@ class Fluid:
             return rho_i, p, it, stable
 
         fluid = self.copy()
-        t = fluid.temperature
-        fluid.set_temperature(t)
-
         r = 8.314472
-        precision = 0.00001
 
         # LIQUID ROOT
         rho_i = 25
@@ -247,7 +244,7 @@ class Fluid:
         # ---------------------------------------------------------
 
         # GAS ROOT
-        rho_i = objective_pressure / (r * t) / 1000
+        rho_i = objective_pressure / (r * fluid.temperature) / 1000
         fluid.set_density(rho_i)
         fluid.calculate_properties()
 
