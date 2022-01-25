@@ -8,7 +8,6 @@ import pandas as pd
 from scipy.optimize import root_scalar
 
 
-
 class Fluid:
     """Describes a fluid based on a given model and it's thermo variables.
 
@@ -142,17 +141,17 @@ class Fluid:
         """
         self.pressure = pressure
         self.density = np.nan
-        liquid_density, vapor_density = self.density_iterator(pressure)
-        density = vapor_density
+        liquid_density, vapor_density, single_fase = self.density_iterator(
+            pressure
+        )
 
-        same_root = np.allclose(liquid_density, vapor_density)
-        if not same_root:
+        if not single_fase:
             warnings.warn(
                 "Two roots were found! Vapor-phase value will be used",
                 category=UserWarning,
             )
 
-        self.density = density
+        self.density = vapor_density
 
     def calculate_properties(self, ideal=False):
         """Calculate the fluid's properties."""
@@ -193,21 +192,21 @@ class Fluid:
         # Initialize a dictionary that will keep all the properties along
         #  the density range
         isotherm = {}
+
         fluid.calculate_properties()
         isotherm["density"] = density_range
 
         properties = fluid.properties.index
 
         for prop in properties:
-            isotherm[prop] = np.array([])
+            isotherm[prop] = []
 
         for density in density_range:
             fluid.set_density(density)
             fluid.calculate_properties()
 
-            for prop in fluid.properties:
-                value = fluid[prop]
-                isotherm[prop] = np.append(isotherm[prop], value)
+            for prop in properties:
+                isotherm[prop].append(fluid.properties[prop])
 
         isotherm = pd.DataFrame(isotherm)
 
@@ -263,13 +262,16 @@ class Fluid:
         initial_density = objective_pressure / (r * fluid.temperature) / 1000
         vapor_density = find_root(fluid, initial_density, objective_pressure)
 
-        return liquid_density, vapor_density
+        single_phase = np.allclose(liquid_density, vapor_density)
+
+        return liquid_density, vapor_density, single_phase
 
     def __getitem__(self, key):
         """Access the fluid properties as a dictionary."""
         return self.properties[key]
 
     def __repr__(self):
+        """Fluid's repr."""
         rep = (
             f"Fluid(model={self.model}, temperature={self.temperature}, "
             f"pressure={self.pressure:.4f}, density={self.density:.4f}, "
