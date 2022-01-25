@@ -134,7 +134,7 @@ Subroutine a_oio(rho, T, rho_c, T_c, n, v, aoio)
          if (k == 4 .or. k == 6) then
             aoio(1, 1) = aoio(1, 1) + r * (n(k) * log(abs(dsinh(v(k) * Tr))))
             aoio(2, 2) = aoio(2, 2) + r * (n(k) * v(k) / dtanh(v(k) * Tr))
-            aoio(3, 2) = aoio(3, 2) - n(k) * (v(k) / dsinh(v(k) * Tr)) ** 2
+            aoio(3, 2) = aoio(3, 2) - r * (n(k) * v(k) ** 2 / dsinh(v(k) * Tr) ** 2)
          else
             aoio(1, 1) = aoio(1, 1) - r * (n(k) * log(dcosh(v(k) * Tr)))
             aoio(2, 2) = aoio(2, 2) - r * (n(k) * v(k) * dtanh(v(k) * Tr))

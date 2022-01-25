@@ -4,4 +4,4 @@ target-version = ['py39']
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools==58.4.0", "numpy"]
+requires = ["setuptools", "numpy", "wheel"]

@@ -4,9 +4,10 @@ include CODE_OF_CONDUCT.md
 include requirements.txt
 recursive-include pyforfluids *
 
-exclude Makefile
 exclude tox.ini
 exclude pyproject.toml
+exclude apt.txt
+
 recursive-exclude tests *
 recursive-exclude pyforfluids *.mod *.log *.pyc
-recursive-exclude tools *
+recursive-exclude docs *

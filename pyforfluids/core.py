@@ -1,13 +1,16 @@
-"""PyForFluids."""
+"""Core module."""
 import warnings
 
 import numpy as np
 
+import pandas as pd
+
 from scipy.optimize import root_scalar
 
 
+
 class Fluid:
-    """Class that describes a fluid based on a given model and it's properties.
+    """Describes a fluid based on a given model and it's thermo variables.
 
     Density and pressure can't be defined at the same time. If pressure is
     given, the density will be calculated with an iterative algorithm using
@@ -15,11 +18,11 @@ class Fluid:
 
     Parameters
     ----------
-    model:
+    model: pyforfluids model_like
         Model to use in the properties calculation.
-    composition: dict
+    composition : dict
         Dictionary with the compounds concentrations as:
-            {"methane": 0.8, "ethane": 0.1}
+        ``{'methane': 0.8, 'ethane': 0.1}``
         In some cases, as in GERG2008, the values will be normalized for the
         calculations but won't be modified in the Fluid attribute
     temperature: float
@@ -31,8 +34,27 @@ class Fluid:
 
     Attributes
     ----------
-    properties: dict
-        Fluid properties calculated by it's model
+    properties : dict
+        Fluid properties calculated by it's model.
+
+    Methods
+    -------
+    copy:
+        Returns a copy of the Fluid.
+    set_composition:
+        Change the Fluid's composition.
+    set_temperature:
+        Change the Fluid's temperature.
+    set_density:
+        Change the Fluid's density.
+    set_pressure:
+        Change the FLuid's pressure.
+    calculate_properties:
+        Calculate the Fluids properties, returns as a dictionary.
+    isotherm:
+        Calculate the Fluid properties along a density range.
+    density_iterator:
+        Calculate the Fluid's density based on a specified pressure.
     """
 
     def __init__(
@@ -141,6 +163,9 @@ class Fluid:
             self.composition,
             ideal,
         )
+        self.pressure = self.properties["pressure"]
+
+        self.properties = pd.Series(self.properties)
 
         # Update the pressure with the new pressure value
         self.pressure = self.properties["pressure"]
@@ -158,7 +183,7 @@ class Fluid:
 
         Returns
         -------
-        isotherm: dict
+        dict
             Dictionary with all the properties that the model can calculate
             along the density_range.
         """
@@ -171,7 +196,9 @@ class Fluid:
         fluid.calculate_properties()
         isotherm["density"] = density_range
 
-        for prop in fluid.properties:
+        properties = fluid.properties.index
+
+        for prop in properties:
             isotherm[prop] = np.array([])
 
         for density in density_range:
@@ -181,6 +208,8 @@ class Fluid:
             for prop in fluid.properties:
                 value = fluid[prop]
                 isotherm[prop] = np.append(isotherm[prop], value)
+
+        isotherm = pd.DataFrame(isotherm)
 
         return isotherm
 
@@ -241,10 +270,9 @@ class Fluid:
         return self.properties[key]
 
     def __repr__(self):
-        """Give a summary table of the fluid properties."""
         rep = (
             f"Fluid(model={self.model}, temperature={self.temperature}, "
-            f"pressure={self.pressure}, density={self.density}, "
+            f"pressure={self.pressure:.4f}, density={self.density:.4f}, "
             f"composition={self.composition})"
         )
         return rep

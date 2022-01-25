@@ -1,0 +1,10 @@
+ipykernel
+ipython
+nbsphinx
+numpy
+sphinx
+numpydoc
+mock
+pandas
+sphinx_rtd_theme
+nbsphinx
