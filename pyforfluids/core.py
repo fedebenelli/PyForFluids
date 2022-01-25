@@ -3,6 +3,8 @@ import warnings
 
 import numpy as np
 
+from scipy.optimize import root_scalar
+
 
 class Fluid:
     """Class that describes a fluid based on a given model and it's properties.
@@ -53,8 +55,8 @@ class Fluid:
         # Validate the fluid's components before any calculation is made
         model.validate_components(composition)
 
+        # If no density was given calculate it and use the gas value
         if density is None:
-            # If no density was given calculate it and use the gas value
             self.set_pressure(pressure)
 
         self.calculate_properties()
@@ -118,13 +120,13 @@ class Fluid:
         """
         self.pressure = pressure
         self.density = np.nan
-        density_liquid, density_gas = self.density_iterator(pressure)
-        same_root = np.allclose(density_liquid[0], density_gas[0])
-        density = density_gas[0]
+        liquid_density, vapor_density = self.density_iterator(pressure)
+        density = vapor_density
 
+        same_root = np.allclose(liquid_density, vapor_density)
         if not same_root:
             warnings.warn(
-                "Two roots were found! Gas value will be used",
+                "Two roots were found! Vapor-phase value will be used",
                 category=UserWarning,
             )
 
@@ -139,6 +141,7 @@ class Fluid:
             self.composition,
             ideal,
         )
+
         # Update the pressure with the new pressure value
         self.pressure = self.properties["pressure"]
 
@@ -191,72 +194,47 @@ class Fluid:
 
         Returns
         -------
-        rho_i: float
-            Calculated density.
-        p: float
-            Pressure where the density converged.
-        it: int
-            Number of iterations.
+        liquid_density: float
+            Calculated density in liquid phase.
+        vapor_density: float
+            Calculated density in vapor phase.
         """
 
-        def find_root(fluid, rho_i, objective_pressure, precision=1e-6):
-            step = 0.5
-            it = 0
-            p = fluid["pressure"]
-            stable = True if fluid["dp_drho"] > 0 else False
+        def fluid_pressure(density, fluid, obj):
+            temp = fluid.copy()
+            temp.set_density(density)
+            temp.calculate_properties()
 
-            while abs(p - objective_pressure) > objective_pressure * precision:
-                it = it + 1
+            return temp["pressure"] - obj, temp["dp_drho"] * 1000
 
-                # Calculate properties on the new Newton point
-                fluid.set_density(rho_i)
-                fluid.calculate_properties()
-                p = fluid.properties["pressure"]
+        def find_root(fluid, x0, objective_pressure):
+            root = root_scalar(
+                fluid_pressure,
+                args=(fluid, objective_pressure),
+                x0=x0,
+                fprime=True,
+                method="newton",
+            )
+            sol = root.root
 
-                dp_drho = fluid.properties["dp_drho"] * 1000
-                ln_vi = -np.log(rho_i)
-
-                if p <= 0 or True:
-                    delta = (p - objective_pressure) / dp_drho
-                    rho_i = rho_i - step * delta
-                else:
-                    dlnv_dlnP = -p / rho_i / dp_drho
-                    delta = dlnv_dlnP * (
-                        np.log(p) - np.log(objective_pressure)
-                    )
-
-                    ln_vi = ln_vi - step * delta
-                    rho_i = np.exp(-ln_vi)
-
-                if it > 10000:
-                    warnings.warn(
-                        RuntimeWarning("Couldn't converge with 100 iterations")
-                    )
-                    break
-
-                stable = True if dp_drho > 0 else False
-            return rho_i, p, it, stable
+            return sol
 
         fluid = self.copy()
         r = 8.314472
 
         # LIQUID ROOT
-        rho_i = 25
-        fluid.set_density(rho_i)
-        fluid.calculate_properties()
 
-        rho_L = find_root(fluid, rho_i, objective_pressure)
+        initial_density = 25
+        liquid_density = find_root(fluid, initial_density, objective_pressure)
 
         # ---------------------------------------------------------
 
         # GAS ROOT
-        rho_i = objective_pressure / (r * fluid.temperature) / 1000
-        fluid.set_density(rho_i)
-        fluid.calculate_properties()
+        # Use ideal gas density
+        initial_density = objective_pressure / (r * fluid.temperature) / 1000
+        vapor_density = find_root(fluid, initial_density, objective_pressure)
 
-        rho_G = find_root(fluid, rho_i, objective_pressure)
-
-        return rho_L, rho_G
+        return liquid_density, vapor_density
 
     def __getitem__(self, key):
         """Access the fluid properties as a dictionary."""
