@@ -302,10 +302,10 @@ class GERG2008:
             dvr_dx,
             dtr_dx,
         )
-        dnar_dn = ar[0, 0] + dar_dn
+        msk = np.where(x != 0, 1, 0)
+        dnar_dn = (ar[0, 0] + dar_dn)*msk
 
         fugacity_coefficent = dnar_dn - np.log(z)
-        fugacity = x * density * r * temperature * np.exp(dnar_dn)
 
         ar_virial, *_ = gerg2008f.residual_term(x, 1e-15, tau)
         b = tp.second_thermal_virial_coeff(reducing_density, ar_virial)
@@ -342,7 +342,6 @@ class GERG2008:
             "second_thermal_virial_coeff": b,
             "third_thermal_virial_coeff": c,
             "fugacity_coefficent": fugacity_coefficent,
-            "fugacity": fugacity,
         }
 
     def __repr__(self):
