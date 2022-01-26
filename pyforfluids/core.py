@@ -162,12 +162,10 @@ class Fluid:
             self.composition,
             ideal,
         )
+        # Update the pressure with the new pressure value
         self.pressure = self.properties["pressure"]
 
         self.properties = pd.Series(self.properties)
-
-        # Update the pressure with the new pressure value
-        self.pressure = self.properties["pressure"]
 
     def isotherm(self, density_range):
         """Calculate isotherm along a density range.
