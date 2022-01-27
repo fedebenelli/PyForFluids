@@ -303,7 +303,7 @@ class GERG2008:
             dtr_dx,
         )
         msk = np.where(x != 0, 1, 0)
-        dnar_dn = (ar[0, 0] + dar_dn)*msk
+        dnar_dn = (ar[0, 0] + dar_dn) * msk
 
         fugacity_coefficent = dnar_dn - np.log(z)
 
