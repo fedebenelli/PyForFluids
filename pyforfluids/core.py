@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from scipy.optimize import root_scalar
+from scipy.constants import R
 
 
 class Fluid:
@@ -210,7 +211,9 @@ class Fluid:
 
         return isotherm
 
-    def density_iterator(self, objective_pressure):
+    def density_iterator(
+        self, objective_pressure, vapor_phase=True, liquid_phase=True
+    ):
         """With a given pressure and temperature value, get the fluid density.
 
         Parameters
@@ -240,27 +243,39 @@ class Fluid:
                 x0=x0,
                 fprime=True,
                 method="newton",
+                xtol=1e-3,
             )
             sol = root.root
 
             return sol
 
         fluid = self.copy()
-        r = 8.314472
 
         # LIQUID ROOT
-
-        initial_density = 25
-        liquid_density = find_root(fluid, initial_density, objective_pressure)
+        liquid_density = None
+        if liquid_phase:
+            initial_density = 25
+            liquid_density = find_root(
+                fluid, initial_density, objective_pressure
+            )
 
         # ---------------------------------------------------------
 
         # GAS ROOT
         # Use ideal gas density
-        initial_density = objective_pressure / (r * fluid.temperature) / 1000
-        vapor_density = find_root(fluid, initial_density, objective_pressure)
+        vapor_density = None
+        if vapor_phase:
+            initial_density = (
+                objective_pressure / (R * fluid.temperature) / 1000
+            )
+            vapor_density = find_root(
+                fluid, initial_density, objective_pressure
+            )
 
-        single_phase = np.allclose(liquid_density, vapor_density)
+        if vapor_phase and liquid_phase:
+            single_phase = np.allclose(liquid_density, vapor_density)
+        else:
+            single_phase = True
 
         return liquid_density, vapor_density, single_phase
 
