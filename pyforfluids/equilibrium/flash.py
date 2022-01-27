@@ -30,8 +30,8 @@ def rachford_rice(vapor_fraction, z, K):
 
 
 def update_density(vapor, liquid, pressure):
-    rho_l = liquid.density_iterator(pressure)[0]
-    rho_g = vapor.density_iterator(pressure)[1]
+    rho_l = liquid.density_iterator(pressure, vapor_phase=False)[0]
+    rho_g = vapor.density_iterator(pressure, liquid_phase=False)[1]
 
     liquid.set_density(rho_l)
     vapor.set_density(rho_g)
