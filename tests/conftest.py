@@ -28,3 +28,11 @@ def ahmadi323(data_path):
     df = pd.read_csv(path)
     df = df.drop("temperature", axis=1)
     return df
+
+
+@pytest.fixture()
+def flash(data_path):
+    path = data_path("flash.csv")
+    df = pd.read_csv(path)
+    df = df.set_index("component")
+    return df
