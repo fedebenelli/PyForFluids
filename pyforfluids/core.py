@@ -5,8 +5,8 @@ import numpy as np
 
 import pandas as pd
 
-from scipy.optimize import root_scalar
 from scipy.constants import R
+from scipy.optimize import root_scalar
 
 
 class Fluid:
@@ -243,7 +243,7 @@ class Fluid:
                 x0=x0,
                 fprime=True,
                 method="newton",
-                xtol=1e-3,
+                xtol=1e-4,
             )
             sol = root.root
 
