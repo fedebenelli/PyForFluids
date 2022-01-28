@@ -69,10 +69,6 @@ def test_density_iterator():
 
     np.testing.assert_allclose(test_values, calc_values, 8)
 
-    warning_pressure = 1e15
-    with pytest.warns(RuntimeWarning):
-        fluid.density_iterator(warning_pressure)
-
 
 def test_fluid_density():
     composition = {"methane": 1}
