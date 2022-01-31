@@ -45,7 +45,6 @@ def update_density(vapor, liquid, pressure):
 
     return vapor, liquid
 
-
 def update_concentration(x):
     """Update Fluid concentration."""
     gerg_components = [
