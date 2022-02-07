@@ -290,20 +290,28 @@ class GERG2008:
         dp_dv = tp.dp_dv(density, delta, temperature, r, ar)
 
         # Per-mol derivatives
-        dar_dn, dadr_dn = tp.helmholtz_per_mol(
+
+        dar_dn, dar_ddn, dar_dtn, dp_dn = tp.molar_derivatives(
             x,
             delta,
             tau,
+            r,
             reducing_density,
             reducing_temperature,
             ar,
             ar_x,
+            ar_tx,
             ar_dx,
             dvr_dx,
             dtr_dx,
         )
         msk = np.where(x != 0, 1, 0)
         dnar_dn = (ar[0, 0] + dar_dn) * msk
+        dnar_dtn = -tau / temperature * (ar[1, 1] + dar_dtn)
+        excess_volume = -dp_dn / dp_dv
+
+        dlnfug_dt = dnar_dtn + (1 - r * excess_volume * dp_dt) / temperature
+        dlnfug_dp = excess_volume / (r * temperature) - 1 / p
 
         fugacity_coefficent = dnar_dn - np.log(z)
 
@@ -323,7 +331,7 @@ class GERG2008:
             "dvr_dx": dvr_dx,
             "dtr_dx": dtr_dx,
             "dar_dn": dar_dn,
-            "dadr_dn": dadr_dn,
+            "dadr_dn": dar_ddn,
             "compressibility_factor": z,
             "isochoric_heat": cv,
             "isobaric_heat": cp,
@@ -342,6 +350,8 @@ class GERG2008:
             "second_thermal_virial_coeff": b,
             "third_thermal_virial_coeff": c,
             "fugacity_coefficent": fugacity_coefficent,
+            "dlnfug_dt": dlnfug_dt,
+            "dlnfug_dp": dlnfug_dp,
         }
 
     def __repr__(self):
