@@ -4,6 +4,8 @@ import numpy as np
 
 from scipy.optimize import root_scalar
 
+from ..fortran import gerg2008f
+
 
 def rachford_rice(vapor_fraction, z, k):
     """Rachford rice equation.
@@ -44,6 +46,7 @@ def update_density(vapor, liquid, pressure):
     vapor.calculate_properties()
 
     return vapor, liquid
+
 
 def update_concentration(x):
     """Update Fluid concentration."""
@@ -251,8 +254,88 @@ def flash_pt(
             k_new = fix_k(z, k_new)
 
         if np.allclose(k_i, k_new, rtol=rtol, atol=atol):
-            vapor, liquid = update_density(vapor, liquid, pressure)
             return vapor, liquid, vapor_fraction, it
 
     vapor, liquid = update_density(vapor, liquid, pressure)
     return vapor, liquid, vapor_fraction, it
+
+
+def K_wilson(z, pressure, temperature):
+    acentric_factor = gerg2008f.parameters.acentric_factor
+    critical_pressure = gerg2008f.parameters.p_c
+    critical_temperature = gerg2008f.parameters.t_c
+
+    n = len(z)
+    K_i = np.full(n, -np.inf, dtype='d')
+    K_i = np.nan_to_num(K_i)
+    msk = np.where(z != 0)
+
+    p_c = critical_pressure[msk]
+    t_c = critical_temperature[msk]
+    w = acentric_factor[msk]
+
+    K_i[msk] = np.log(p_c/pressure) + 5.373*(1+w)*(1-t_c/temperature)
+    K_i = np.exp(K_i)
+
+    return K_i
+
+
+def p_wilson(temperature, z):
+    w_i = gerg2008f.parameters.acentric_factor
+    p_c = gerg2008f.parameters.p_c
+    t_c = gerg2008f.parameters.t_c
+
+    p = z*p_c*np.exp(5.373*(1+w_i)*(1-t_c/temperature))
+    p = np.sum(p)
+
+    return p
+
+
+def bub_p(fluid, temperature, iterations=50, rtol=1e-10, atol=1e-10):
+    z = fluid.model.set_concentration(fluid.composition)
+    p_i = p_wilson(temperature, z)
+    k_i = K_wilson(z, p_i, temperature)
+
+    vapor = fluid.copy()
+    liquid = fluid.copy()
+
+    x = z
+    y = k_i*x
+
+    liquid.composition = update_concentration(x)
+    vapor.composition = update_concentration(y)
+    vapor, liquid = update_density(vapor, liquid, p_i)
+
+    k_i = np.exp(liquid['fugacity_coefficent'] - vapor['fugacity_coefficent'])
+
+    for it in range(iterations):
+        f = np.dot(k_i, z) - 1
+        dfdp = z * k_i * (liquid['dlnfug_dp'] - vapor['dlnfug_dp'])
+        dfdp = np.sum(dfdp)
+
+        step = 1
+        while abs(step*f/dfdp) < p_i/10000:
+            step = step*5
+
+        p_i = p_i - step*f/dfdp
+        print(liquid.composition['ethane'], vapor.composition["ethane"], it, p_i)
+
+        liquid.composition = update_concentration(x)
+        vapor.composition = update_concentration(y)
+        vapor, liquid = update_density(vapor, liquid, p_i)
+        
+        vapor.calculate_properties()
+        liquid.calculate_properties()
+
+        k_new = np.exp(
+                liquid['fugacity_coefficent'] - vapor['fugacity_coefficent']
+        )
+
+        if np.allclose(k_i, k_new, rtol=rtol, atol=atol):
+            return vapor, liquid, p_i, it
+        else:
+            k_i = k_new
+
+        x = z
+        y = k_i*z
+    return vapor, liquid, p_i, it
