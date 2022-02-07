@@ -174,24 +174,35 @@ Contains
       C = Ar(3, 1) / (rho_r ** 2)
    End Subroutine third_thermal_virial_coeff
 
-   Subroutine helmholtz_per_mol(x, delta, tau, rho_r, t_r, ar, ar_x, ar_dx, &
-                                dvr_dx, dtr_dx, dar_dn, dadr_dn)
+   Subroutine molar_derivatives(x, delta, tau, r, rho_r, t_r, ar, ar_x, ar_tx, ar_dx, &
+                                dvr_dx, dtr_dx, dar_dn, dar_ddn, dar_dtn, dp_dn)
            Implicit None
-           real(8), intent(in) :: x(21), delta, tau, rho_r, T_r, &
-                   ar(3, 3), ar_x(21), ar_dx(21), dvr_dx(21), dtr_dx(21)
-           real(8), dimension(21), intent(out) :: dar_dn, dadr_dn
-           real(8), dimension(21) :: drhor_dx, drhor_dn, dtr_dn
+           real(8), intent(in) :: x(21), delta, tau, r, rho_r, T_r, &
+                   ar(3, 3), ar_x(21), ar_tx(21), ar_dx(21), dvr_dx(21), dtr_dx(21)
+           real(8), dimension(21), intent(out) :: dar_dn, dar_ddn, dar_dtn, dp_dn
+           real(8), dimension(21) :: drhor_dx, drhor_dn, dtr_dn, dens_term, temp_term
+           real(8) :: rho, t, dpdv
 
            drhor_dx = - rho_r ** 2 * dvr_dx
 
            drhor_dn = drhor_dx - sum(x * drhor_dx)
            dtr_dn = dtr_dx - sum(x * dtr_dx)
 
-           dar_dn = delta * ar(2, 1) * (1.d0 - drhor_dn / rho_r) &
-                  + tau * ar(2, 2) / t_r * dtr_dn + ar_x - sum(x * ar_x)
+           dens_term = delta * (1 - drhor_dn / rho_r)
+           temp_term = tau * dtr_dn / t_r
 
-           dadr_dn = delta * ar(3, 1) * (1.d0 - drhor_dn / rho_r) &
-                   + tau * ar(3, 3) / t_r * dtr_dn + ar_dx - sum(x * ar_dx)
-   End Subroutine helmholtz_per_mol
+           dar_dn = ar(2, 1) * dens_term + ar(2, 2) * temp_term + ar_x - sum(x * ar_x)
+           dar_ddn = ar(3, 1) * dens_term + ar(3, 3) * temp_term  + ar_dx - sum(x * ar_dx)
+           dar_dtn = ar(3, 3) * dens_term + ar(3, 2) * temp_term +  ar_tx - sum(x * ar_tx)
+
+           rho = delta * rho_r
+           t = t_r / tau
+
+           dp_dn = rho * r * t * ( &
+                   1 - delta * ar(2, 1) * (2 - 1 / rho_r * drhor_dn) + &
+                   delta * dar_ddn &
+                   )
+
+   End Subroutine molar_derivatives
 
 End Module thermo_props
