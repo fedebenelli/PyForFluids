@@ -34,7 +34,18 @@ def rachford_rice(vapor_fraction, z, k):
     return g
 
 
-def update_density(vapor, liquid, pressure):
+def update_fluids(liquid, vapor, x, y, p_i):
+    liquid.composition = update_concentration(x)
+    vapor.composition = update_concentration(y)
+    liquid, vapor = update_density(liquid, vapor, p_i)
+
+    liquid.calculate_properties()
+    vapor.calculate_properties()
+
+    return liquid, vapor
+
+
+def update_density(liquid, vapor, pressure):
     """Update both phases densities."""
     rho_l = liquid.density_iterator(pressure, vapor_phase=False)[0]
     rho_g = vapor.density_iterator(pressure, liquid_phase=False)[1]
@@ -42,10 +53,7 @@ def update_density(vapor, liquid, pressure):
     liquid.set_density(rho_l)
     vapor.set_density(rho_g)
 
-    liquid.calculate_properties()
-    vapor.calculate_properties()
-
-    return vapor, liquid
+    return liquid, vapor
 
 
 def update_concentration(x):
@@ -260,13 +268,13 @@ def flash_pt(
     return vapor, liquid, vapor_fraction, it
 
 
-def K_wilson(z, pressure, temperature):
+def k_wilson(z, pressure, temperature):
     acentric_factor = gerg2008f.parameters.acentric_factor
     critical_pressure = gerg2008f.parameters.p_c
     critical_temperature = gerg2008f.parameters.t_c
 
     n = len(z)
-    K_i = np.full(n, -np.inf, dtype='d')
+    K_i = np.full(n, -np.inf, dtype="d")
     K_i = np.nan_to_num(K_i)
     msk = np.where(z != 0)
 
@@ -274,7 +282,9 @@ def K_wilson(z, pressure, temperature):
     t_c = critical_temperature[msk]
     w = acentric_factor[msk]
 
-    K_i[msk] = np.log(p_c/pressure) + 5.373*(1+w)*(1-t_c/temperature)
+    K_i[msk] = np.log(p_c / pressure) + 5.373 * (1 + w) * (
+        1 - t_c / temperature
+    )
     K_i = np.exp(K_i)
 
     return K_i
@@ -285,57 +295,68 @@ def p_wilson(temperature, z):
     p_c = gerg2008f.parameters.p_c
     t_c = gerg2008f.parameters.t_c
 
-    p = z*p_c*np.exp(5.373*(1+w_i)*(1-t_c/temperature))
+    p = z * p_c * np.exp(5.373 * (1 + w_i) * (1 - t_c / temperature))
     p = np.sum(p)
 
     return p
 
 
-def bub_p(fluid, temperature, iterations=50, rtol=1e-10, atol=1e-10):
-    z = fluid.model.set_concentration(fluid.composition)
-    p_i = p_wilson(temperature, z)
-    k_i = K_wilson(z, p_i, temperature)
-
+def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
+    # Make each phase fluid
     vapor = fluid.copy()
     liquid = fluid.copy()
 
+    # Wilson initialization
+    z = fluid.model.set_concentration(fluid.composition)
+    p_i = p_wilson(temperature, z)
+    k_i = k_wilson(z, p_i, temperature)
     x = z
-    y = k_i*x
+    y_i = k_i * x
 
-    liquid.composition = update_concentration(x)
-    vapor.composition = update_concentration(y)
-    vapor, liquid = update_density(vapor, liquid, p_i)
-
-    k_i = np.exp(liquid['fugacity_coefficent'] - vapor['fugacity_coefficent'])
-
-    for it in range(iterations):
+    for it in range(1, iterations):
+        liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
+        # Define iteration step
         f = np.dot(k_i, z) - 1
-        dfdp = z * k_i * (liquid['dlnfug_dp'] - vapor['dlnfug_dp'])
-        dfdp = np.sum(dfdp)
+        dfdp = np.dot(z * k_i, liquid["dlnfug_dp"] - vapor["dlnfug_dp"])
 
-        step = 1
-        while abs(step*f/dfdp) < p_i/10000:
-            step = step*5
+        # Iteration step definition
+        step = 1e5*it
 
-        p_i = p_i - step*f/dfdp
-        print(liquid.composition['ethane'], vapor.composition["ethane"], it, p_i)
+        # This is taking too long
+        if it > 5:
+            step = step*10
 
-        liquid.composition = update_concentration(x)
-        vapor.composition = update_concentration(y)
-        vapor, liquid = update_density(vapor, liquid, p_i)
-        
-        vapor.calculate_properties()
-        liquid.calculate_properties()
+        p_n = p_i - step * f / dfdp
 
-        k_new = np.exp(
-                liquid['fugacity_coefficent'] - vapor['fugacity_coefficent']
+        # NaN pressure reached, no convergence so assume there is no
+        # separation here
+        if np.isnan(p_n):
+            return fluid, fluid, p_i, it
+
+        # Update fluids
+        liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_n)
+
+        # Define new K and molar fractions
+        k_n = np.exp(
+            liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
+        )
+        x = z
+        y_n = k_n * z
+
+        liquid, vapor = update_fluids(liquid, vapor, x, y_n, p_n)
+        print(
+            liquid.composition["ethane"],
+            vapor.composition["ethane"],
+            it,
+            p_n,
+            k_n[3],
         )
 
-        if np.allclose(k_i, k_new, rtol=rtol, atol=atol):
-            return vapor, liquid, p_i, it
+        # If algo converges, return values, else define new points
+        if np.allclose(y_i, y_n, rtol=rtol, atol=atol) and np.allclose(p_i, p_n, rtol=rtol, atol=atol):
+            return vapor, liquid, p_n, it
         else:
-            k_i = k_new
+            p_i = p_n
+            y_i = y_n
 
-        x = z
-        y = k_i*z
     return vapor, liquid, p_i, it
