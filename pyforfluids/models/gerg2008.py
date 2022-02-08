@@ -82,7 +82,7 @@ class GERG2008:
                 f"{self.name} Valid Components:\n{self.valid_components}",
                 category=UserWarning,
             )
-            raise ValueError(f"'{diff}' ain't valid components")
+            raise ValueError(f"'{diff}' aren't valid components")
 
     def validate_ranges(self, temperature, pressure):
         """Validate fluid temperature and pressure.
@@ -194,10 +194,10 @@ class GERG2008:
         sum_value = x.sum()
 
         if sum_value > 1.0001 or sum_value < 0.9999:
-            warnings.warn(
-                "Composition doesn't add '1', will be normalized",
-                category=UserWarning,
-            )
+            #warnings.warn(
+            #    "Composition doesn't add '1', will be normalized",
+            #    category=UserWarning,
+            #)
             x = x / sum_value
 
         return x

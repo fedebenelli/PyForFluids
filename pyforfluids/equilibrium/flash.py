@@ -34,10 +34,10 @@ def rachford_rice(vapor_fraction, z, k):
     return g
 
 
-def update_fluids(liquid, vapor, x, y, p_i):
+def update_fluids(liquid, vapor, x, y, pressure):
     liquid.composition = update_concentration(x)
     vapor.composition = update_concentration(y)
-    liquid, vapor = update_density(liquid, vapor, p_i)
+    liquid, vapor = update_density(liquid, vapor, pressure)
 
     liquid.calculate_properties()
     vapor.calculate_properties()
@@ -250,9 +250,7 @@ def flash_pt(
         x, y, vapor_fraction, it_rr = solve_rr(z, k_i)
 
         #  Update concentrations and then densities
-        vapor.composition = update_concentration(y)
-        liquid.composition = update_concentration(x)
-        vapor, liquid = update_density(vapor, liquid, pressure)
+        liquid, vapor = update_fluids(liquid, vapor, x, y, pressure)
 
         # Update the K-values
         k_new = liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
@@ -264,7 +262,7 @@ def flash_pt(
         if np.allclose(k_i, k_new, rtol=rtol, atol=atol):
             return vapor, liquid, vapor_fraction, it
 
-    vapor, liquid = update_density(vapor, liquid, pressure)
+    liquid, vapor = update_density(liquid, vapor, pressure)
     return vapor, liquid, vapor_fraction, it
 
 
@@ -360,3 +358,20 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
             y_i = y_n
 
     return vapor, liquid, p_i, it
+
+
+def envelope(fluid):
+    vapor, liquid, p_ini, _ = bub_p(fluid, 100, 10, 1e-3, 1e-3)
+
+    def jac(liquid, vapor, temperature, pressure):
+        phi_t_l = liquid['dlnfug_dt']
+        phi_p_l = liquid['dlnfug_dp']
+        phi_t_v = vapor['dlnfug_dt']
+        phi_p_v = vapor['dlnfug_dp']
+
+        df_dlnt = temperature*(vapor['dlnfug_dt'] - liquid['dlnfug_dt'])
+        df_dlnp = pressure*(vapor['dlnfug_dp'] - liquid['dlnfug_dp'])
+
+        
+
+        
