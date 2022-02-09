@@ -64,14 +64,10 @@ def test_density_iterator():
     )
 
     pressure = 2e6
-    test_values = (1.395672933295116, 1994710.425259964, 2)
+    test_values = (1.3956752021818768, 1.3956752021818766, True)
     calc_values = fluid.density_iterator(pressure)
 
     np.testing.assert_allclose(test_values, calc_values, 8)
-
-    warning_pressure = 1e15
-    with pytest.warns(RuntimeWarning):
-        fluid.density_iterator(warning_pressure)
 
 
 def test_fluid_density():
