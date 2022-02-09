@@ -5,6 +5,9 @@ import numpy as np
 
 import pandas as pd
 
+from scipy.constants import R
+from scipy.optimize import root_scalar
+
 
 class Fluid:
     """Describes a fluid based on a given model and it's thermo variables.
@@ -70,17 +73,16 @@ class Fluid:
         self.temperature = temperature
         self.pressure = pressure
         self.density = density
-        self.properties = {}
 
+        # Validate the fluid's components before any calculation is made
         model.validate_components(composition)
 
+        # If no density was given calculate it and use the gas value
         if density is None:
-            # If no density was given calculate it
-            self.density = np.nan
-            density = self.density_iterator(pressure)[0]
-            self.density = density
+            self.set_pressure(pressure)
 
         self.calculate_properties()
+        self.pressure = self["pressure"]
 
     def copy(self):
         """Return a copy of the fluid, taking density as independant variable.
@@ -139,14 +141,28 @@ class Fluid:
             New pressure
         """
         self.pressure = pressure
-        new_density = self.density_iterator(pressure)[0]
-        self.density = new_density
+        self.density = np.nan
+        liquid_density, vapor_density, single_fase = self.density_iterator(
+            pressure
+        )
+
+        if not single_fase:
+            warnings.warn(
+                "Two roots were found! Vapor-phase value will be used",
+                category=UserWarning,
+            )
+
+        self.density = vapor_density
 
     def calculate_properties(self):
         """Calculate the fluid's properties."""
         self.properties = self.model.calculate_properties(
-            self.temperature, self.pressure, self.density, self.composition
+            self.temperature,
+            self.pressure,
+            self.density,
+            self.composition,
         )
+        # Update the pressure with the new pressure value
         self.pressure = self.properties["pressure"]
 
         self.properties = pd.Series(self.properties)
@@ -173,7 +189,8 @@ class Fluid:
 
         # Initialize a dictionary that will keep all the properties along
         #  the density range
-        isotherm = dict()
+        isotherm = {}
+
         fluid.calculate_properties()
         isotherm["density"] = density_range
 
@@ -193,70 +210,86 @@ class Fluid:
 
         return isotherm
 
-    def density_iterator(self, objective_pressure):
+    def density_iterator(
+        self, objective_pressure, vapor_phase=True, liquid_phase=True
+    ):
         """With a given pressure and temperature value, get the fluid density.
 
         Parameters
         ----------
         objective_pressure: float
             Fluid pressure where to calculate density.
-        temperature: float
-            Fluid temperature where to calculate density.
+        vapor_phase: bool
+            Find vapor phase root.
+        liquid_phase: bool
+            Find liquid phase root.
 
         Returns
         -------
-        float
-            Calculated density.
-        float
-            Pressure where the density converged.
-        int
-            Number of iterations.
+        liquid_density: float
+            Calculated density in liquid phase.
+        vapor_density: float
+            Calculated density in vapor phase.
+        single_phase: bool
+            True if only one root was found.
         """
+
+        def fluid_pressure(density, fluid, obj):
+            temp = fluid.copy()
+            temp.set_density(density)
+            temp.calculate_properties()
+
+            return temp["pressure"] - obj, temp["dp_drho"] * 1000
+
+        def find_root(fluid, x0, objective_pressure):
+            root = root_scalar(
+                fluid_pressure,
+                args=(fluid, objective_pressure),
+                x0=x0,
+                fprime=True,
+                method="newton",
+                xtol=1e-4,
+            )
+            sol = root.root
+
+            return sol
+
         fluid = self.copy()
 
-        t = fluid.temperature
+        # LIQUID ROOT
+        liquid_density = None
+        if liquid_phase:
+            initial_density = 25
+            liquid_density = find_root(
+                fluid, initial_density, objective_pressure
+            )
 
-        fluid.set_temperature(t)
+        # ---------------------------------------------------------
 
-        step = 1
-        it = 0
-        r = 8.31446261815324
+        # GAS ROOT
+        # Use ideal gas density
+        vapor_density = None
+        if vapor_phase:
+            initial_density = (
+                objective_pressure / (R * fluid.temperature) / 1000
+            )
+            vapor_density = find_root(
+                fluid, initial_density, objective_pressure
+            )
 
-        rho_i = objective_pressure / (r * t) / 1000
+        if vapor_phase and liquid_phase:
+            single_phase = np.allclose(liquid_density, vapor_density)
+        else:
+            single_phase = True
 
-        fluid.set_density(rho_i)
-        fluid.calculate_properties()
-
-        p = fluid.properties["pressure"]
-        precision = 0.01
-
-        while abs(p - objective_pressure) > objective_pressure * precision:
-            it = it + 1
-
-            # Calculate properties on the new Newton point
-            fluid.set_density(rho_i)
-            fluid.calculate_properties()
-            p = fluid.properties["pressure"]
-            dp_drho = fluid.properties["dp_drho"] * 1000
-
-            delta = (p - objective_pressure) / dp_drho
-
-            rho_i = rho_i - step * delta
-
-            if it > 50:
-                warnings.warn(
-                    RuntimeWarning("Couldn't converge with 50 iterations")
-                )
-                return rho_i, p, it
-
-        return rho_i, p, it
+        return liquid_density, vapor_density, single_phase
 
     def __getitem__(self, key):
         """Access the fluid properties as a dictionary."""
         return self.properties[key]
 
     def __repr__(self):
-        """Object repr."""
+        """Fluid's repr."""
         rep = (
             f"Fluid(model={self.model}, temperature={self.temperature}, "
             f"pressure={self.pressure:.4f}, density={self.density:.4f}, "
