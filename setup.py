@@ -87,7 +87,7 @@ EXTENSIONS = [
 
 setup(
     name="pyforfluids",
-    version="0.0.1-alpha2",
+    version=VERSION,
     description="Fluid's thermodynamic properties",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
