@@ -82,7 +82,7 @@ class GERG2008:
                 f"{self.name} Valid Components:\n{self.valid_components}",
                 category=UserWarning,
             )
-            raise ValueError(f"'{diff}' ain't valid components")
+            raise ValueError(f"'{diff}' aren't valid components")
 
     def validate_ranges(self, temperature, pressure):
         """Validate fluid temperature and pressure.
