@@ -16,7 +16,11 @@ from numpy.distutils.core import Extension, setup  # noqa
 PATH = os.path.normpath(os.path.join(__file__, os.pardir))
 
 
-PACKAGES = ["pyforfluids", "pyforfluids.models", "pyforfluids.fortran"]
+PACKAGES = [
+    "pyforfluids",
+    "pyforfluids.models",
+    "pyforfluids.fortran",
+]
 
 with open("README.md") as fp:
     LONG_DESCRIPTION = fp.read()
@@ -26,7 +30,7 @@ with open("README.md") as fp:
 
 # -> REQUIREMENTS -------------------------------------------------------------
 
-REQUIREMENTS = ["numpy>=1.21.2", "pandas>=1.3.5"]
+REQUIREMENTS = ["numpy>=1.21.2", "pandas>=1.3.5", "scipy>=1.7.3"]
 
 # -----------------------------------------------------------------------------
 
