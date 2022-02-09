@@ -203,6 +203,26 @@ Contains
                    delta * dar_ddn &
                    )
 
+           ! Crossed derivs
+           ddelta_dn = delta - delta/rho_r * drho_dn
+           dtau_dn = tau/t_r * dtr_dn
+
+           dar_dndelta = (ar(2, 1) + delta*ar(3, 1)) * dens_term/delta &
+                   + ar(3, 3) * temp_term + ar_dx - sum(x*ar_dx)
+           dar_dntau = ar(3, 3) * dens_term + (ar(2, 2) &
+                   + tau*ar(3, 2)) * temp_term/tau + ar_tx - sum(x*ar_tx)
+
+           dar_dnx(21, 21)
+
+           do j=1,21
+           dar_dnx(j, :) = ar_dx(j)*dens_term - 
+           end do
+
+
+
+
+
+
    End Subroutine molar_derivatives
 
 End Module thermo_props
