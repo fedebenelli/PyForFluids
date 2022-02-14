@@ -1,5 +1,6 @@
 Module parameters
-   integer :: N, max_residual_terms = 24, generalized_departure(8, 2)
+   integer :: max_residual_terms = 24, generalized_departure(8, 2)
+   integer, parameter :: N=21
    real(8), dimension(21, 21, 4) :: red_params
    real(8), dimension(21, 21) :: Bv, Gv, Bt, Gt
    real(8), dimension(21, 24) :: noik, toik
@@ -20,7 +21,6 @@ Subroutine get_params()
    use parameters
    integer :: i, j, k
    R = 8.314472d0
-   N = 21
 
    P_c(1) = 46.0 * 1d5             
    P_c(2) = 33.9 * 1d5             
