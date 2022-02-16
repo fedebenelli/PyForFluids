@@ -271,9 +271,7 @@ def k_wilson(z, pressure, temperature):
     critical_pressure = gerg2008f.parameters.p_c
     critical_temperature = gerg2008f.parameters.t_c
 
-    n = len(z)
-    K_i = np.full(n, -np.inf, dtype="d")
-    K_i = np.nan_to_num(K_i)
+    K_i = np.zeros_like(z)
     msk = np.where(z != 0)
 
     p_c = critical_pressure[msk]
@@ -306,6 +304,7 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
 
     # Wilson initialization
     z = fluid.model.set_concentration(fluid.composition)
+    msk = np.where(z != 0)
     p_i = p_wilson(temperature, z)
     k_i = k_wilson(z, p_i, temperature)
     x = z
@@ -315,14 +314,17 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
         liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
         # Define iteration step
         f = np.dot(k_i, z) - 1
-        dfdp = np.dot(z * k_i, liquid["dlnfug_dp"] - vapor["dlnfug_dp"])
+        dfdp = np.dot(
+                z[msk] * k_i[msk],
+                liquid["dlnfug_dp"][msk] - vapor["dlnfug_dp"][msk]
+                )
 
         # Iteration step definition
-        step = 1e5*it
+        step = 1e5 * it
 
         # This is taking too long
         if it > 5:
-            step = step*10
+            step = step * 10
 
         p_n = p_i - step * f / dfdp
 
@@ -351,7 +353,9 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
         )
 
         # If algo converges, return values, else define new points
-        if np.allclose(y_i, y_n, rtol=rtol, atol=atol) and np.allclose(p_i, p_n, rtol=rtol, atol=atol):
+        if np.allclose(y_i, y_n, rtol=rtol, atol=atol) and np.allclose(
+            p_i, p_n, rtol=rtol, atol=atol
+        ):
             return vapor, liquid, p_n, it
         else:
             p_i = p_n
@@ -362,26 +366,44 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
 
 def envelope(fluid):
     Z = fluid.model.set_concentration(fluid.composition)
+    msk = np.where(Z != 0)
+    Z = Z[msk]
     BETA = 0
-    vapor, liquid, p_ini, _ = bub_p(fluid, 100, 10, 1e-3, 1e-3)
+    vapor, liquid, p_ini, _ = bub_p(fluid, 200, 10, 1e-3, 1e-3)
 
-    def jac(liquid, vapor, temperature, pressure):
-        phi_t_l = liquid['dlnfug_dt']
-        phi_p_l = liquid['dlnfug_dp']
-        phi_t_v = vapor['dlnfug_dt']
-        phi_p_v = vapor['dlnfug_dp']
+    # Specification index: N For temperature and N+1 for pressure
+    n_spec = N + 1 
 
-        k = np.exp(liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"])
+    def jac(liquid, vapor, temperature, pressure, n_spec, N):
+        Jij = np.zeros_like(N + 2, N + 2)
+        phi_t_l = liquid["dlnfug_dt"]
+        phi_p_l = liquid["dlnfug_dp"]
+        phi_t_v = vapor["dlnfug_dt"]
+        phi_p_v = vapor["dlnfug_dp"]
+
+        k = np.exp(
+            liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
+        )
 
         phi_ij_l = liquid["dlnfug_dn"]
         phi_ij_v = vapor["dlnfug_dn"]
 
-        df_dlnt = temperature*(vapor['dlnfug_dt'] - liquid['dlnfug_dt'])
-        df_dlnp = pressure*(vapor['dlnfug_dp'] - liquid['dlnfug_dp'])
-        df_dlnk = k * Z /(1-BETA+BETA*K)**2 * (
-                (1-BETA)*phi_ij_v + BETA*phi_ij_l) + fluid["d"]
+        for i in range(N):
+            for j in range(N):
+                Jij[i, j] = (
+                    k[j] * Z[j] / (1 - BETA + BETA * k[j]) ** 2
+                    * ((1 - BETA) * phi_ij_v[i, j] + BETA * phi_ij_l[i, j])
+                )
+                if i == j:
+                    Jij[i, j] += 1
+                Jij[N, j] = k[j]*Z[j]/(1-BETA+BETA*k[j])**2
 
-        
+            Jij[i, N] = temperature * (phi_t_l[i] - phi_t_v[i])
+            Jij[i, N + 1] = pressure * (phi_p_l[i] - phi_p_v[i])
 
-        
+            # TODO: In a future this should be a function
+            Jij[N + 1, n_spec] = 1
 
+        __import__('ipdb').set_trace()
+
+    J = jac(liquid, vapor, fluid.temperature, p_ini, n_spec, N)

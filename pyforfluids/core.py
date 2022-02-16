@@ -254,7 +254,7 @@ class Fluid:
         # LIQUID ROOT
         liquid_density = None
         if liquid_phase:
-            initial_density = 25
+            initial_density = 100
             liquid_density = find_root(
                 fluid, initial_density, objective_pressure
             )
