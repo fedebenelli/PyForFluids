@@ -194,10 +194,10 @@ class GERG2008:
         sum_value = x.sum()
 
         if sum_value > 1.0001 or sum_value < 0.9999:
-            #warnings.warn(
+            # warnings.warn(
             #    "Composition doesn't add '1', will be normalized",
             #    category=UserWarning,
-            #)
+            # )
             x = x / sum_value
 
         return x
@@ -237,14 +237,19 @@ class GERG2008:
         # Concentration dependant parameters
         x = self.set_concentration(composition)
         m = tp.mean_molecular_weight(x, molecular_weights)
+        n = len(x)
 
         # Reducing functions
-        reducing_variables = gerg2008f.reducing_funcs(x)
-        reducing_density = reducing_variables[0]
-        reducing_temperature = reducing_variables[1]
-        dtr_dx = reducing_variables[2]
-        dvr_dx = reducing_variables[3]
-
+        (
+            reducing_density,
+            reducing_temperature,
+            dvr_dx,
+            dtr_dx,
+            dvr2_dx2,
+            dtr2_dx2,
+            dvr2_dxx,
+            dtr2_dxx,
+        ) = gerg2008f.reducing_funcs(x)
         delta = density / reducing_density
         tau = reducing_temperature / temperature
 
@@ -289,9 +294,8 @@ class GERG2008:
         dp_drho = tp.dp_drho(temperature, delta, r, ar)
         dp_dv = tp.dp_dv(density, delta, temperature, r, ar)
 
-        # Per-mol derivatives
-
-        dar_dn, dar_ddn, dar_dtn, dp_dn = tp.molar_derivatives(
+        # Equilibrium properties
+        (dar_dn, dar_ddn, dar_dtn, dp_dn, dar2_dnn) = tp.molar_derivatives(
             x,
             delta,
             tau,
@@ -300,21 +304,35 @@ class GERG2008:
             reducing_temperature,
             ar,
             ar_x,
+            ar_xx,
             ar_tx,
             ar_dx,
             dvr_dx,
             dtr_dx,
+            dvr2_dx2,
+            dtr2_dx2,
+            dvr2_dxx,
+            dtr2_dxx,
         )
+
         msk = np.where(x != 0, 1, 0)
         dnar_dn = (ar[0, 0] + dar_dn) * msk
         dnar_dtn = -tau / temperature * (ar[1, 1] + dar_dtn)
+
+        dnar2_dnn = dar_dn + dar2_dnn
+
         excess_volume = -dp_dn / dp_dv
+
+        dp_dn = dp_dn.reshape((1, n))
+        dp_dnn = dp_dn.T @ dp_dn
 
         dlnfug_dt = dnar_dtn + (1 - r * excess_volume * dp_dt) / temperature
         dlnfug_dp = excess_volume / (r * temperature) - 1 / p
+        dlnfug_dn = dnar2_dnn + 1 + dp_dnn/dp_dv/(r*temperature)
 
         fugacity_coefficent = dnar_dn - np.log(z)
 
+        # Virial coeficents
         ar_virial, *_ = gerg2008f.residual_term(x, 1e-15, tau)
         b = tp.second_thermal_virial_coeff(reducing_density, ar_virial)
         c = tp.third_thermal_virial_coeff(reducing_density, ar_virial)
@@ -330,8 +348,20 @@ class GERG2008:
             "ar_xx": ar_xx,
             "dvr_dx": dvr_dx,
             "dtr_dx": dtr_dx,
+            "dvr2_dx2": dvr2_dx2,
+            "dtr2_dx2": dtr2_dx2,
+            "dvr2_dxx": dvr2_dxx,
+            "dtr2_dxx": dtr2_dxx,
             "dar_dn": dar_dn,
             "dadr_dn": dar_ddn,
+            "dnar_dn": dnar_dn,
+            "dnar_dtn": dnar_dtn,
+            "dar_ddn": dar_ddn,
+            "dar_dtn": dar_dtn,
+            "dar2_dnn": dar2_dnn,
+            "dp_dn": dp_dn,
+            "dp_dnn": dp_dnn,
+            "excess_volume": excess_volume,
             "compressibility_factor": z,
             "isochoric_heat": cv,
             "isobaric_heat": cp,
@@ -352,6 +382,7 @@ class GERG2008:
             "fugacity_coefficent": fugacity_coefficent,
             "dlnfug_dt": dlnfug_dt,
             "dlnfug_dp": dlnfug_dp,
+            "dlnfug_dn": dlnfug_dn,
         }
 
     def __repr__(self):
