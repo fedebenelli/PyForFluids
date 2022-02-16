@@ -361,6 +361,8 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
 
 
 def envelope(fluid):
+    Z = fluid.model.set_concentration(fluid.composition)
+    BETA = 0
     vapor, liquid, p_ini, _ = bub_p(fluid, 100, 10, 1e-3, 1e-3)
 
     def jac(liquid, vapor, temperature, pressure):
@@ -369,9 +371,17 @@ def envelope(fluid):
         phi_t_v = vapor['dlnfug_dt']
         phi_p_v = vapor['dlnfug_dp']
 
+        k = np.exp(liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"])
+
+        phi_ij_l = liquid["dlnfug_dn"]
+        phi_ij_v = vapor["dlnfug_dn"]
+
         df_dlnt = temperature*(vapor['dlnfug_dt'] - liquid['dlnfug_dt'])
         df_dlnp = pressure*(vapor['dlnfug_dp'] - liquid['dlnfug_dp'])
+        df_dlnk = k * Z /(1-BETA+BETA*K)**2 * (
+                (1-BETA)*phi_ij_v + BETA*phi_ij_l) + fluid["d"]
 
         
 
         
+
