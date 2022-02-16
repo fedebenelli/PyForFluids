@@ -429,7 +429,8 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
    Implicit None
    real(8), intent(in) :: delta, tau, X(N)
    real(8), dimension(3, 3), intent(out) :: ar
-   real(8), dimension(N), intent(out) :: ar_x, ar_dx, ar_tx, ar_xx
+   real(8), dimension(N), intent(out) :: ar_x, ar_dx, ar_tx
+   real(8), dimension(N,N), intent(out) :: ar_xx
    real(8), dimension(3, 3) :: aoir, aijr
    integer :: i, j, k
 
@@ -457,7 +458,6 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
          ar_x(i) = aoir(1, 1)
          ar_dx(i) = aoir(2, 1)
          ar_tx(i) = aoir(2, 2)
-         ar_xx(i) = 0
 
          ! Compositional derivatives
          do k = 1, N
@@ -471,6 +471,7 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
                ar_x(i) = ar_x(i) + X(k) * Fij(i, k) * aijr(1, 1)
                ar_dx(i) = ar_dx(i) + X(k) * Fij(i, k) * aijr(2, 1)
                ar_tx(i) = ar_tx(i) + X(k) * Fij(i, k) * aijr(2, 2)
+               ar_xx(i, k) = Fij(i, k) * aijr(1, 1)
             end if
          end do
       end if
