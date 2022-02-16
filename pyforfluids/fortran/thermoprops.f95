@@ -175,19 +175,19 @@ Contains
         C = Ar(3, 1)/(rho_r**2)
     End Subroutine third_thermal_virial_coeff
 
-    Subroutine molar_derivatives(x, delta, tau, r, rho_r, t_r, ar, ar_x, ar_tx, ar_dx, &
+    Subroutine molar_derivatives(x, delta, tau, r, rho_r, t_r, ar, ar_x, ar_xx, ar_tx, ar_dx, &
                                  dvr_dx, dtr_dx, dvr2_dx2, dtr2_dx2, dvr2_dxx, dtr2_dxx, &
                                  dar_dn, dar_ddn, dar_dtn, dp_dn, dar2_dnn)
         Implicit None
         real(8), intent(in) :: x(21), delta, tau, r, rho_r, T_r, ar(3, 3)
         real(8), dimension(21), intent(in) :: ar_x(21), ar_tx(21), ar_dx(21), dvr_dx(21), dtr_dx(21), dvr2_dx2, dtr2_dx2
-        real(8), dimension(21,21), intent(in) :: dvr2_dxx, dtr2_dxx
+        real(8), dimension(21,21), intent(in) :: dvr2_dxx, dtr2_dxx, ar_xx
         real(8), dimension(21), intent(out) :: dar_dn, dar_ddn, dar_dtn, dp_dn
         real(8), dimension(21, 21), intent(out) :: dar2_dnn
         real(8), dimension(21) :: drhor_dx, drhor_dn, dtr_dn, dens_term, temp_term,&
             ddelta_dn, dtau_dn, dar2_dndelta, dar2_dntau, drhor2_dx2
         real(8), dimension(21,21) :: drhor2_dxx, drhor2_dxn, dtr2_dxn, dar2_dxn
-        real(8) :: rho, t, dpdv
+        real(8) :: rho, t
         integer :: i, j
 
         drhor_dx = -rho_r**2*dvr_dx
@@ -222,7 +222,7 @@ Contains
         do i=1,21
         do j=i+1,21
             drhor2_dxx(i, j) = 2*rho_r**3 * dvr_dx(i)*dvr_dx(j) - rho_r**2*dvr2_dxx(i, j)
-            drhor2_dxx(j, i) = drhor2_dxx(i, j)
+            !drhor2_dxx(j, i) = drhor2_dxx(i, j)
         end do
         end do
 
@@ -235,17 +235,20 @@ Contains
 
         do i=1,21
         do j=i+1,21
-        dar2_dxn(i, j) = delta*ar_dx(j)*(1-drhor_dn(i)/rho_r) &
+        dar2_dxn(j, i) = delta*ar_dx(j)*(1-drhor_dn(i)/rho_r) &
             - delta*ar(2, 1)/rho_r * (drhor2_dxn(j, i) - drhor_dx(j)/rho_r * drhor_dn(i)) &
-            + tau *ar(3,3)/T_r * dtr_dn(i)
+            + tau * ar(3,3)/T_r * dtr_dn(i) &
+            + tau*ar(2,2) * dtr2_dxn(j, i) - dtr_dx(j)/t_r * dtr_dn(i) &
+            + ar_xx(i, j) - ar_x(j) - sum(x*ar_xx(:, j))
         end do
         end do
 
         do i=1,21
         do j=i+1,21
-            dar2_dnn(i, j) = dar2_dndelta(i) * ddelta_dn(j) &
+            dar2_dnn(j, i) = dar2_dndelta(i) * ddelta_dn(j) &
                 + dar2_dntau(i) * dtau_dn(j) &
                 + dar2_dxn(i, j) - sum(x * dar2_dxn(i, :))
+            !dar2_dnn(i, j) = dar2_dnn(j, i)
         end do
         end do
     End Subroutine molar_derivatives
