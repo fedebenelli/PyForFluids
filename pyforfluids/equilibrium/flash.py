@@ -376,20 +376,108 @@ def envelope(fluid):
     Z = Z[msk]
     BETA = 0
     vapor, liquid, p_ini, _ = bub_p(fluid, 200, 10, 1e-3, 1e-3)
+def bub_t(fluid, pressure, iterations=50, rtol=1e-3, atol=1e-3):
+    """Calculate the bubble temperature and vapor-phase composition.
 
-    # Specification index: N For temperature and N+1 for pressure
-    n_spec = N + 1 
+    Parameters
+    ----------
+    fluid: pyforfluids.core.Fluid
+        Fluid to which calculate it's bubble point.
+    pressure: float
+        Pressure where to calculat the bubble point.
+    iterations: int
+        Max number of iterations to realize.
+    rtol: float
+        Relative tolerance for convergence.
+    atol: float
+        Absolute tolerance for convergence.
 
-    def jac(liquid, vapor, temperature, pressure, n_spec, N):
-        Jij = np.zeros_like(N + 2, N + 2)
-        phi_t_l = liquid["dlnfug_dt"]
-        phi_p_l = liquid["dlnfug_dp"]
-        phi_t_v = vapor["dlnfug_dt"]
-        phi_p_v = vapor["dlnfug_dp"]
+    Returns
+    -------
+    vapor: pyforfluids.core.Fluid
+        Vapor phase fluid at bubble conditions.
+    liquid:
+        Liquid phase fluid at bubble conditions.
+    t_n: float
+        Bubble temperature.
+    it: int
+        Number of iterations for convergence.
+    """
 
-        k = np.exp(
-            liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
+    def solve_wilson_temp(z, pressure):
+        """Solve the Wilson's K-factors expression for a given pressure."""
+
+        def f(t, z, pressure):
+            k = k_wilson(z, pressure, t)
+            return np.dot(z, k) - 1
+
+        temperature = root_scalar(
+            f, args=(z, pressure), method="brentq", x0=250, bracket=(1, 1000)
         )
+        return temperature.root
+
+    def new_fluids(liquid, vapor, x, y, pressure, temperature):
+        """Update the fluids"""
+        liquid_composition = update_concentration(x)
+        vapor_composition = update_concentration(y)
+
+        liquid.set_composition(liquid_composition)
+        liquid.set_temperature(temperature)
+
+        vapor = Fluid(
+            model=vapor.model,
+            composition=vapor_composition,
+            pressure=pressure,
+            temperature=temperature,
+        )
+
+        rho_l = liquid.density_iterator(pressure, vapor_phase=False)[0]
+
+        liquid.set_density(rho_l)
+
+        liquid.calculate_properties()
+        vapor.calculate_properties()
+
+        return liquid, vapor
+
+    z = fluid.model.normalize(fluid.composition)
+    liquid = fluid.copy()
+    vapor = fluid.copy()
+
+    # Wilson init
+    t_i = solve_wilson_temp(z, pressure)
+    k_i = k_wilson(z, pressure, t_i)
+    x = z
+    y_i = k_i * z
+
+    liquid, vapor = new_fluids(liquid, vapor, x, y_i, pressure, t_i)
+
+    for it in range(1, iterations):
+        f = np.dot(k_i, z) - 1
+        dfdt = (k_i * z * (liquid["dlnfug_dt"] - vapor["dlnfug_dt"])).sum()
+
+        step = 25 * it / t_i
+
+        t_n = t_i - step * f / dfdt
+
+        liquid, vapor = new_fluids(liquid, vapor, x, y_i, pressure, t_n)
+        k_n = np.exp(
+            liquid["lnfug"] - vapor["lnfug"]
+        )
+        y_n = k_n * z
+
+        liquid, vapor = new_fluids(liquid, vapor, x, y_n, pressure, t_n)
+
+        if np.allclose(t_i, t_n, atol=atol) and np.allclose(
+            y_i, y_n, atol=atol
+        ):
+            return vapor, liquid, t_n, it
+        else:
+            k_i = k_n
+            y_i = y_n
+            t_i = t_n
+    return vapor, liquid, t_n, it
+
 
 def envelope(fluid):
     def new_fluids(liquid, vapor, x, y, pressure, temperature):
