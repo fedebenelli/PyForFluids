@@ -82,9 +82,10 @@ class Fluid:
             self.set_pressure(pressure)
 
         self.calculate_properties()
-        self.pressure = self["pressure"]
 
-    def copy(self):
+    def copy(
+            self, model=None, composition=None, temperature=None, density=None
+    ):
         """Return a copy of the fluid, taking density as independant variable.
 
         Returns
