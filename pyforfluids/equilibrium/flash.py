@@ -391,25 +391,106 @@ def envelope(fluid):
             liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
         )
 
-        phi_ij_l = liquid["dlnfug_dn"]
-        phi_ij_v = vapor["dlnfug_dn"]
+def envelope(fluid):
+    def new_fluids(liquid, vapor, x, y, pressure, temperature):
+        """Update the fluids"""
+        __import__('ipdb').set_trace()
+        liquid_composition = update_concentration(x)
+        vapor_composition = update_concentration(y)
+
+        liquid.set_composition(liquid_composition)
+        liquid.set_temperature(temperature)
+
+        vapor = Fluid(
+            model=vapor.model,
+            composition=vapor_composition,
+            pressure=pressure,
+            temperature=temperature,
+        )
+
+        rho_l = liquid.density_iterator(pressure, vapor_phase=False)[0]
+
+        liquid.set_density(rho_l)
+
+        liquid.calculate_properties()
+        vapor.calculate_properties()
+
+        return liquid, vapor
+    
+    def F(X, liquid, vapor, N):
+        F = np.zeros(N+2)
+        k = np.exp(X[:N])
+        t = np.exp(X[-2])
+        p = np.exp(X[-1])
+
+        x = Z / (1 - BETA + BETA * k)
+        y = k * x
+        liquid, vapor = new_fluids(liquid, vapor, x, y, p, t)
+
+        fug_diff = (liquid["lnfug"] - vapor["lnfug"])[msk]
+        for i in range(N):
+            F[i] = X[i] - fug_diff[i]
+        F[N] = rachford_rice(BETA, Z, X[:N])
+        F[N+1] = 0
+        return F
+
+    def jacobian(liquid, vapor, temperature, pressure, n_spec, N):
+        Jij = np.zeros((N + 2, N + 2))
+        phi_t_l = liquid["dlnfug_dt"][msk]
+        phi_p_l = liquid["dlnfug_dp"][msk]
+        phi_t_v = vapor["dlnfug_dt"][msk]
+        phi_p_v = vapor["dlnfug_dp"][msk]
+
+        phi_ij_l = liquid["dlnfug_dn"][msk]
+        phi_ij_v = vapor["dlnfug_dn"][msk]
 
         for i in range(N):
             for j in range(N):
                 Jij[i, j] = (
-                    k[j] * Z[j] / (1 - BETA + BETA * k[j]) ** 2
-                    * ((1 - BETA) * phi_ij_v[i, j] + BETA * phi_ij_l[i, j])
+                    k[j] * Z[j]
+                    / (1 - BETA + BETA * k[j]) ** 2
+                    * (
+                        (1 - BETA) * phi_ij_v[i][msk][j] 
+                        + BETA * phi_ij_l[i][msk][j]
+                        )
                 )
                 if i == j:
                     Jij[i, j] += 1
-                Jij[N, j] = k[j]*Z[j]/(1-BETA+BETA*k[j])**2
+                Jij[N, j] = k[j] * Z[j] / (1 - BETA + BETA * k[j]) ** 2
 
             Jij[i, N] = temperature * (phi_t_l[i] - phi_t_v[i])
             Jij[i, N + 1] = pressure * (phi_p_l[i] - phi_p_v[i])
 
             # TODO: In a future this should be a function
             Jij[N + 1, n_spec] = 1
+        return Jij
 
-        __import__('ipdb').set_trace()
+    Z = fluid.model.normalize(fluid.composition)
+    msk = np.where(Z != 0)
+    #Z = Z[msk]
+    BETA = 0
+    N = len(Z)
+    p_i = 0.1e6
 
-    J = jac(liquid, vapor, fluid.temperature, p_ini, n_spec, N)
+    vapor, liquid, t_i, it = bub_t(fluid, p_i)
+
+    # Specification index: N For temperature and N+1 for pressure
+    n_spec = N + 1
+    delta_spec = np.log(1e5)
+
+    for i in range(50):
+        ln_k = (liquid["lnfug"] - vapor["lnfug"])[msk]
+        k = np.exp(ln_k)
+        x = np.array([*ln_k, np.log(t_i), np.log(p_i)])
+
+        j = jacobian(liquid, vapor, t_i, p_i, n_spec, N)
+        f = F(x, liquid, vapor, N)
+
+        # Jij dXdS + dFdS = 0
+        dXdS = np.linalg.solve(j, j[-1])
+        n_old = n_spec
+        n_spec = np.where(dXdS == np.abs(dXdS.max()))[0][0]
+        dXdS = dXdS / np.abs(dXdS).max()
+        delta_spec = delta_spec * x[n_spec]/x[n_old]
+
+        x = x + delta_spec*dXdS
