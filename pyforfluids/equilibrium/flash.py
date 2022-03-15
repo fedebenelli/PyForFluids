@@ -108,63 +108,6 @@ def update_concentration(x):
     return components
 
 
-# TODO: This method could be part of fluid or a separate module, including
-# phase stability analysis.
-def get_vl(fluid, pressure):
-    """Get vapor and liquid Fluids based on a pressure."""
-    rho_l, rho_v, _ = fluid.density_iterator(pressure)
-
-    vapor = fluid.copy()
-    vapor.set_density(rho_v)
-    vapor.calculate_properties()
-
-    liquid = fluid.copy()
-    liquid.set_density(rho_l)
-    liquid.calculate_properties()
-
-    return vapor, liquid
-
-
-def fix_k(z, k, it=0):
-    """Fix K-values to assure convergence.
-
-    Increase or decrease the value of k to force the root of the
-    Rachford-Rice equation to be in the interval (0, 1).
-
-    Parameters
-    ----------
-    z: array
-        Array of global molar fractions.
-    k: array
-        Array of k-values.
-    it: int
-    Number of iteration.
-
-    Returns
-    -------
-    k: array
-        Fixed k value.
-    """
-    g0 = rachford_rice(1e-9, z, k)
-    g1 = rachford_rice(1 - 1e-9, z, k)
-
-    it = it + 1
-
-    if it > 3:
-        return k
-
-    if g0 < 0 or g1 > 0:
-        while g0 < 0:
-            k = 1.1 * k
-            g0 = rachford_rice(0, z, k)
-        while g1 > 0:
-            k = 0.9 * k
-            g1 = rachford_rice(1, z, k)
-        return fix_k(z, k, it)
-    else:
-        return k
-
-
 def solve_rr(z, k):
     """Solve the Rachford-Rice equation.
 
