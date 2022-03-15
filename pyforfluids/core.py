@@ -93,10 +93,10 @@ class Fluid:
         Fluid
         """
         return Fluid(
-            model=self.model,
-            composition=self.composition,
-            temperature=self.temperature,
-            density=self.density,
+            model=model if model else self.model,
+            composition=composition if composition else self.composition,
+            temperature=temperature if temperature else self.temperature,
+            density=density if density else self.density,
         )
 
     def set_composition(self, composition):
@@ -166,7 +166,6 @@ class Fluid:
         )
         # Update the pressure with the new pressure value
         self.pressure = self.properties["pressure"]
-
         self.properties = pd.Series(self.properties)
 
     def isotherm(self, density_range):
