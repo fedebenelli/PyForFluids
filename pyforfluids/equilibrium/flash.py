@@ -170,7 +170,7 @@ def solve_rr(z, k):
 
 
 def flash_pt(
-    fluid, pressure, temperature, iterations=50, rtol=1e-10, atol=1e-10
+    fluid, pressure, temperature, iterations=50, rtol=1e-5, atol=1e-5
 ):
     """Vapor-Liquid PT flash.
 
@@ -200,13 +200,58 @@ def flash_pt(
     vapor_fraction: float
         Fraction of vapor in the mixture.
     """
-    z = fluid.model.set_concentration(fluid.composition)
+
+    def fix_k(z, k, it=0):
+        """Fix K-values to assure convergence.
+
+        Increase or decrease the value of k to force the root of the
+        Rachford-Rice equation to be in the interval (0, 1).
+
+        Parameters
+        ----------
+        z: array
+            Array of global molar fractions.
+        k: array
+            Array of k-values.
+        it: int
+        Number of iteration.
+
+        Returns
+        -------
+        k: array
+            Fixed k value.
+        """
+        g0 = rachford_rice(1e-9, z, k)
+        g1 = rachford_rice(1 - 1e-9, z, k)
+
+        it = it + 1
+
+        if it > 3:
+            return k
+
+        if g0 < 0 or g1 > 0:
+            while g0 < 0:
+                k = 1.1 * k
+                g0 = rachford_rice(0, z, k)
+            while g1 > 0:
+                k = 0.9 * k
+                g1 = rachford_rice(1, z, k)
+            return fix_k(z, k, it)
+        else:
+            return k
+
+    z = fluid.model.normalize(fluid.composition)
     vapor, liquid = get_vl(fluid, pressure)
 
+    k_i = k_wilson(z, pressure, temperature)
+    k_i = fix_k(z, k_i)
+    x, y, vapor_fraction, it_rr = solve_rr(z, k_i)
+    liquid, vapor = update_fluids(liquid, vapor, x, y, pressure)
+
     for it in range(iterations):
-        it += 1
-        k_i = liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
-        k_i = np.exp(k_i)
+        k_i = np.exp(
+            liquid["lnfug"] - vapor["lnfug"]
+        )
 
         x, y, vapor_fraction, it_rr = solve_rr(z, k_i)
 
@@ -214,11 +259,11 @@ def flash_pt(
         liquid, vapor = update_fluids(liquid, vapor, x, y, pressure)
 
         # Update the K-values
-        k_new = liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
+        k_new = liquid["lnfug"] - vapor["lnfug"]
         k_new = np.exp(k_new)
 
-        if abs((k_new - k_i) / k_i).sum() > 0.2:
-            k_new = fix_k(z, k_new)
+        #while abs((k_new - k_i) / k_i).sum() > 0.2:
+        #    k_new = fix_k(z, k_new)
 
         if np.allclose(k_i, k_new, rtol=rtol, atol=atol):
             return vapor, liquid, vapor_fraction, it
