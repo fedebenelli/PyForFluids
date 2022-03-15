@@ -344,7 +344,7 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
 
         # Define new K and molar fractions
         k_n = np.exp(
-            liquid["fugacity_coefficent"] - vapor["fugacity_coefficent"]
+            liquid["lnfug"] - vapor["lnfug"]
         )
         x = z
         y_n = k_n * z
@@ -359,8 +359,8 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
         )
 
         # If algo converges, return values, else define new points
-        if np.allclose(y_i, y_n, rtol=rtol, atol=atol) and np.allclose(
-            p_i, p_n, rtol=rtol, atol=atol
+        if np.allclose(p_i, p_n, rtol=rtol, atol=atol) and np.allclose(
+            y_i, y_n, rtol=rtol, atol=atol
         ):
             return vapor, liquid, p_n, it
         else:
@@ -370,12 +370,6 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
     return vapor, liquid, p_i, it
 
 
-def envelope(fluid):
-    Z = fluid.model.set_concentration(fluid.composition)
-    msk = np.where(Z != 0)
-    Z = Z[msk]
-    BETA = 0
-    vapor, liquid, p_ini, _ = bub_p(fluid, 200, 10, 1e-3, 1e-3)
 def bub_t(fluid, pressure, iterations=50, rtol=1e-3, atol=1e-3):
     """Calculate the bubble temperature and vapor-phase composition.
 
