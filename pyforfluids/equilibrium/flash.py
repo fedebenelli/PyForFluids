@@ -298,47 +298,47 @@ def bub_p(fluid, temperature, iterations=50, rtol=1e-3, atol=1e-3):
         p_c = gerg2008f.parameters.p_c
         t_c = gerg2008f.parameters.t_c
 
-    p = z * p_c * np.exp(5.373 * (1 + w_i) * (1 - t_c / temperature))
-    p = np.sum(p)
+        p = z * p_c * np.exp(5.373 * (1 + w_i) * (1 - t_c / temperature))
+        p = np.sum(p)
 
-    return p
+        return p
 
-
-def bub_p(fluid, temperature, iterations=50, rtol=1e-5, atol=1e-5):
     # Make each phase fluid
     vapor = fluid.copy()
     liquid = fluid.copy()
 
     # Wilson initialization
-    z = fluid.model.set_concentration(fluid.composition)
+    z = fluid.model.normalize(fluid.composition)
     msk = np.where(z != 0)
     p_i = p_wilson(temperature, z)
     k_i = k_wilson(z, p_i, temperature)
     x = z
     y_i = k_i * x
 
+    liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
+    k_i = np.exp(liquid["lnfug"] - vapor["lnfug"])
+
     for it in range(1, iterations):
         liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
+
         # Define iteration step
         f = np.dot(k_i, z) - 1
         dfdp = np.dot(
-                z[msk] * k_i[msk],
-                liquid["dlnfug_dp"][msk] - vapor["dlnfug_dp"][msk]
-                )
+            z[msk] * k_i[msk],
+            liquid["dlnfug_dp"][msk] - vapor["dlnfug_dp"][msk],
+        )
 
         # Iteration step definition
-        step = 1e5 * it
+        step = 1  # it*np.log10(p_i)
 
-        # This is taking too long
-        if it > 5:
+        # Iteration is taking too long
+        if 5 < it < 30:
             step = step * 10
 
-        p_n = p_i - step * f / dfdp
-
-        # NaN pressure reached, no convergence so assume there is no
-        # separation here
-        if np.isnan(p_n):
+        # NaN pressure reached
+        if np.isnan(p_i - step * f / dfdp):
             return fluid, fluid, p_i, it
+        p_n = p_i - step * f / dfdp
 
         # Update fluids
         liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_n)
