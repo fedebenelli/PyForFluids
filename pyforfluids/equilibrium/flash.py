@@ -292,10 +292,11 @@ def k_wilson(z, pressure, temperature):
     return K_i
 
 
-def p_wilson(temperature, z):
-    w_i = gerg2008f.parameters.acentric_factor
-    p_c = gerg2008f.parameters.p_c
-    t_c = gerg2008f.parameters.t_c
+def bub_p(fluid, temperature, iterations=50, rtol=1e-3, atol=1e-3):
+    def p_wilson(temperature, z):
+        w_i = gerg2008f.parameters.acentric_factor
+        p_c = gerg2008f.parameters.p_c
+        t_c = gerg2008f.parameters.t_c
 
     p = z * p_c * np.exp(5.373 * (1 + w_i) * (1 - t_c / temperature))
     p = np.sum(p)
