@@ -57,6 +57,23 @@ def update_density(liquid, vapor, pressure):
     return liquid, vapor
 
 
+# TODO: This method could be part of fluid or a separate module, including
+# phase stability analysis.
+def get_vl(fluid, pressure):
+    """Get vapor and liquid Fluids based on a pressure."""
+    rho_l, rho_v, _ = fluid.density_iterator(pressure)
+
+    vapor = fluid.copy()
+    vapor.set_density(rho_v)
+    vapor.calculate_properties()
+
+    liquid = fluid.copy()
+    liquid.set_density(rho_l)
+    liquid.calculate_properties()
+
+    return vapor, liquid
+
+
 def update_concentration(x):
     """Update Fluid concentration."""
     gerg_components = [
