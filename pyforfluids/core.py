@@ -296,3 +296,20 @@ class Fluid:
             f"composition={self.composition})"
         )
         return rep
+
+
+class Component:
+    """Component class."""
+
+    def __init__(self, name, **kwargs):
+        self.name = name
+
+    def _get_parameters(self):
+        ...
+
+
+class Mixture:
+    """Mixture Class."""
+
+    def __init__(self, components=[]):
+        self.components = components
