@@ -181,7 +181,7 @@ Contains
         Implicit None
         real(8), intent(in) :: x(21), delta, tau, r, rho_r, T_r, ar(3, 3)
         real(8), dimension(21), intent(in) :: ar_x(21), ar_tx(21), ar_dx(21), dvr_dx(21), dtr_dx(21), dvr2_dx2, dtr2_dx2
-        real(8), dimension(21,21), intent(in) :: dvr2_dxx, dtr2_dxx, ar_xx
+        real(8), dimension(21, 21), intent(in) :: dvr2_dxx, dtr2_dxx, ar_xx
         real(8), dimension(21), intent(out) :: dar_dn, dar_ddn, dar_dtn, dp_dn
         real(8), dimension(21, 21), intent(out) :: dar2_dnn
         real(8), dimension(21) :: drhor_dx, drhor_dn, dtr_dn, dens_term, temp_term,&
@@ -220,21 +220,20 @@ Contains
         ! Convert the volume derivatives into density ones
         drhor2_dx2 = 2 * rho_r**3*dvr_dx**2 - rho_r**2*dvr2_dx2
         do i=1,21
-        do j=i+1,21
+        do j=1,21
             drhor2_dxx(i, j) = 2*rho_r**3 * dvr_dx(i)*dvr_dx(j) - rho_r**2*dvr2_dxx(i, j)
-            !drhor2_dxx(j, i) = drhor2_dxx(i, j)
         end do
         end do
 
         do i=1,21
-        do j=i+1,21
+        do j=1,21
             drhor2_dxn(i, j) = drhor2_dxx(j, i) - drhor_dx(j) - sum(x * drhor2_dxx(:, j))
             dtr2_dxn(i, j) = dtr2_dxx(j, i) - dtr_dx(j) - sum(X * dtr2_dxx(:, j))
         end do
         end do
 
         do i=1,21
-        do j=i+1,21
+        do j=1,21
         dar2_dxn(j, i) = delta*ar_dx(j)*(1-drhor_dn(i)/rho_r) &
             - delta*ar(2, 1)/rho_r * (drhor2_dxn(j, i) - drhor_dx(j)/rho_r * drhor_dn(i)) &
             + tau * ar(3,3)/T_r * dtr_dn(i) &
@@ -244,11 +243,10 @@ Contains
         end do
 
         do i=1,21
-        do j=i+1,21
+        do j=1,21
             dar2_dnn(j, i) = dar2_dndelta(i) * ddelta_dn(j) &
                 + dar2_dntau(i) * dtau_dn(j) &
                 + dar2_dxn(i, j) - sum(x * dar2_dxn(i, :))
-            !dar2_dnn(i, j) = dar2_dnn(j, i)
         end do
         end do
     End Subroutine molar_derivatives
