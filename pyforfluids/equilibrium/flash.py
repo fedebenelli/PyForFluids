@@ -5,6 +5,7 @@ import numpy as np
 from scipy.optimize import root_scalar
 
 from ..fortran import gerg2008f
+from ..core import Fluid
 
 
 def rachford_rice(vapor_fraction, z, k):
