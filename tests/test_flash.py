@@ -22,6 +22,11 @@ def test_flash_pt(flash):
 
     vapor, liquid, beta, it = flash_pt(fluid, pressure, temperature)
 
+    print(vapor_composition)
+    print(vapor.composition)
+    print(liquid_composition)
+    print(liquid.composition)
+
     for component in composition:
         np.testing.assert_allclose(
             vapor_composition[component],

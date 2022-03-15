@@ -22,7 +22,7 @@ class GERG2008:
         Check if the components belong to the EOS.
     validate_ranges:
         Check in which range of validity are the temperature and pressure.
-    set_concentration:
+    normalize:
         Normalize the composition as molar fractions.
     calculate_properties:
         Calculate the properties.
@@ -126,7 +126,7 @@ class GERG2008:
             )
             return
 
-    def set_concentration(self, composition):
+    def normalize(self, composition):
         """Verify if the sum of the molar fractions of the fluid components is 1.
 
         If not, a warninig message is sent and the composition is normalized.
@@ -235,7 +235,7 @@ class GERG2008:
         r = gerg2008f.parameters.r
 
         # Concentration dependant parameters
-        x = self.set_concentration(composition)
+        x = self.normalize(composition)
         m = tp.mean_molecular_weight(x, molecular_weights)
         n = len(x)
 
@@ -296,28 +296,14 @@ class GERG2008:
 
         # Equilibrium properties
         (dar_dn, dar_ddn, dar_dtn, dp_dn, dar2_dnn) = tp.molar_derivatives(
-            x,
-            delta,
-            tau,
-            r,
-            reducing_density,
-            reducing_temperature,
-            ar,
-            ar_x,
-            ar_xx,
-            ar_tx,
-            ar_dx,
-            dvr_dx,
-            dtr_dx,
-            dvr2_dx2,
-            dtr2_dx2,
-            dvr2_dxx,
-            dtr2_dxx,
+            x, delta, tau, r, reducing_density, reducing_temperature,
+            ar, ar_x, ar_xx, ar_tx, ar_dx,
+            dvr_dx, dtr_dx, dvr2_dx2, dtr2_dx2, dvr2_dxx, dtr2_dxx,
         )
 
         msk = np.where(x != 0, 1, 0)
         dnar_dn = (ar[0, 0] + dar_dn) * msk
-        dnar_dtn = -tau / temperature * (ar[1, 1] + dar_dtn)
+        dnar2_dtn = -tau / temperature * (ar[1, 1] + dar_dtn)
 
         dnar2_dnn = dar_dn + dar2_dnn
 
@@ -326,11 +312,11 @@ class GERG2008:
         dp_dn = dp_dn.reshape((1, n))
         dp_dnn = dp_dn.T @ dp_dn
 
-        dlnfug_dt = dnar_dtn + (1 - r * excess_volume * dp_dt) / temperature
+        dlnfug_dt = dnar2_dtn + 1/temperature - excess_volume/(r*temperature) * dp_dt
         dlnfug_dp = excess_volume / (r * temperature) - 1 / p
         dlnfug_dn = dnar2_dnn + 1 + dp_dnn/dp_dv/(r*temperature)
 
-        fugacity_coefficent = dnar_dn - np.log(z)
+        lnfug = dnar_dn - np.log(z)
 
         # Virial coeficents
         ar_virial, *_ = gerg2008f.residual_term(x, 1e-15, tau)
@@ -355,7 +341,7 @@ class GERG2008:
             "dar_dn": dar_dn,
             "dadr_dn": dar_ddn,
             "dnar_dn": dnar_dn,
-            "dnar_dtn": dnar_dtn,
+            "dnar2_dtn": dnar2_dtn,
             "dar_ddn": dar_ddn,
             "dar_dtn": dar_dtn,
             "dar2_dnn": dar2_dnn,
@@ -379,7 +365,7 @@ class GERG2008:
             "isentropic_exponent": k,
             "second_thermal_virial_coeff": b,
             "third_thermal_virial_coeff": c,
-            "fugacity_coefficent": fugacity_coefficent,
+            "lnfug": lnfug,
             "dlnfug_dt": dlnfug_dt,
             "dlnfug_dp": dlnfug_dp,
             "dlnfug_dn": dlnfug_dn,
