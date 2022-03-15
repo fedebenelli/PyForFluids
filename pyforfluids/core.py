@@ -257,7 +257,9 @@ class Fluid:
         # LIQUID ROOT
         liquid_density = None
         if liquid_phase:
-            initial_density = 100
+            # TODO: Find a better (and portable) way of initializing a liquid
+            #       root search.
+            initial_density = 30
             liquid_density = find_root(
                 fluid, initial_density, objective_pressure
             )
