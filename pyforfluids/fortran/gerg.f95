@@ -1,8 +1,8 @@
-! Author= Federico Benelli
-! Gerg-2008 Equation
+! License: MIT License (https://tldrlegal.com/license/mit-license)
+! Copyright (c) 2021-2022 Federico Benelli and others.
+! All rights reserved.
 ! Started at: 01/07/2021
 ! Last Modified: mié 01 sep 2021 15:48:41
-!
 
 ! -------------------
 ! GERG 2008 Functions
@@ -365,18 +365,18 @@ End Subroutine residual_term
 ! use parameters
 ! use thermo_props
 ! Implicit None
-!   
+!
 ! ! Variables
 ! real*8:: T, rho, tau, delta, X(21)
-!   
+!
 ! ! Calculated variables
 ! real*8, dimension(3, 3):: ar, ao
 ! real*8:: T_r, rho_r, P, Z, w, cp, cv, mean_M
-!   
+!
 ! ! test_variables
 ! real*8:: test_P, test_cv, test_cp, test_w, X_ng(202,21), P2
 ! integer:: io
-!   
+!
 ! ! Input args
 ! character(len=100):: arg
 ! integer:: i, j, k
@@ -430,7 +430,7 @@ End Subroutine residual_term
 !
 ! end do
 ! close (1)
-!   
+!
 ! case ('ngas_test')
 ! open (1, file='tests/verification/GERG_test/NG/test_concentrations')
 ! io = 0
@@ -444,7 +444,7 @@ End Subroutine residual_term
 ! close(1)
 !
 ! X_ng = X_ng/100.d0
-!      
+!
 ! open (1, file='tests/verification/GERG_test/NG/test_values')
 ! io=0
 ! do while (io == 0)
@@ -474,7 +474,7 @@ End Subroutine residual_term
 ! call isobaric_heat(delta, tau, R, ao, ar, cp)
 ! call isochoric_heat(tau, R, Ao, Ar, cv)
 ! call sound_speed(delta, tau, R, T, mean_M, Ao, Ar, w)
-!         
+!
 ! ! adim * [mol/L] * [K] * [J/(mol*K)] * [L/m3] * [MPa/Pa]
 ! P = Z*rho*T*R*1000.d0*1.d-6
 !
