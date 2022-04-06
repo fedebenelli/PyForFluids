@@ -86,11 +86,28 @@ class Fluid:
     def copy(
             self, model=None, composition=None, temperature=None, density=None
     ):
-        """Return a copy of the fluid, taking density as independant variable.
+        """Return a copy of a the fluid.
+
+        Parameters
+        ----------
+        model: pyforfluids model_like, optional
+            Model to use in the properties calculation.
+        composition : dict, optional
+            Dictionary with the compounds concentrations as:
+            ``{'methane': 0.8, 'ethane': 0.1}``
+            In some cases, as in GERG2008, the values will be normalized for
+            the calculations but won't be modified in the Fluid attribute
+        temperature: float, optional
+            Fluid temperature in degrees Kelvin [K]
+        pressure: float, optional
+            Fluid pressure in Pascals [Pa]
+        density: float, optional
+            Fluid density in mol per liter [mol/L]
+
 
         Returns
         -------
-        Fluid
+        pyforfluids.core.Fluid
         """
         return Fluid(
             model=model if model else self.model,
@@ -264,8 +281,6 @@ class Fluid:
                 fluid, initial_density, objective_pressure
             )
 
-        # ---------------------------------------------------------
-
         # GAS ROOT
         # Use ideal gas density
         vapor_density = None
@@ -303,6 +318,9 @@ class Component:
 
     def __init__(self, name, **kwargs):
         self.name = name
+        self.T_c = kwargs['T_c']
+        self.P_c = kwargs['P_c']
+        self.T_c = kwargs['T_c']
 
     def _get_parameters(self):
         ...
