@@ -1,12 +1,12 @@
 """Core module."""
-import warnings
-
 import numpy as np
 
 import pandas as pd
 
 from scipy.constants import R
 from scipy.optimize import root_scalar
+
+import warnings
 
 
 class Fluid:
