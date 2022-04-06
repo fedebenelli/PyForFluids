@@ -8,7 +8,9 @@
 ! Mixing rules of critical properties
 ! -----------------------------------------------------------------------------
 Subroutine reducing_funcs(X, &
-                          rho_r, T_r, dvr_dx, dtr_dx, dvr2_dx2, dtr2_dx2, dvr2_dxx, dtr2_dxx)
+                          rho_r, T_r, &
+                          dvr_dx, dtr_dx, &
+                          dvr2_dx2, dtr2_dx2, dvr2_dxx, dtr2_dxx)
    ! REDUCING DENSITY AND TEMPERATURE
    ! input:
    ! - X      (array): molar fractions
@@ -30,7 +32,7 @@ Subroutine reducing_funcs(X, &
    ! Internal variables
    real(8) :: c_v, c_t, xki, xik, Bv_xki, Bt_xki, &
               fv_ki, ft_ki, Bv_xik, Bt_xik, fv_ik, ft_ik, &
-              f2v_ki, f2t_ki, f2v_ik, f2t_ik
+              f2v_ki, f2t_ki, f2v_ik, f2t_ik, xij, Bv_xij, Bt_xij
    call get_params()
 
    rho_r = sum(X**2/rho_c)
