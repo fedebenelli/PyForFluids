@@ -250,6 +250,7 @@ class GERG2008:
             dvr2_dxx,
             dtr2_dxx,
         ) = gerg2008f.reducing_funcs(x)
+
         delta = density / reducing_density
         tau = reducing_temperature / temperature
 
