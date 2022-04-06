@@ -437,6 +437,7 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
    ar_tx = 0
    ar_xx = 0
 
+   ! Residual term
    do i = 1, N
       if (X(i) > eps) then
          aoir = 0.0
@@ -456,7 +457,7 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
 
          ! Compositional derivatives
          do k = 1, N
-            if (i /= k .and. Fij(i, k) > eps) then
+            if (i /= k .and. Fij(i, k) > eps .and. X(k) > eps) then
                call a_ijr(delta, tau, Kpolij(i, k), Kexpij(i, k), &
                           nij(i, k, :), dij(i, k, :), &
                           tij(i, k, :), ethaij(i, k, :), &
@@ -467,10 +468,14 @@ Subroutine residual_term(X, delta, tau, ar, ar_x, ar_dx, ar_tx, ar_xx)
                ar_dx(i) = ar_dx(i) + X(k)*Fij(i, k)*aijr(2, 1)
                ar_tx(i) = ar_tx(i) + X(k)*Fij(i, k)*aijr(2, 2)
                ar_xx(i, k) = Fij(i, k)*aijr(1, 1)
+               print *, i, k, x(i), x(k), ar_xx(i, k)
+               ar_xx(k, i) = ar_xx(i, k)
             end if
          end do
       end if
    end do
+
+   ! Departure function term
    do i = 1, N - 1
       do j = i + 1, N
       if (Fij(i, j) > eps .and. X(i) > eps .and. X(j) > eps) then
