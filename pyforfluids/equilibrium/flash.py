@@ -499,8 +499,10 @@ def envelope(fluid):
         vapor.calculate_properties()
 
         return liquid, vapor
-    
-    def F(X, liquid, vapor, N):
+
+    def F(X, liquid, vapor, N, S):
+        """Function to solve"""
+        ns, s = S
         F = np.zeros(N+2)
         k = np.exp(X[:N])
         t = np.exp(X[-2])
@@ -508,34 +510,31 @@ def envelope(fluid):
 
         x = Z / (1 - BETA + BETA * k)
         y = k * x
-        liquid, vapor = new_fluids(liquid, vapor, x, y, p, t)
 
-        fug_diff = (liquid["lnfug"] - vapor["lnfug"])[msk]
+        liquid, vapor = new_fluids(liquid, vapor, x, y, p, t)
+        fug_diff = (liquid["lnfug"] - vapor["lnfug"])
+
         for i in range(N):
             F[i] = X[i] - fug_diff[i]
-        F[N] = rachford_rice(BETA, Z, X[:N])
-        F[N+1] = 0
-        return F
+        F[N] = (x - y).sum()
+        F[N+1] = X[ns] - s
+        return F, liquid, vapor
 
     def jacobian(liquid, vapor, temperature, pressure, n_spec, N):
         Jij = np.zeros((N + 2, N + 2))
-        phi_t_l = liquid["dlnfug_dt"][msk]
-        phi_p_l = liquid["dlnfug_dp"][msk]
-        phi_t_v = vapor["dlnfug_dt"][msk]
-        phi_p_v = vapor["dlnfug_dp"][msk]
+        phi_t_l = liquid["dlnfug_dt"]
+        phi_p_l = liquid["dlnfug_dp"]
+        phi_t_v = vapor["dlnfug_dt"]
+        phi_p_v = vapor["dlnfug_dp"]
 
-        phi_ij_l = liquid["dlnfug_dn"][msk]
-        phi_ij_v = vapor["dlnfug_dn"][msk]
+        phi_ij_l = liquid["dlnfug_dn"]
+        phi_ij_v = vapor["dlnfug_dn"]
 
         for i in range(N):
             for j in range(N):
                 Jij[i, j] = (
-                    k[j] * Z[j]
-                    / (1 - BETA + BETA * k[j]) ** 2
-                    * (
-                        (1 - BETA) * phi_ij_v[i][msk][j] 
-                        + BETA * phi_ij_l[i][msk][j]
-                        )
+                    k[j] * Z[j] / (1 - BETA + BETA * k[j]) ** 2
+                    * ((1 - BETA) * phi_ij_v[i][j] + BETA * phi_ij_l[i][j])
                 )
                 if i == j:
                     Jij[i, j] += 1
@@ -549,31 +548,71 @@ def envelope(fluid):
         return Jij
 
     Z = fluid.model.normalize(fluid.composition)
-    msk = np.where(Z != 0)
-    #Z = Z[msk]
     BETA = 0
     N = len(Z)
-    p_i = 0.1e6
+    p_i = 0.1e5
 
     vapor, liquid, t_i, it = bub_t(fluid, p_i)
 
     # Specification index: N For temperature and N+1 for pressure
+    s = np.log(p_i)
     n_spec = N + 1
-    delta_spec = np.log(1e5)
+    delta_spec = np.log(1e3)
+
+    #  import ipdb; ipdb.set_trace()
+
+    P = []
+    T = []
 
     for i in range(50):
-        ln_k = (liquid["lnfug"] - vapor["lnfug"])[msk]
+        ln_k = (liquid["lnfug"] - vapor["lnfug"])
         k = np.exp(ln_k)
         x = np.array([*ln_k, np.log(t_i), np.log(p_i)])
 
-        j = jacobian(liquid, vapor, t_i, p_i, n_spec, N)
-        f = F(x, liquid, vapor, N)
+        dx = np.ones_like(x)
+        S = (n_spec, s)
+
+        # Solve F(X) = 0
+        init = 0
+        while abs(dx).max() > 1e-3:
+            init += 1
+            print(i, abs(dx).max())
+            t_i = np.exp(x[-2])
+            p_i = np.exp(x[-1])
+            f, liquid, vapor = F(x, liquid, vapor, N, S)
+            j = jacobian(liquid, vapor, t_i, p_i, n_spec, N)
+
+            import ipdb; ipdb.set_trace()
+
+            dx = np.linalg.solve(j, -f)
+
+            while abs(dx).max() > 5:
+                dx = dx/100
+
+            if init > 50:
+                dx *= 100
+            x += dx
 
         # Jij dXdS + dFdS = 0
         dXdS = np.linalg.solve(j, j[-1])
+
         n_old = n_spec
         n_spec = np.where(dXdS == np.abs(dXdS.max()))[0][0]
+
         dXdS = dXdS / np.abs(dXdS).max()
-        delta_spec = delta_spec * x[n_spec]/x[n_old]
+        delta_spec = np.min([1, delta_spec * x[n_spec]/x[n_old]])
 
         x = x + delta_spec*dXdS
+
+        t_i = np.exp(x[-2])
+        p_i = np.exp(x[-1])
+        k = np.exp(x[:-2])
+
+        S = (n_spec, x[n_spec])
+        P.append(p_i)
+        T.append(t_i)
+        print(P)
+        print(T)
+
+        liquid, vapor = new_fluids(liquid, vapor, Z, k*Z, p_i, t_i)
+    return T, P
