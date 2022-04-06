@@ -141,7 +141,6 @@ Contains
         down_2 = -tau**2*(Ao(3, 2) + Ar(3, 2))*(1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1))
 
         JT = up/(down_1 + down_2)/(R*rho*1000)
-
     End Subroutine joule_thomson_coeff
 
     Subroutine isentropic_exponent(delta, tau, Ao, Ar, k)

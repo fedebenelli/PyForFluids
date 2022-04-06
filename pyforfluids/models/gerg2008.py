@@ -345,6 +345,7 @@ class GERG2008:
             "dar_ddn": dar_ddn,
             "dar_dtn": dar_dtn,
             "dar2_dnn": dar2_dnn,
+            "dnar2_dnn": dar2_dnn,
             "dp_dn": dp_dn,
             "dp_dnn": dp_dnn,
             "excess_volume": excess_volume,
