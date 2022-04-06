@@ -81,39 +81,16 @@ Subroutine reducing_funcs(X, &
       fv_ki = (X(k)*xki + X(k)*X(i)*(1 - xki/Bv_xki))/Bv_xki
       ft_ki = (X(k)*xki + X(k)*X(i)*(1 - xki/Bt_xki))/Bt_xki
 
-      f2v_ki = (1 - xki/Bv_xki)*(2*X(k) - X(k)*X(i)*2/Bv_xki)/Bv_xki
-      f2t_ki = (1 - xki/Bt_xki)*(2*X(k) - X(k)*X(i)*2/Bt_xki)/Bt_xki
+      f2v_ki = (1.d0 - xki/Bv_xki)*(2.d0*X(k) - X(k)*X(i)*2.d0/Bv_xki)/Bv_xki
+      f2t_ki = (1.d0 - xki/Bt_xki)*(2.d0*X(k) - X(k)*X(i)*2.d0/Bt_xki)/Bt_xki
 
       dvr_dx(i) = dvr_dx(i) + c_v*fv_ki
       dtr_dx(i) = dtr_dx(i) + c_t*ft_ki
       dvr2_dx2(i) = dvr2_dx2(i) + c_v*f2v_ki
       dtr2_dx2(i) = dtr2_dx2(i) + c_t*f2t_ki
-
-      ! Changes to the crossed derivatives
-      ! ----------------------------------
-      Bv_xik = Bv(i, k)**2*X(i) + X(k)
-      Bt_xik = Bt(i, k)**2*X(i) + X(k)
-
-      c_t = 2*Bt(i, k)*Gt(i, k)*sqrt(T_c(i)*T_c(k))
-      c_v = 2*Bv(i, k)*Gv(i, k)*1.d0/8 &
-            *(rho_c(i)**(-1.d0/3) + rho_c(k)**(-1.d0/3))**3
-
-      ! Crossed derivatives
-      dvr2_dxx(i, k) = c_v*( &
-                       xki + X(k)*(1 - xki/Bv_xik) &
-                       + X(k)*(1 - xki/Bv_xik) &
-                       + X(i)*(1 - Bv(i, k)**2*xki/Bv_xik) &
-                       - X(i)*X(k)/Bv_xik*(1 + Bv(i, k) - 2*Bv(i, k)**2*xki/Bv_xik) &
-                       )/Bv_xik
-
-      dtr2_dxx(i, k) = c_t*( &
-                       xki + X(k)*(1 - xki/Bt_xik) &
-                       + X(k)*(1 - xki/Bt_xik) &
-                       + X(i)*(1 - Bt(i, k)**2*xki/Bt_xik) &
-                       - X(i)*X(k)/Bt_xik*(1 + Bt(i, k) - 2*Bt(i, k)**2*xki/Bt_xik) &
-                       )/Bt_xik
    end if
    end do
+
    do k = i + 1, N
    if (X(k) > eps) then
       xik = X(i) + X(k)
@@ -134,22 +111,40 @@ Subroutine reducing_funcs(X, &
       dtr_dx(i) = dtr_dx(i) + c_t*ft_ik
       dvr2_dx2(i) = dvr2_dx2(i) + c_v*f2v_ki
       dtr2_dx2(i) = dtr2_dx2(i) + c_t*f2t_ki
-
-      dvr2_dxx(i, k) = c_v*( &
-                       xki + X(k)*(1 - xki/Bv_xik) &
-                       + X(k)*(1 - xki/Bv_xik) &
-                       + X(i)*(1 - Bv(i, k)**2*xki/Bv_xik) &
-                       - X(i)*X(k)/Bv_xik*(1 + Bv(i, k) - 2*Bv(i, k)**2*xki/Bv_xik) &
-                       )/Bv_xik
-
-      dtr2_dxx(i, k) = c_t*( &
-                       xki + X(k)*(1 - xki/Bt_xik) &
-                       + X(k)*(1 - xki/Bt_xik) &
-                       + X(i)*(1 - Bt(i, k)**2*xki/Bt_xik) &
-                       - X(i)*X(k)/Bt_xik*(1 + Bt(i, k) - 2*Bt(i, k)**2*xki/Bt_xik) &
-                       )/Bt_xik
    end if
    end do
+   end if
+   end do
+
+   do i=1,21
+      if (X(i) > eps) then
+      do j=1,21
+      if (X(j) > eps .and. i /= j) then
+
+      xij = X(i) + X(j)
+      Bv_xij = Bv(i, j)**2.d0*X(i) + X(j)
+      Bt_xij = Bt(i, j)**2.d0*X(i) + X(j)
+
+      c_t = 2.d0*Bt(i, j)*Gt(i, j)*sqrt(T_c(i)*T_c(j))
+      c_v = 2.d0*Bv(i, j)*Gv(i, j)*1.d0/8.d0 &
+            *(rho_c(i)**(-1.d0/3.d0) + rho_c(j)**(-1.d0/3.d0))**3
+
+      ! Crossed derivatives
+      ! ----------------------------------
+      dvr2_dxx(i, j) = c_v * (&
+                         xij/Bv_xij&
+                       + X(j)/Bv_xij * (1.d0 - xij/Bv_xij) &
+                       + X(i)/Bv_xij * (1.d0 - Bv(i, j)**2* xij/Bv_xij) &
+                       - X(i)*X(j)/Bv_xij**2 * (1.d0 + Bv(i,j)**2 - 2.d0*Bv(i,j)**2*xij/Bv_xij))
+      
+      dtr2_dxx(i, j) = c_t * (&
+                         xij/Bt_xij&
+                       + X(j)/Bt_xij * (1.d0 - xij/Bt_xij) &
+                       + X(i)/Bt_xij * (1.d0 - Bt(i, j)**2* xij/Bt_xij) &
+                       - X(i)*X(j)/Bt_xij**2 * (1.d0 + Bt(i,j)**2 - 2.d0*Bt(i,j)**2*xij/Bt_xij))
+
+      end if
+      end do
    end if
    end do
 
