@@ -498,5 +498,26 @@ End Subroutine residual_term
 ! MAIN PROGRAM
 ! -----------------------------------------------------------------------------
 Program main
-   print *, "This only exists to test compile with gfortran"
+   implicit none
+   real(8) :: X(21)
+   real(8) :: rho_r, T_r, dvr_dx(21), dtr_dx(21), dvr2_dx2(21), dtr2_dx2(21), dvr2_dxx(21,21), dtr2_dxx(21,21)
+   real(8) :: ar(3,3)
+   real(8), dimension(21) :: ar_x, ar_dx, ar_tx
+   real(8), dimension(21, 21) :: ar_xx
+   integer :: i
+
+   X = 0.d0
+
+
+   X(1) = 0.5
+   X(4) = 0.5
+
+   print *, (x(i), i=1,21)
+
+   call reducing_funcs(X, rho_r, T_r, &
+                          dvr_dx, dtr_dx, &
+                          dvr2_dx2, dtr2_dx2, dvr2_dxx, dtr2_dxx)
+
+   call residual_term(X, 1/rho_r, T_r/250, ar, ar_x, ar_dx, ar_tx, ar_xx)
+
 End Program main
