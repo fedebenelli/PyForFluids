@@ -63,7 +63,7 @@ else:
 
 EXTENSIONS = [
     Extension(
-        name="pyforfluids.fortran.gerg2008f",
+        name="pyforfluids.fortran.fgerg2008",
         sources=[
             os.path.join(FORTRAN_DIR, "parameters.f95"),
             os.path.join(FORTRAN_DIR, "gerg.f95"),
@@ -71,7 +71,7 @@ EXTENSIONS = [
         extra_link_args=extra_link_args,
     ),
     Extension(
-        name="pyforfluids.fortran.thermo_props",
+        name="pyforfluids.fortran.fthermo_props",
         sources=[
             os.path.join(FORTRAN_DIR, "parameters.f95"),
             os.path.join(FORTRAN_DIR, "thermoprops.f95"),
@@ -79,7 +79,7 @@ EXTENSIONS = [
         extra_link_args=extra_link_args,
     ),
     Extension(
-        name="pyforfluids.fortran.cubiceos",
+        name="pyforfluids.fortran.fcubiceos",
         sources=[
             os.path.join(FORTRAN_DIR, "cubic", "MulticompSRK_PR.f90"),
             os.path.join(FORTRAN_DIR, "cubic", "ThermoRoutines_RKPR.f90"),
