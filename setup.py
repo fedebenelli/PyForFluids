@@ -30,7 +30,7 @@ with open("README.md") as fp:
 
 # -> REQUIREMENTS -------------------------------------------------------------
 
-REQUIREMENTS = ["numpy>=1.21.2", "pandas>=1.3.5", "scipy==1.7.3"]
+REQUIREMENTS = ["numpy>=1.21.2", "pandas>=1.3.5", "scipy>=1.7.3"]
 
 # -----------------------------------------------------------------------------
 
@@ -78,6 +78,15 @@ EXTENSIONS = [
         ],
         extra_link_args=extra_link_args,
     ),
+    Extension(
+        name="pyforfluids.fortran.cubiceos",
+        sources=[
+            os.path.join(FORTRAN_DIR, "cubic", "MulticompSRK_PR.f90"),
+            os.path.join(FORTRAN_DIR, "cubic", "ThermoRoutines_RKPR.f90"),
+            os.path.join(FORTRAN_DIR, "cubic", "cubic.f90")
+        ],
+        extra_link_args=extra_link_args
+        ),
 ]
 
 # -----------------------------------------------------------------------------
