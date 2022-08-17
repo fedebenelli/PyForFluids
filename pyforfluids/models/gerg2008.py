@@ -3,8 +3,8 @@ import warnings
 
 import numpy as np
 
-from ..fortran import gerg2008f
-from ..fortran.thermo_props import thermo_props as tp
+from ..fortran import fgerg2008
+from ..fortran.thermo_props import fthermo_props as tp
 
 
 class GERG2008:
