@@ -127,4 +127,49 @@ contains
             Vs = volume_shift
             ! ==================================================================
         end subroutine set_model
+
+        !subroutine helmholtz(nc, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2)
+        !    integer, intent(in) :: nc
+        !    real(8), intent(in) :: rn(nc), V, T
+        !    real(8), intent(out) :: Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2
+        !    call ArVnder(nc, 1, 2, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2)
+        !end subroutine helmholtz
+
+        subroutine lnfug(nc, root_type, indicator, T, P, rn, V, PHILOG, DLPHIP, DLPHIT, FUGN)
+            integer, intent(in) :: nc, root_type, indicator
+            real(8), intent(in) :: T, P, rn(nc)
+
+            real(8), intent(out) :: V
+            real(8), intent(out) :: PHILOG(nc), DLPHIT(nc), DLPHIP(nc)
+            real(8), intent(out) :: FUGN(nc)
+            
+            print *, ""
+
+           call TERMO(nc, root_type, indicator, T, P, rn, V, PHILOG, DLPHIP, DLPHIT, FUGN)
+        end subroutine lnfug
+
+        subroutine pressure_calc(nc, concentrations, volume, temperature, pressure)
+            integer, intent(in) :: nc
+            real(8), intent(in) :: volume, temperature, concentrations(nc)
+            real(8), intent(out) :: pressure
+
+            real(8) :: Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2
+            real(8) :: totn, RGAS
+            integer :: nder, ntemp
+            parameter(RGAS=0.08314472d0)
+            
+            print *, ""
+
+            nder = 0
+            ntemp = 1
+            totn = sum(concentrations)
+
+            call ArVnder(&
+                nc, nder, ntemp, concentrations, volume, temperature, &
+                Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2 &
+            )
+            
+            pressure = totn*RGAS*temperature/volume - ArV
+        end subroutine pressure_calc
+
 end module cubic
