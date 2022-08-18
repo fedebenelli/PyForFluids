@@ -405,6 +405,7 @@ SUBROUTINE TERMO(nc, MTYP, INDIC, T, P, rn, V, PHILOG, DLPHIP, DLPHIT, FUGN)
    !  -------------------------------------------------------------------------
    IMPLICIT DOUBLE PRECISION(A - H, O - Z)
    PARAMETER(RGAS=0.08314472d0)
+   real(8), intent(out) :: V
    real*8, dimension(nc), intent(out), optional :: PHILOG, DLPHIT, DLPHIP
    real*8, dimension(nc, nc), intent(out), optional :: FUGN
    dimension rn(nc), Arn(nc), ArVn(nc), ArTn(nc), Arn2(nc, nc), DPDN(nc)
@@ -452,6 +453,7 @@ SUBROUTINE zTVTERMO(nc, INDIC, T, rn, V, P, DPV, PHILOG, DLPHIP, DLPHIT, FUGN)
    !  -------------------------------------------------------------------------
    IMPLICIT DOUBLE PRECISION(A - H, O - Z)
    PARAMETER(RGAS=0.08314472d0)
+   real(8), intent(out) :: V
    real*8, dimension(nc), intent(out), optional :: PHILOG, DLPHIT, DLPHIP
    real*8, dimension(nc, nc), intent(out), optional :: FUGN
    dimension rn(nc), Arn(nc), ArVn(nc), ArTn(nc), Arn2(nc, nc), DPDN(nc)
@@ -585,7 +587,10 @@ END subroutine vcalc
 
 SUBROUTINE ArVnder(nc, NDER, NTD, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2)
    IMPLICIT DOUBLE PRECISION(A - H, O - Z)
-   dimension rn(nc), Arn(nc), ArVn(nc), ArTn(nc), Arn2(nc, nc)
+   integer, intent(in) :: nc, nder, ntd
+   real(8), intent(in) :: rn(nc), V, T
+   real(8), intent(out) :: Ar, ArV, ArTV, ArV2
+   real(8), intent(out) :: Arn(nc), ArVn(nc), ArTn(nc), Arn2(nc, nc)
    COMMON/MODEL/NMODEL
    IF (NMODEL .LE. 2) THEN
       ! SRK or PR
