@@ -1,5 +1,7 @@
 module cubic
+
     implicit none
+
 contains
 
         subroutine set_model(&
