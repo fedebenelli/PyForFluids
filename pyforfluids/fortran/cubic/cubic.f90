@@ -54,14 +54,16 @@ contains
             integer :: ncomb
             integer :: iVshift
             integer :: ntdep
+
             real(8) :: Vs
-            real(8) :: ac, b, del1, rk, Kij(nco, nco), bij(nco, nco), lij(nco,nco)
+            real(8) :: ac(nco), b(nco), del1(nco), rk(nco), Kij(nco, nco), bij(nco, nco), lij(nco,nco)
             real(8) :: tc(nco), pc(nco), dceos(nco), om(nco)
+            real(8) :: Kinf(nco, nco), Tstar(nco, nco)
 
             common /model/ nmodel
             common /rule/ ncomb
             common /Vshift/ iVshift, Vs(nco)
-            common /components/ ac(nco), b(nco), del1(nco), rk(nco), Kij, NTDEP
+            common /components/ ac, b, del1, rk, Kij, NTDEP
             common /CRIT/ tc, pc, dceos, om
             common /bcross/ bij
             common /lforin/ lij
@@ -117,6 +119,7 @@ contains
                        bij(j, i) = bij(i, j)
                     end do
                 end do
+                lij = lij_matrix
             end select
 
             ! Volume translation
