@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 
 from ..fortran import fgerg2008
-from ..fortran.thermo_props import fthermo_props as tp
+from ..fortran.fthermo_props import thermo_props as tp
 
 
 class GERG2008:
@@ -230,24 +230,24 @@ class GERG2008:
             calculated with GERG2008 equation of state.
         """
         # General use parameteres
-        gerg2008f.get_params()
-        molecular_weights = gerg2008f.parameters.m
-        r = gerg2008f.parameters.r
+        fgerg2008.get_params()
+        molecular_weights = fgerg2008.parameters.m
+        r = fgerg2008.parameters.r
 
         # Concentration dependant parameters
         x = self.set_concentration(composition)
         m = tp.mean_molecular_weight(x, molecular_weights)
 
         # Reducing functions
-        reducing_density, reducing_temperature = gerg2008f.reducing_funcs(x)
+        reducing_density, reducing_temperature = fgerg2008.reducing_funcs(x)
         delta = density / reducing_density
         tau = reducing_temperature / temperature
 
         # Model tems
-        ao = gerg2008f.ideal_term(
+        ao = fgerg2008.ideal_term(
             x, density, temperature, reducing_density, reducing_temperature
         )
-        ar = gerg2008f.residual_term(x, delta, tau)
+        ar = fgerg2008.residual_term(x, delta, tau)
 
         # Properties
         z = tp.zeta(delta, ar)
@@ -267,7 +267,7 @@ class GERG2008:
         g = tp.gibbs_free_energy(delta, r, temperature, ao, ar)
         jt = tp.joule_thomson_coeff(delta, tau, density, r, ao, ar)
         k = tp.isentropic_exponent(delta, tau, ao, ar)
-        ar_virial = gerg2008f.residual_term(x, 1e-15, tau)
+        ar_virial = fgerg2008.residual_term(x, 1e-15, tau)
         b = tp.second_thermal_virial_coeff(reducing_density, ar_virial)
         c = tp.third_thermal_virial_coeff(reducing_density, ar_virial)
 
