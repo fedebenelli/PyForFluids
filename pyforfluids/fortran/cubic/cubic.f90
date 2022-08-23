@@ -57,7 +57,7 @@ contains
             integer :: iVshift
             integer :: ntdep
 
-            real(8) :: Vs
+            real(8) :: Vs, aux, bmix
             real(8) :: ac(nco), b(nco), del1(nco), rk(nco), Kij(nco, nco), bij(nco, nco), lij(nco,nco)
             real(8) :: tc(nco), pc(nco), dceos(nco), om(nco)
             real(8) :: Kinf(nco, nco), Tstar(nco, nco)
@@ -70,6 +70,7 @@ contains
             common /bcross/ bij
             common /lforin/ lij
             common /Tdep/ Kinf, Tstar
+            common /bmix/ bmix
             ! ==================================================================
 
             ! ==================================================================
@@ -80,25 +81,25 @@ contains
             nmodel = model
             
             ! Pure compounds parameters
-            ac = critical_atractive
-            b = repulsive_parameter
+            ac(:nc) = critical_atractive
+            b(:nc) = repulsive_parameter
             select case(nmodel)
             case(1)
                 ! SRK
-                del1 = 1.d0
+                del1(:nc) = 1.d0
             case(2)
                 ! PR
-                del1 = 1.d0 + dsqrt(2.d0)
+                del1(:nc) = 1.d0 + dsqrt(2.d0)
             case(3)
                 ! RKPR
-                del1 = delta_1_parameter
+                del1(:nc) = delta_1_parameter
             end select
             rk(:nc) = critical_k_parameter
 
-            tc = critical_temperature
-            pc = critical_pressure
-            dceos = critical_density
-            om = accentric_factor
+            tc(:nc) = critical_temperature
+            pc(:nc) = critical_pressure
+            dceos(:nc) = critical_density
+            om(:nc) = accentric_factor
 
             ! Mixing rule
             ncomb = mix_rule
@@ -106,11 +107,11 @@ contains
 
             select case(ntdep)
             case(0)
-                kij = kij0_matrix
+                kij(:nc, :nc) = kij0_matrix
             case (1)
-                kij = kij0_matrix
-                kinf = kijinf_matrix
-                tstar = T_star_matrix
+                kij(:nc, :nc) = kij0_matrix
+                kinf(:nc, :nc) = kijinf_matrix
+                tstar(:nc, :nc) = T_star_matrix
             end select
 
             select case(ncomb)
@@ -121,12 +122,12 @@ contains
                        bij(j, i) = bij(i, j)
                     end do
                 end do
-                lij = lij_matrix
+                lij(:nc, :nc) = lij_matrix
             end select
 
             ! Volume translation
             iVshift = volume_traslation
-            Vs = volume_shift
+            Vs(:nc) = volume_shift
             ! ==================================================================
         end subroutine set_model
 
