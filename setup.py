@@ -85,6 +85,8 @@ EXTENSIONS = [
             os.path.join(FORTRAN_DIR, "cubic", "ThermoRoutines_RKPR.f90"),
             os.path.join(FORTRAN_DIR, "cubic", "cubic.f90")
         ],
+        extra_f90_compile_args=None,  # ['-g', '-O0', '-fbacktrace', '-fcheck=all'],
+        f2py_options=["--debug-capi"],
         extra_link_args=extra_link_args
         ),
 ]
