@@ -174,12 +174,15 @@ end
 SUBROUTINE HelmSRKPR(nc, ND, NT, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2)
    IMPLICIT DOUBLE PRECISION(A - H, O - Z)
    PARAMETER(nco=64, RGAS=0.08314472d0)
-   dimension rn(nc), Arn(nc), ArVn(nc), ArTn(nc), Arn2(nc, nc)
+   integer, intent(in) :: nc, nd, nt
+   real(8), intent(in) :: rn(nc)
+   real(8), intent(out) :: Arn(nc), ArVn(nc), ArTn(nc), Arn2(nc, nc)
    dimension dBi(nc), dBij(nc, nc)
    dimension dDi(nc), dDij(nc, nc), dDiT(nc)
    dimension aij(nc, nc), daijdT(nc, nc), daijdT2(nc, nc)
    DOUBLE PRECISION Kij(nco, nco)
-   dimension ac(nco), b(nco), del1(nco), rm(nco)
+   dimension ac(nco), b(nco), del1(nco), rm(nco)   
+   
    COMMON/COMPONENTS/ac, b, del1, rm, Kij, NTdep
    COMMON/rule/ncomb
    TOTN = sum(rn)
