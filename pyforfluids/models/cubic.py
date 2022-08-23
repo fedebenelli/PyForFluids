@@ -6,19 +6,20 @@ import numpy as np
 
 
 class CubicEOS:
+    """Cubic EoS
+    """
 
     model_selector = {"SRK": 1, "PR": 2, "RKPR": 3}
     mixing_rules_selector = {"quadatric": 0, "cubic": 3}
 
     def __init__(
             self, model,
-            critical_atractive, repulsive_parameter, delta_1_parameter, critical_k_parameter, 
-            critical_temperature, critical_pressure, critical_density, accentric_factor, 
-            mix_rule, kij0_matrix, kijinf_matrix, t_star_matrix,
-            lij_matrix,
+            critical_atractive, repulsive_parameter, delta_1_parameter, 
+            critical_k_parameter, critical_temperature, critical_pressure, 
+            critical_density, accentric_factor, mix_rule, kij0_matrix,
+            kijinf_matrix, t_star_matrix, lij_matrix, 
             volume_traslation, volume_shift
             ):
-
         self.nmodel = self.model_selector[model]
         self.ncomb = self.mixing_rules_selector[mix_rule]
 
@@ -33,10 +34,10 @@ class CubicEOS:
         self.kij = kij0_matrix
         self.lij = lij_matrix
 
-        if model == 'RKPR':
+        if model == "RKPR":
             self.delta_1 = delta_1_parameter
-        else:
-            self.delta_1 = 0
+        elif model == "PR":
+            self.delta_1 = 1 + np.sqrt(2)
 
         if kijinf_matrix is not None:
             self.tdep = 1
@@ -57,24 +58,31 @@ class CubicEOS:
     def _setup(self):
         """Set up the Fortran model.
         """
-        feos.set_model(
-                self.nmodel,
-                self.ac,
-                self.b,
-                self.k,
-                self.tc,
-                self.pc,
-                0,
-                self.w,
-                self.ncomb,
-                self.tdep,
-                self.kij,
-                self.lij,
-                self.volume_traslation
-        )
+        nc = len(self.ac)
+        fcub.model.nmodel = self.nmodel
 
-    def validate_components(self, composition):
-        return True
+        fcub.components.ac[:nc] = self.ac
+        fcub.components.b[:nc] = self.b
+        fcub.components.rm[:nc] = self.k
+        fcub.components.ntdep = self.tdep
+        fcub.components.kij[:nc, :nc] = self.kij
+        fcub.components.del1[:nc] = self.delta_1
+        fcub.crit.tc[:nc] = self.tc
+        fcub.crit.pc[:nc] = self.pc
+        fcub.crit.dceos[:nc] = 0
+        fcub.crit.om[:nc] = self.w
+        fcub.rule.ncomb = self.ncomb
+        fcub.tdep.kinf[:nc, :nc] = 0
+        fcub.tdep.tstar[:nc, :nc] = 0
+        fcub.lforin.lij[:nc, :nc] = self.lij
+
+        bij = np.zeros((nc, nc))
+
+        for i in range(nc):
+            for j in range(i, nc):
+                bij[i, j] = (1 - self.lij[i, j]) * (self.b[i] + self.b[j])/2
+
+        fcub.bcross.bij[:nc, :nc] = bij
 
     def check_model(self, model):
         """Check if the model is available.
