@@ -164,6 +164,8 @@ subroutine read2PcubicNC(nc, nin, nout)
       end do
       end do
    end if
+
+   close(nout)
 1  FORMAT(A18, F8.3, 5x, F7.3, 3x, F7.3, 3x, F7.3)
 5  FORMAT(A18, F6.3)
 6  FORMAT(A18, 20F10.5)
