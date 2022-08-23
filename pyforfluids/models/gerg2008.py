@@ -127,7 +127,8 @@ class GERG2008:
             return
 
     def set_concentration(self, composition):
-        """Verify if the sum of the molar fractions of the fluid components is 1.
+        """
+        Verify if the sum of the molar fractions of the fluid components is 1.
 
         If not, a warninig message is sent and the composition is normalized.
 
