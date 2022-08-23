@@ -148,7 +148,7 @@ contains
             
             print *, ""
 
-           call TERMO(nc, root_type, indicator, T, P, rn, V, PHILOG, DLPHIP, DLPHIT, FUGN)
+            call TERMO(nc, root_type, indicator, T, P, rn, V, PHILOG, DLPHIP, DLPHIT, FUGN)
         end subroutine lnfug
 
         subroutine pressure_calc(nc, concentrations, volume, temperature, pressure)
