@@ -156,23 +156,17 @@ contains
             real(8), intent(in) :: volume, temperature, concentrations(nc)
             real(8), intent(out) :: pressure
 
-            real(8) :: Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2
+            real(8) :: Ar, ArV, ArTV, ArV2, Arn(nc), ArVn(nc), ArTn(nc), Arn2
             real(8) :: totn, RGAS
             integer :: nder, ntemp
             parameter(RGAS=0.08314472d0)
-            
-            print *, ""
 
             nder = 0
-            ntemp = 1
+            ntemp = 0
             totn = sum(concentrations)
 
-            call ArVnder(&
-                nc, nder, ntemp, concentrations, volume, temperature, &
-                Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2 &
-            )
-            
-            pressure = totn*RGAS*temperature/volume - ArV
-        end subroutine pressure_calc
+            call ArVnder(nc, nder, ntemp, concentrations, volume, temperature, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2)
+            pressure = RGAS*temperature/volume - ArV
 
+        end subroutine pressure_calc
 end module cubic
