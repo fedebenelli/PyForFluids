@@ -1,7 +1,8 @@
-"""Cubic EoS models
+"""Cubic EoS models.
 """
 
 from pyforfluids.fortran.fcubiceos import cubic as feos
+import pyforfluids.fortran.fcubiceos as fcub
 import numpy as np
 
 
@@ -55,6 +56,44 @@ class CubicEOS:
             self.volume_traslation = 0
             self.volume_shift = 0
 
+    def validate_components(self, composition):
+        return True
+
+    def set_concentration(self, composition):
+        return np.array(
+                [composition[i] for i in composition], dtype='d'
+        )
+
+    def calculate_properties(
+        self, temperature, pressure, density, composition
+    ):
+        """
+        """
+        # __import__('ipdb').set_trace()
+        # time.sleep(0.1)
+        self._setup()
+        volume = 1/density
+        # indicator = 4
+        concentrations = self.set_concentration(composition)
+        pressure = feos.pressure_calc(concentrations, volume, temperature)
+
+        # liquid_root = feos.lnfug(
+        #         1, indicator, temperature, pressure, concentrations
+        # )
+        # vapor_root = feos.lnfug(
+        #         -1, indicator, temperature, pressure, concentrations
+        # )
+        # lower_g_root = feos.lnfug(
+        #         0, indicator, temperature, pressure, concentrations
+        # )
+
+        return {
+                "pressure": pressure*1e5,
+                # "liquid_root": liquid_root,
+                # "vapor_root": vapor_root,
+                # "lower_g_root": lower_g_root
+        }
+
     def _setup(self):
         """Set up the Fortran model.
         """
@@ -102,34 +141,3 @@ class CubicEOS:
         """
         return model in self.model_selector
 
-    def set_concentration(self, composition):
-        return np.array(
-                [composition[i] for i in composition]
-        )
-
-    def calculate_properties(
-        self, temperature, pressure, density, composition
-    ):
-        volume = 1/density
-        indicator = 4
-
-        concentrations = self.set_concentration(composition)
-
-        pressure = feos.pressure_calc(concentrations, volume, temperature)
-
-        liquid_root = feos.lnfug(
-                1, indicator, temperature, pressure, concentrations
-        )
-        vapor_root = feos.lnfug(
-                -1, indicator, temperature, pressure, concentrations
-        )
-        lower_g_root = feos.lnfug(
-                0, indicator, temperature, pressure, concentrations
-        )
-
-        return {
-                "pressure": pressure,
-                "liquid_root": liquid_root,
-                "vapor_root": vapor_root,
-                "lower_g_root": lower_g_root
-        }
