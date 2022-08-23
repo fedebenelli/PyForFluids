@@ -187,18 +187,21 @@ SUBROUTINE HelmSRKPR(nc, ND, NT, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn,
    
    COMMON/COMPONENTS/ac, b, del1, rm, Kij, NTdep
    COMMON/rule/ncomb
+
    TOTN = sum(rn)
    D1 = del1(1)
    D2 = (1 - D1)/(1 + D1)
+
    if (ncomb .lt. 2) then
       call Bnder(nc, rn, Bmix, dBi, dBij)
       call DandTnder(NT, nc, T, rn, D, dDi, dDiT, dDij, dDdT, dDdT2)
    else
-!         call Bcubicnder(nc,rn,Bmix,dBi,dBij)
-!         call DCubicandTnder(NT,nc,T,rn,D,dDi,dDiT,dDij,dDdT,dDdT2)
+   !  call Bcubicnder(nc,rn,Bmix,dBi,dBij)
+   !  call DCubicandTnder(NT,nc,T,rn,D,dDi,dDiT,dDij,dDdT,dDdT2)
    end if
-! The f's and g's used here are for Ar, not F (reduced Ar)                                        ***********
-! This requires to multiply by R all g, f and its derivatives as defined by Mollerup ****
+
+   ! The f's and g's used here are for Ar, not F (reduced Ar)                                        ***********
+   ! This requires to multiply by R all g, f and its derivatives as defined by Mollerup ****
    f = log((V + D1*Bmix)/(V + D2*Bmix))/Bmix/(D1 - D2)
    g = RGAS*log(1 - Bmix/V)
    fv = -1/((V + D1*Bmix)*(V + D2*Bmix))
@@ -206,7 +209,8 @@ SUBROUTINE HelmSRKPR(nc, ND, NT, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn,
    gv = RGAS*Bmix/(V*(V - Bmix))
    fv2 = (-1/(V + D1*Bmix)**2 + 1/(V + D2*Bmix)**2)/Bmix/(D1 - D2)
    gv2 = RGAS*(1/V**2 - 1/(V - Bmix)**2)
-! Reduced Helmholtz Energy and derivatives
+
+   ! Reduced Helmholtz Energy and derivatives
    Ar = -TOTN*g*T - D*f
    ArV = -TOTN*gv*T - D*fv
    ArV2 = -TOTN*gv2*T - D*fv2
@@ -215,6 +219,7 @@ SUBROUTINE HelmSRKPR(nc, ND, NT, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn,
    FFB = TOTN*AUX - D*fB
    FFBV = -TOTN*AUX/(V - Bmix) + D*(2*fv + V*fv2)/Bmix
    FFBB = TOTN*AUX/(V - Bmix) - D*(2*f + 4*V*fv + V**2*fv2)/Bmix**2
+
    do i = 1, nc
       Arn(i) = -g*T + FFB*dBi(i) - f*dDi(i)
       ArVn(i) = -gv*T + FFBV*dBi(i) - fv*dDi(i)
@@ -226,7 +231,8 @@ SUBROUTINE HelmSRKPR(nc, ND, NT, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn,
       end do
       END IF
    end do
-! TEMPERATURE DERIVATIVES
+
+   ! TEMPERATURE DERIVATIVES
    IF (NT .EQ. 1) THEN
       ArT = -TOTN*g - dDdT*f
       ArTV = -TOTN*gv - dDdT*fV
@@ -235,5 +241,5 @@ SUBROUTINE HelmSRKPR(nc, ND, NT, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn,
          ArTn(i) = -g + (TOTN*AUX/T - dDdT*fB)*dBi(i) - f*dDiT(i)
       end do
    END IF
-end
+end subroutine HelmSRKPR
 
