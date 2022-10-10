@@ -119,3 +119,11 @@ def peng_robinson_mix():
         lij_matrix=0 * kij,
     )
     return composition, pr
+
+
+@pytest.fixture()
+def flash(data_path):
+    path = data_path("flash.csv")
+    df = pd.read_csv(path)
+    df = df.set_index("component")
+    return df

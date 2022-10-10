@@ -23,7 +23,7 @@ def test_normalizer():
     composition = {"methane": 0.5, "ethane": 2}
 
     with pytest.warns(UserWarning):
-        model.set_concentration(composition)
+        model.normalize(composition)
 
 
 # -- Valid ranges tests -------------------------------------------------------

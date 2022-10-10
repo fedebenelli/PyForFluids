@@ -10,3 +10,4 @@ tmp*
 log
 *.cpython*
 *.pyc
+basic.py

@@ -1,11 +1,11 @@
 """Core module."""
-import warnings
-
 import numpy as np
 
 import pandas as pd
 
 from scipy.optimize import root_scalar
+
+import warnings
 
 
 class Fluid:
@@ -83,18 +83,37 @@ class Fluid:
         self.calculate_properties()
         self.pressure = self["pressure"]
 
-    def copy(self):
-        """Return a copy of the fluid, taking density as independant variable.
+    def copy(
+            self, model=None, composition=None, temperature=None, density=None
+    ):
+        """Return a copy of a the fluid.
+
+        Parameters
+        ----------
+        model: pyforfluids model_like, optional
+            Model to use in the properties calculation.
+        composition : dict, optional
+            Dictionary with the compounds concentrations as:
+            ``{'methane': 0.8, 'ethane': 0.1}``
+            In some cases, as in GERG2008, the values will be normalized for
+            the calculations but won't be modified in the Fluid attribute
+        temperature: float, optional
+            Fluid temperature in degrees Kelvin [K]
+        pressure: float, optional
+            Fluid pressure in Pascals [Pa]
+        density: float, optional
+            Fluid density in mol per liter [mol/L]
+
 
         Returns
         -------
-        Fluid
+        pyforfluids.core.Fluid
         """
         return Fluid(
-            model=self.model,
-            composition=self.composition,
-            temperature=self.temperature,
-            density=self.density,
+            model=model if model else self.model,
+            composition=composition if composition else self.composition,
+            temperature=temperature if temperature else self.temperature,
+            density=density if density else self.density,
         )
 
     # =========================================================================
@@ -161,17 +180,17 @@ class Fluid:
     # =========================================================================
     #  Properties calculation
     # -------------------------------------------------------------------------
-    def calculate_properties(self):
+    def calculate_properties(self, ideal=False):
         """Calculate the fluid's properties."""
         self.properties = self.model.calculate_properties(
             self.temperature,
             self.pressure,
             self.density,
             self.composition,
+            ideal,
         )
         # Update the pressure with the new pressure value
         self.pressure = self.properties["pressure"]
-
         self.properties = pd.Series(self.properties)
 
     def isotherm(self, density_range):
@@ -206,12 +225,15 @@ class Fluid:
         for prop in properties:
             isotherm[prop] = []
 
-        for density in density_range:
-            fluid.set_density(density)
-            fluid.calculate_properties()
+        with warnings.catch_warnings():
+            warnings.simplefilter("once")
 
-            for prop in properties:
-                isotherm[prop].append(fluid.properties[prop])
+            for density in density_range:
+                fluid.set_density(density)
+                fluid.calculate_properties()
+
+                for prop in properties:
+                    isotherm[prop].append(fluid.properties[prop])
 
         isotherm = pd.DataFrame(isotherm)
 
@@ -318,3 +340,23 @@ class Fluid:
             f"composition={self.composition})"
         )
         return rep
+
+
+class Component:
+    """Component class."""
+
+    def __init__(self, name, **kwargs):
+        self.name = name
+        self.T_c = kwargs['T_c']
+        self.P_c = kwargs['P_c']
+        self.T_c = kwargs['T_c']
+
+    def _get_parameters(self):
+        ...
+
+
+class Mixture:
+    """Mixture Class."""
+
+    def __init__(self, components=[]):
+        self.components = components

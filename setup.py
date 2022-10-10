@@ -20,6 +20,7 @@ PACKAGES = [
     "pyforfluids",
     "pyforfluids.models",
     "pyforfluids.fortran",
+    "pyforfluids.equilibrium",
 ]
 
 with open("README.md") as fp:
