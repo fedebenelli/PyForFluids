@@ -5,7 +5,6 @@ import numpy as np
 
 import pandas as pd
 
-from scipy.constants import R
 from scipy.optimize import root_scalar
 
 
@@ -98,6 +97,9 @@ class Fluid:
             density=self.density,
         )
 
+    # =========================================================================
+    #  State modification
+    # -------------------------------------------------------------------------
     def set_composition(self, composition):
         """Change the fluid's composition.
 
@@ -154,6 +156,11 @@ class Fluid:
 
         self.density = vapor_density
 
+    # =========================================================================
+
+    # =========================================================================
+    #  Properties calculation
+    # -------------------------------------------------------------------------
     def calculate_properties(self):
         """Calculate the fluid's properties."""
         self.properties = self.model.calculate_properties(
@@ -234,12 +241,15 @@ class Fluid:
             True if only one root was found.
         """
 
-        def fluid_pressure(density, fluid, obj):
-            temp = fluid.copy()
-            temp.set_density(density)
-            temp.calculate_properties()
+        def fluid_pressure(density, fluid, obj_pressure):
+            tmp_fluid = fluid.copy()
+            tmp_fluid.set_density(density)
+            tmp_fluid.calculate_properties()
 
-            return temp["pressure"] - obj, temp["dp_drho"] * 1000
+            return (
+                tmp_fluid["pressure"] - obj_pressure,
+                tmp_fluid["dp_drho"] * 1000,
+            )
 
         def find_root(fluid, x0, objective_pressure):
             root = root_scalar(
@@ -249,8 +259,9 @@ class Fluid:
                 fprime=True,
                 method="newton",
                 xtol=1e-4,
+                maxiter=50,
             )
-            sol = root.root
+            sol = root.root, root.converged
 
             return sol
 
@@ -259,8 +270,8 @@ class Fluid:
         # LIQUID ROOT
         liquid_density = None
         if liquid_phase:
-            initial_density = 25
-            liquid_density = find_root(
+            initial_density = 5
+            liquid_density, liquid_converged = find_root(
                 fluid, initial_density, objective_pressure
             )
 
@@ -270,20 +281,31 @@ class Fluid:
         # Use ideal gas density
         vapor_density = None
         if vapor_phase:
-            initial_density = (
-                objective_pressure / (R * fluid.temperature) / 1000
+            initial_density = objective_pressure / (
+                self.model.r * fluid.temperature
             )
-            vapor_density = find_root(
+            vapor_density, vapor_converged = find_root(
                 fluid, initial_density, objective_pressure
             )
 
         if vapor_phase and liquid_phase:
+            if not vapor_converged and not liquid_converged:
+                raise RuntimeError("Couldn't converge a volume root!")
+
+            if liquid_converged and not vapor_converged:
+                vapor_density = liquid_density
+
+            elif vapor_converged and not liquid_converged:
+                liquid_density = vapor_density
+
             single_phase = np.allclose(liquid_density, vapor_density)
+
         else:
             single_phase = True
 
         return liquid_density, vapor_density, single_phase
 
+    # =========================================================================
     def __getitem__(self, key):
         """Access the fluid properties as a dictionary."""
         return self.properties[key]
