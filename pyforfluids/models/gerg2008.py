@@ -37,6 +37,7 @@ class GERG2008:
     """
 
     name = "GERG2008"
+    r = fgerg2008.parameters.r
 
     valid_components = {
         "methane",
@@ -233,7 +234,7 @@ class GERG2008:
         # General use parameteres
         fgerg2008.get_params()
         molecular_weights = fgerg2008.parameters.m
-        r = fgerg2008.parameters.r
+        r = self.r
 
         # Concentration dependant parameters
         x = self.set_concentration(composition)
@@ -244,7 +245,7 @@ class GERG2008:
         delta = density / reducing_density
         tau = reducing_temperature / temperature
 
-        # Model tems
+        # Model terms
         ao = fgerg2008.ideal_term(
             x, density, temperature, reducing_density, reducing_temperature
         )
