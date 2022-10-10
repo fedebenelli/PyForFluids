@@ -1,0 +1,15 @@
+.
+ipdb
+tox
+toml
+pytest
+pytest-cov
+black
+isort
+flake8
+flake8-black
+flake8-builtins
+flake8-import-order
+pep8-naming
+
+-r docs/requirements.txt
