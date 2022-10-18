@@ -3,10 +3,10 @@
 # -> IMPORTS ------------------------------------------------------------------
 
 import os
-import platform
+
 import setuptools  # noqa
 
-from numpy.distutils.core import Extension, setup  # noqa
+from skbuild import setup
 
 # -----------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@ PACKAGES = [
     "pyforfluids",
     "pyforfluids.models",
     "pyforfluids.fortran",
+    "pyforfluids.equilibrium",
 ]
 
 with open("README.md") as fp:
@@ -30,7 +31,7 @@ with open("README.md") as fp:
 
 # -> REQUIREMENTS -------------------------------------------------------------
 
-REQUIREMENTS = ["numpy>=1.21.2", "pandas>=1.3.5", "scipy>=1.7.3"]
+REQUIREMENTS = ["numpy<=1.21.2", "pandas>=1.3.5", "scipy>=1.7.3"]
 
 # -----------------------------------------------------------------------------
 
@@ -44,52 +45,6 @@ with open(INIT_PATH, "r") as f:
         if line.startswith("__version__"):
             VERSION = line.split("=", 1)[-1].replace('"', "").strip()
             break
-
-# -----------------------------------------------------------------------------
-
-
-# -> FORTRAN EXTENSIONS -------------------------------------------------------
-
-ON_RTD = os.environ.get("READTHEDOCS") == "True"
-
-ON_WINDOWS = platform.system() == "Windows"
-
-FORTRAN_DIR = os.path.join(PATH, "pyforfluids", "fortran")
-
-if ON_WINDOWS:
-    extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
-else:
-    extra_link_args = []
-
-EXTENSIONS = [
-    Extension(
-        name="pyforfluids.fortran.fgerg2008",
-        sources=[
-            os.path.join(FORTRAN_DIR, "parameters.f95"),
-            os.path.join(FORTRAN_DIR, "gerg.f95"),
-        ],
-        extra_link_args=extra_link_args,
-    ),
-    Extension(
-        name="pyforfluids.fortran.fthermo_props",
-        sources=[
-            os.path.join(FORTRAN_DIR, "parameters.f95"),
-            os.path.join(FORTRAN_DIR, "thermoprops.f95"),
-        ],
-        extra_link_args=extra_link_args,
-    ),
-    Extension(
-        name="pyforfluids.fortran.fcubiceos",
-        sources=[
-            os.path.join(FORTRAN_DIR, "cubic", "MulticompSRK_PR.f90"),
-            os.path.join(FORTRAN_DIR, "cubic", "ThermoRoutines_RKPR.f90"),
-            os.path.join(FORTRAN_DIR, "cubic", "cubic.f90")
-        ],
-        extra_f90_compile_args=None,  # ['-g', '-O0', '-fbacktrace', '-fcheck=all'],
-        f2py_options=["--debug-capi"],
-        extra_link_args=extra_link_args
-        ),
-]
 
 # -----------------------------------------------------------------------------
 
@@ -123,7 +78,6 @@ setup(
         "Topic :: Scientific/Engineering",
     ],
     packages=PACKAGES,
-    ext_modules=EXTENSIONS if not ON_RTD else [],
     install_requires=REQUIREMENTS,
 )
 
