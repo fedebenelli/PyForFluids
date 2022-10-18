@@ -1,12 +1,11 @@
 """Core module."""
-import warnings
-
 import numpy as np
 
 import pandas as pd
 
-from scipy.constants import R
 from scipy.optimize import root_scalar
+
+import warnings
 
 
 class Fluid:
@@ -84,20 +83,42 @@ class Fluid:
         self.calculate_properties()
         self.pressure = self["pressure"]
 
-    def copy(self):
-        """Return a copy of the fluid, taking density as independant variable.
+    def copy(
+            self, model=None, composition=None, temperature=None, density=None
+    ):
+        """Return a copy of a the fluid.
+
+        Parameters
+        ----------
+        model: pyforfluids model_like, optional
+            Model to use in the properties calculation.
+        composition : dict, optional
+            Dictionary with the compounds concentrations as:
+            ``{'methane': 0.8, 'ethane': 0.1}``
+            In some cases, as in GERG2008, the values will be normalized for
+            the calculations but won't be modified in the Fluid attribute
+        temperature: float, optional
+            Fluid temperature in degrees Kelvin [K]
+        pressure: float, optional
+            Fluid pressure in Pascals [Pa]
+        density: float, optional
+            Fluid density in mol per liter [mol/L]
+
 
         Returns
         -------
-        Fluid
+        pyforfluids.core.Fluid
         """
         return Fluid(
-            model=self.model,
-            composition=self.composition,
-            temperature=self.temperature,
-            density=self.density,
+            model=model if model else self.model,
+            composition=composition if composition else self.composition,
+            temperature=temperature if temperature else self.temperature,
+            density=density if density else self.density,
         )
 
+    # =========================================================================
+    #  State modification
+    # -------------------------------------------------------------------------
     def set_composition(self, composition):
         """Change the fluid's composition.
 
@@ -154,17 +175,22 @@ class Fluid:
 
         self.density = vapor_density
 
-    def calculate_properties(self):
+    # =========================================================================
+
+    # =========================================================================
+    #  Properties calculation
+    # -------------------------------------------------------------------------
+    def calculate_properties(self, ideal=False):
         """Calculate the fluid's properties."""
         self.properties = self.model.calculate_properties(
             self.temperature,
             self.pressure,
             self.density,
             self.composition,
+            ideal,
         )
         # Update the pressure with the new pressure value
         self.pressure = self.properties["pressure"]
-
         self.properties = pd.Series(self.properties)
 
     def isotherm(self, density_range):
@@ -199,12 +225,15 @@ class Fluid:
         for prop in properties:
             isotherm[prop] = []
 
-        for density in density_range:
-            fluid.set_density(density)
-            fluid.calculate_properties()
+        with warnings.catch_warnings():
+            warnings.simplefilter("once")
 
-            for prop in properties:
-                isotherm[prop].append(fluid.properties[prop])
+            for density in density_range:
+                fluid.set_density(density)
+                fluid.calculate_properties()
+
+                for prop in properties:
+                    isotherm[prop].append(fluid.properties[prop])
 
         isotherm = pd.DataFrame(isotherm)
 
@@ -234,12 +263,15 @@ class Fluid:
             True if only one root was found.
         """
 
-        def fluid_pressure(density, fluid, obj):
-            temp = fluid.copy()
-            temp.set_density(density)
-            temp.calculate_properties()
+        def fluid_pressure(density, fluid, obj_pressure):
+            tmp_fluid = fluid.copy()
+            tmp_fluid.set_density(density)
+            tmp_fluid.calculate_properties()
 
-            return temp["pressure"] - obj, temp["dp_drho"] * 1000
+            return (
+                tmp_fluid["pressure"] - obj_pressure,
+                tmp_fluid["dp_drho"] * 1000,
+            )
 
         def find_root(fluid, x0, objective_pressure):
             root = root_scalar(
@@ -248,9 +280,10 @@ class Fluid:
                 x0=x0,
                 fprime=True,
                 method="newton",
-                xtol=1e-4,
+                xtol=1e-5,
+                maxiter=100,
             )
-            sol = root.root
+            sol = root.root, root.converged
 
             return sol
 
@@ -259,8 +292,8 @@ class Fluid:
         # LIQUID ROOT
         liquid_density = None
         if liquid_phase:
-            initial_density = 25
-            liquid_density = find_root(
+            initial_density = 10
+            liquid_density, liquid_converged = find_root(
                 fluid, initial_density, objective_pressure
             )
 
@@ -270,20 +303,33 @@ class Fluid:
         # Use ideal gas density
         vapor_density = None
         if vapor_phase:
-            initial_density = (
-                objective_pressure / (R * fluid.temperature) / 1000
+            initial_density = objective_pressure / (
+                self.model.r * fluid.temperature
             )
-            vapor_density = find_root(
+            if initial_density > 1:
+                initial_density = 0.3
+            vapor_density, vapor_converged = find_root(
                 fluid, initial_density, objective_pressure
             )
 
         if vapor_phase and liquid_phase:
+            if not vapor_converged and not liquid_converged:
+                raise RuntimeError("Couldn't converge a volume root!")
+
+            if liquid_converged and not vapor_converged:
+                vapor_density = liquid_density
+
+            elif vapor_converged and not liquid_converged:
+                liquid_density = vapor_density
+
             single_phase = np.allclose(liquid_density, vapor_density)
+
         else:
             single_phase = True
 
         return liquid_density, vapor_density, single_phase
 
+    # =========================================================================
     def __getitem__(self, key):
         """Access the fluid properties as a dictionary."""
         return self.properties[key]
@@ -296,3 +342,23 @@ class Fluid:
             f"composition={self.composition})"
         )
         return rep
+
+
+class Component:
+    """Component class."""
+
+    def __init__(self, name, **kwargs):
+        self.name = name
+        self.T_c = kwargs['T_c']
+        self.P_c = kwargs['P_c']
+        self.T_c = kwargs['T_c']
+
+    def _get_parameters(self):
+        ...
+
+
+class Mixture:
+    """Mixture Class."""
+
+    def __init__(self, components=[]):
+        self.components = components
