@@ -326,9 +326,23 @@ class GERG2008:
 
         # Equilibrium properties
         (dar_dn, dar_ddn, dar_dtn, dp_dn, dar2_dnn) = tp.molar_derivatives(
-            x, delta, tau, r, reducing_density, reducing_temperature,
-            ar, ar_x, ar_xx, ar_tx, ar_dx,
-            dvr_dx, dtr_dx, dvr2_dx2, dtr2_dx2, dvr2_dxx, dtr2_dxx,
+            x,
+            delta,
+            tau,
+            r,
+            reducing_density,
+            reducing_temperature,
+            ar,
+            ar_x,
+            ar_xx,
+            ar_tx,
+            ar_dx,
+            dvr_dx,
+            dtr_dx,
+            dvr2_dx2,
+            dtr2_dx2,
+            dvr2_dxx,
+            dtr2_dxx,
         )
 
         msk = np.where(x != 0, 1, 0)
@@ -343,10 +357,12 @@ class GERG2008:
         dp_dnn = dp_dn.T @ dp_dn
 
         dlnfug_dt = (
-            dnar2_dtn + 1/temperature - excess_volume/(r*temperature) * dp_dt
+            dnar2_dtn
+            + 1 / temperature
+            - excess_volume / (r * temperature) * dp_dt
         )
         dlnfug_dp = excess_volume / (r * temperature) - 1 / p
-        dlnfug_dn = dnar2_dnn + 1 + dp_dnn/dp_dv/(r*temperature)
+        dlnfug_dn = dnar2_dnn + 1 + dp_dnn / dp_dv / (r * temperature)
 
         lnfug = dnar_dn - np.log(z)
 

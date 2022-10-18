@@ -10,3 +10,15 @@ tmp*
 log
 *.cpython*
 *.pyc
+basic.py
+*mypy*
+build*
+*zip
+*egg-info
+_skbuild
+coverage.xml
+myapp.log
+todo.md
+coverage*
+.vscode/*
+tools

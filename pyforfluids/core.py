@@ -1,11 +1,11 @@
 """Core module."""
+import warnings
+
 import numpy as np
 
 import pandas as pd
 
 from scipy.optimize import root_scalar
-
-import warnings
 
 
 class Fluid:
@@ -84,7 +84,7 @@ class Fluid:
         self.pressure = self["pressure"]
 
     def copy(
-            self, model=None, composition=None, temperature=None, density=None
+        self, model=None, composition=None, temperature=None, density=None
     ):
         """Return a copy of a the fluid.
 
@@ -349,9 +349,9 @@ class Component:
 
     def __init__(self, name, **kwargs):
         self.name = name
-        self.T_c = kwargs['T_c']
-        self.P_c = kwargs['P_c']
-        self.T_c = kwargs['T_c']
+        self.T_c = kwargs["T_c"]
+        self.P_c = kwargs["P_c"]
+        self.T_c = kwargs["T_c"]
 
     def _get_parameters(self):
         ...

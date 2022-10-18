@@ -124,7 +124,6 @@ class CubicEOS:
         dict
             Dictionary of the thermodynamic properties of the given fluid.
         """
-
         volume = 1 / density
 
         concentrations = self.set_concentration(composition)

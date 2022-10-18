@@ -1,6 +1,6 @@
 Module parameters
    integer :: max_residual_terms = 24, generalized_departure(8, 2)
-   integer, parameter :: N=21
+   integer, parameter :: N = 21
    real(8), dimension(21, 21, 4) :: red_params
    real(8), dimension(21, 21) :: Bv, Gv, Bt, Gt
    real(8), dimension(21, 24) :: noik, toik
@@ -22,28 +22,28 @@ Subroutine get_params()
    integer :: i, j, k
    R = 8.314472d0
 
-   P_c(1) = 46.0 * 1d5             
-   P_c(2) = 33.9 * 1d5             
-   P_c(3) = 73.8 * 1d5             
-   P_c(4) = 48.8 * 1d5             
-   P_c(5) = 42.5 * 1d5             
-   P_c(6) = 38.0 * 1d5             
-   P_c(7) = 36.5 * 1d5             
-   P_c(8) = 33.7 * 1d5             
-   P_c(9) = 33.9 * 1d5             
-   P_c(10) = 30.1 * 1d5            
-   P_c(11) = 27.4 * 1d5            
-   P_c(12) = 24.9 * 1d5            
-   P_c(13) = 2281000.0d0         
-   P_c(14) = 2103000.0d0         
-   P_c(15) = 1296400.0d0         
-   P_c(16) = 5043000.0d0         
-   P_c(17) = 3494000.0d0         
-   P_c(18) = 22064000.0d0        
-   P_c(19) = 9000000.0d0         
-   P_c(20) = 227600.0d0          
-   P_c(21) = 4863000.0d0         
-   
+   P_c(1) = 46.0 * 1d5
+   P_c(2) = 33.9 * 1d5
+   P_c(3) = 73.8 * 1d5
+   P_c(4) = 48.8 * 1d5
+   P_c(5) = 42.5 * 1d5
+   P_c(6) = 38.0 * 1d5
+   P_c(7) = 36.5 * 1d5
+   P_c(8) = 33.7 * 1d5
+   P_c(9) = 33.9 * 1d5
+   P_c(10) = 30.1 * 1d5
+   P_c(11) = 27.4 * 1d5
+   P_c(12) = 24.9 * 1d5
+   P_c(13) = 2281000.0d0
+   P_c(14) = 2103000.0d0
+   P_c(15) = 1296400.0d0
+   P_c(16) = 5043000.0d0
+   P_c(17) = 3494000.0d0
+   P_c(18) = 22064000.0d0
+   P_c(19) = 9000000.0d0
+   P_c(20) = 227600.0d0
+   P_c(21) = 4863000.0d0
+
    acentric_factor(1) = 0.011
    acentric_factor(2) = 0.039
    acentric_factor(3) = 0.239
@@ -63,8 +63,8 @@ Subroutine get_params()
    acentric_factor(17) = 0.0497
    acentric_factor(18) = 0.3442920843
    acentric_factor(19) = 0.1005
-   acentric_factor(20) = - 0.3836        
-   acentric_factor(21) = - 0.00219       
+   acentric_factor(20) = - 0.3836
+   acentric_factor(21) = - 0.00219
 
    T_c(1) = 190.564d0
    T_c(2) = 126.192d0
