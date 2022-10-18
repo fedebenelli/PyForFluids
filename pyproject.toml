@@ -9,6 +9,6 @@ requires = [
     "scikit-build",
     "cmake",
     "ninja; platform_system!='Windows'",
-    "numpy<=1.21.2",
+    "numpy>=1.21.2",
     "wheel"
 ]
