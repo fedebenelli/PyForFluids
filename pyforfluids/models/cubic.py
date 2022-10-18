@@ -1,143 +1,181 @@
-"""Cubic EoS models.
-"""
+"""Cubic EoS models."""
 
-from pyforfluids.fortran.fcubiceos import cubic as feos
-import pyforfluids.fortran.fcubiceos as fcub
 import numpy as np
+
+from pyforfluids.fortran.pyfeos import ar
 
 
 class CubicEOS:
-    """Cubic EoS
+    """Cubic EoS object.
+
+    Represents a cubic equation of state model.
+
+    Attributes
+    ----------
+    model: str
+        Equation of State to be used. Available models:
+            - 'PR': PengRobinson Equation of State
+            - 'SRK': SRK Equation of State
+    mix_rule: str
+        Mixing rule of fluids.
+            - 'ClassicVdW': classic quadratic mixing rules.
+    critical_temperature: array_like
+        Array of critical temperatures.
+    critical_pressure: array_like
+        Array of critical pressures.
+    accentric_factor: array_like
+        Array of accentric factors.
+    kij_matrix: 2D-array_like
+        Constant binary interaction parameters.
+    lij_matrix: 2D-array_like
+        Binary repulsion parameters.
+
+    Methods
+    -------
+    validate_components:
+        For Fluid compatibility, always returns True.
+    set_concentration:
+        Get a concentrations vector from the composition dictionary.
+    calculate_properties:
+        Calculate the available properties.
     """
 
-    model_selector = {"SRK": 1, "PR": 2, "RKPR": 3}
-    mixing_rules_selector = {"quadatric": 0, "cubic": 3}
+    # Gas constant from inside the Fortran code
+    r = 0.08314472
+
+    name = "Cubic EoS"
+
+    __models = {"SRK", "PR"}
+    __mixing_rules = {"ClassicVdW"}
 
     def __init__(
-            self, model,
-            critical_atractive, repulsive_parameter, delta_1_parameter, 
-            critical_k_parameter, critical_temperature, critical_pressure, 
-            critical_density, accentric_factor, mix_rule, kij0_matrix,
-            kijinf_matrix, t_star_matrix, lij_matrix, 
-            volume_traslation, volume_shift
-            ):
-        self.nmodel = self.model_selector[model]
-        self.ncomb = self.mixing_rules_selector[mix_rule]
-
-        self.ac = critical_atractive
-        self.b = repulsive_parameter
-        self.k = critical_k_parameter
-
-        self.tc = critical_temperature
-        self.pc = critical_pressure
-        self.w = accentric_factor
-
-        self.kij = kij0_matrix
+        self,
+        model,
+        mix_rule,
+        names,
+        critical_temperature,
+        critical_pressure,
+        acentric_factor,
+        kij_matrix,
+        lij_matrix,
+    ):
+        self.model = model
+        self.names = names
+        self.tc = np.array(critical_temperature)
+        self.pc = np.array(critical_pressure)
+        self.w = np.array(acentric_factor)
+        self.mix_rule = mix_rule
+        self.kij = kij_matrix
         self.lij = lij_matrix
 
-        if model == "RKPR":
-            self.delta_1 = delta_1_parameter
-        elif model == "PR":
-            self.delta_1 = 1 + np.sqrt(2)
-
-        if kijinf_matrix is not None:
-            self.tdep = 1
-            self.kijinf_matrix = kijinf_matrix
-            self.t_star_matrix = t_star_matrix
-        else:
-            self.tdep = 0
-            self.kijinf_matrix = 0
-            self.t_star_matrix = 0
-
-        if volume_traslation is not None:
-            self.volume_traslation = volume_traslation
-            self.volume_shift = volume_shift
-        else:
-            self.volume_traslation = 0
-            self.volume_shift = 0
-
     def validate_components(self, composition):
+        """Check if the components are included in the model.
+
+        Parameters
+        ----------
+        composition: dictionary
+            Composition dictionary.
+
+        Returns
+        -------
+        bool:
+            Boolean that represents if the composition is included.
+        """
         return True
 
     def set_concentration(self, composition):
-        return np.array(
-                [composition[i] for i in composition], dtype='d'
-        )
+        """Return a composition vector from a composition dictionary.
+
+        Parameters
+        ----------
+        composition: dict
+            Composition dictionary
+
+        Returns
+        -------
+        array_like:
+            Compositions vector
+        """
+        return np.array([composition[i] for i in composition], dtype="d")
 
     def calculate_properties(
-        self, temperature, pressure, density, composition
+        self, temperature, pressure, density, composition, ideal=False
     ):
-        """
-        """
-        # __import__('ipdb').set_trace()
-        # time.sleep(0.1)
-        self._setup()
-        volume = 1/density
-        # indicator = 4
-        concentrations = self.set_concentration(composition)
-        pressure = feos.pressure_calc(concentrations, volume, temperature)
+        """Calculate the thermodynamic properties of the given fluid.
 
-        # liquid_root = feos.lnfug(
-        #         1, indicator, temperature, pressure, concentrations
-        # )
-        # vapor_root = feos.lnfug(
-        #         -1, indicator, temperature, pressure, concentrations
-        # )
-        # lower_g_root = feos.lnfug(
-        #         0, indicator, temperature, pressure, concentrations
-        # )
+        Calculation of the thermodynamic properties of the fluid at it's given
+        temperature and density.
+
+        Parameters
+        ----------
+        temperature: float
+            Fluid temperature in Kelvin degrees [K]
+        pressure: float
+            Fluid pressure in Pascal [Pa]
+        density: float
+            Fluid density in mol per liter [mol/L]
+        composition: dict
+            Dictionary of the compounds concentrations as:
+            ``{"methane": 0.8, "ethane":0.2}``
+            When necessary, the concentration values are normalized.
+
+        Returns
+        -------
+        dict
+            Dictionary of the thermodynamic properties of the given fluid.
+        """
+
+        volume = 1 / density
+
+        concentrations = self.set_concentration(composition)
+        number_of_moles = concentrations.sum()
+
+        ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2 = ar(
+            volume,
+            temperature,
+            self.model,
+            self.mix_rule,
+            concentrations,
+            self.pc,
+            self.tc,
+            self.w,
+            self.kij,
+            self.lij,
+        )
+
+        # Properties
+        p = self.r * temperature / volume - ar_dv
+        z = (p * volume) / (self.r * temperature)
+
+        lnfug = ar_dn / (self.r * temperature) - np.log(z)
+        dp_drho = ar_dv2 * volume**2 + number_of_moles * self.r * temperature
 
         return {
-                "pressure": pressure*1e5,
-                # "liquid_root": liquid_root,
-                # "vapor_root": vapor_root,
-                # "lower_g_root": lower_g_root
+            "pressure": p * 1e5,
+            "residual_helmholtz": ar_val,
+            "dar_dv": ar_dv,
+            "dar_dtv": ar_dtv,
+            "compressibility_factor": z,
+            "dp_drho": dp_drho * 1e2,
+            "lnfug": lnfug,
         }
 
-    def _setup(self):
-        """Set up the Fortran model.
-        """
-        nc = len(self.ac)
-        fcub.model.nmodel = self.nmodel
-
-        fcub.components.ac[:nc] = self.ac
-        fcub.components.b[:nc] = self.b
-        fcub.components.rm[:nc] = self.k
-        fcub.components.ntdep = self.tdep
-        fcub.components.kij[:nc, :nc] = self.kij
-        fcub.components.del1[:nc] = self.delta_1
-        fcub.crit.tc[:nc] = self.tc
-        fcub.crit.pc[:nc] = self.pc
-        fcub.crit.dceos[:nc] = 0
-        fcub.crit.om[:nc] = self.w
-        fcub.rule.ncomb = self.ncomb
-        fcub.tdep.kinf[:nc, :nc] = 0
-        fcub.tdep.tstar[:nc, :nc] = 0
-        fcub.lforin.lij[:nc, :nc] = self.lij
-
-        bij = np.zeros((nc, nc))
-
-        for i in range(nc):
-            for j in range(i, nc):
-                bij[i, j] = (1 - self.lij[i, j]) * (self.b[i] + self.b[j])/2
-
-        fcub.bcross.bij[:nc, :nc] = bij
-
-    def check_model(self, model):
+    def __check_model(self, model):
         """Check if the model is available.
 
         Parameters
         ----------
-
         model: str
             Model to be used, can be checked with:
                 `pyforfluids.models.CubicEOS.model_selector`
 
         Returns
         -------
-
-        is_available: bool
+        bool
             Is the selected model available?
         """
-        return model in self.model_selector
+        return model in self.__models
 
+    def __repr__(self):
+        """Model representation."""
+        return f"{self.name}: {self.model}"
