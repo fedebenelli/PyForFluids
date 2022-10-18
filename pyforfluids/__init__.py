@@ -8,4 +8,3 @@ __version__ = "0.0.1a3"
 from .core import Fluid  # noqa
 from . import fortran  # noqa
 from . import models  # noqa
-from . import equilibrium  # noqa

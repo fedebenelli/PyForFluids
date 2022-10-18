@@ -1,6 +1,5 @@
 Module parameters
-   integer :: max_residual_terms = 24, generalized_departure(8, 2)
-   integer, parameter :: N=21
+   integer :: N, max_residual_terms = 24, generalized_departure(8, 2)
    real(8), dimension(21, 21, 4) :: red_params
    real(8), dimension(21, 21) :: Bv, Gv, Bt, Gt
    real(8), dimension(21, 24) :: noik, toik
@@ -10,9 +9,9 @@ Module parameters
    real(8), dimension(21, 21, 12) :: tij, nij, ethaij, epsij, betaij, gammaij
    integer, dimension(21, 21, 12) :: dij
    integer, dimension(21, 21) :: Kpolij, Kexpij
-   real(8), dimension(21) :: T_c, rho_c, M, P_c, acentric_factor
+   real(8), dimension(21) :: T_c, rho_c, M
    integer :: tmp1(3), tmp2(14) ! This variables are used to define indexes for repeated terms
-   real(8), dimension(21, 7) :: n0i, th0i
+   real(8), dimension(21, 12) :: n0i, th0i
    real(8) :: R, eps = 1d-10
 
 End Module
@@ -21,50 +20,7 @@ Subroutine get_params()
    use parameters
    integer :: i, j, k
    R = 8.314472d0
-
-   P_c(1) = 46.0 * 1d5             
-   P_c(2) = 33.9 * 1d5             
-   P_c(3) = 73.8 * 1d5             
-   P_c(4) = 48.8 * 1d5             
-   P_c(5) = 42.5 * 1d5             
-   P_c(6) = 38.0 * 1d5             
-   P_c(7) = 36.5 * 1d5             
-   P_c(8) = 33.7 * 1d5             
-   P_c(9) = 33.9 * 1d5             
-   P_c(10) = 30.1 * 1d5            
-   P_c(11) = 27.4 * 1d5            
-   P_c(12) = 24.9 * 1d5            
-   P_c(13) = 2281000.0d0         
-   P_c(14) = 2103000.0d0         
-   P_c(15) = 1296400.0d0         
-   P_c(16) = 5043000.0d0         
-   P_c(17) = 3494000.0d0         
-   P_c(18) = 22064000.0d0        
-   P_c(19) = 9000000.0d0         
-   P_c(20) = 227600.0d0          
-   P_c(21) = 4863000.0d0         
-   
-   acentric_factor(1) = 0.011
-   acentric_factor(2) = 0.039
-   acentric_factor(3) = 0.239
-   acentric_factor(4) = 0.099
-   acentric_factor(5) = 0.153
-   acentric_factor(6) = 0.199
-   acentric_factor(7) = 0.183
-   acentric_factor(8) = 0.251
-   acentric_factor(9) = 0.227
-   acentric_factor(10) = 0.299
-   acentric_factor(11) = 0.349
-   acentric_factor(12) = 0.398
-   acentric_factor(13) = 0.4433
-   acentric_factor(14) = 0.4884
-   acentric_factor(15) = - 0.219
-   acentric_factor(16) = 0.0222
-   acentric_factor(17) = 0.0497
-   acentric_factor(18) = 0.3442920843
-   acentric_factor(19) = 0.1005
-   acentric_factor(20) = - 0.3836        
-   acentric_factor(21) = - 0.00219       
+   N = 21
 
    T_c(1) = 190.564d0
    T_c(2) = 126.192d0
@@ -147,22 +103,6 @@ Subroutine get_params()
    Fij(5, 6) = 0.312572600489d-1
    Fij(5, 7) = - 0.551609771024d-1
    Fij(6, 7) = - 0.551240293009d-1
-
-   Fij(2, 1) = 1.0d0
-   Fij(3, 1) = 1.0d0
-   Fij(3, 2) = 1.0d0
-   Fij(4, 1) = 1.0d0
-   Fij(4, 2) = 1.0d0
-   Fij(5, 1) = 1.0d0
-   Fij(5, 4) = 0.130424765150d0
-   Fij(6, 1) = 1.0d0
-   Fij(6, 4) = 0.281570073085d0
-   Fij(6, 5) = 0.312572600489d-1
-   Fij(7, 1) = 0.771035405688d0
-   Fij(7, 4) = 0.260632376098d0
-   Fij(7, 5) = - 0.551609771024d-1
-   Fij(7, 6) = - 0.551240293009d-1
-   Fij(15, 1) = 1.0d0
 
    red_params(1, 2, :) = (/ 0.998721377d0, 1.013950311d0, 0.998098830d0, 0.979273013d0 /)
    red_params(1, 3, :) = (/ 0.999518072d0, 1.002806594d0, 1.022624490d0, 0.975665369d0 /)
@@ -381,11 +321,6 @@ Subroutine get_params()
       Gv(i, j) = red_params(i, j, 2)
       Bt(i, j) = red_params(i, j, 3)
       Gt(i, j) = red_params(i, j, 4)
-
-      Bv(j, i) = 1.d0 / Bv(i, j)
-      Gv(j, i) = Gv(i, j)
-      Bt(j, i) = 1.d0 / Bt(i, j)
-      Gt(j, i) = Gt(i, j)
    end do
    end do
 

@@ -20,7 +20,6 @@ PACKAGES = [
     "pyforfluids",
     "pyforfluids.models",
     "pyforfluids.fortran",
-    "pyforfluids.equilibrium",
 ]
 
 with open("README.md") as fp:
@@ -31,7 +30,7 @@ with open("README.md") as fp:
 
 # -> REQUIREMENTS -------------------------------------------------------------
 
-REQUIREMENTS = ["numpy>=1.21", "pandas>=1.3.5", "scipy>=1.7.3"]
+REQUIREMENTS = ["numpy>=1.21.2", "pandas>=1.3.5", "scipy>=1.7.3"]
 
 # -----------------------------------------------------------------------------
 
@@ -84,12 +83,12 @@ EXTENSIONS = [
         sources=[
             os.path.join(FORTRAN_DIR, "cubic", "MulticompSRK_PR.f90"),
             os.path.join(FORTRAN_DIR, "cubic", "ThermoRoutines_RKPR.f90"),
-            os.path.join(FORTRAN_DIR, "cubic", "cubic.f90"),
+            os.path.join(FORTRAN_DIR, "cubic", "cubic.f90")
         ],
-        extra_f90_compile_args=["-g", "-O0", "-fbacktrace", "-fcheck=all"],
-        # f2py_options=["--debug-capi"],
-        extra_link_args=extra_link_args,
-    ),
+        extra_f90_compile_args=None,  # ['-g', '-O0', '-fbacktrace', '-fcheck=all'],
+        f2py_options=["--debug-capi"],
+        extra_link_args=extra_link_args
+        ),
 ]
 
 # -----------------------------------------------------------------------------

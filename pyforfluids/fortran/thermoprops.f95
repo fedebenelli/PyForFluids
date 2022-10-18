@@ -2,254 +2,207 @@
 ! Thermodynamic Properties
 ! ------------------------
 Module thermo_props  !
-    Implicit None
+   Implicit None
 
 Contains
-    Subroutine mean_molecular_weight(X, M, MM)
-        Implicit None
-        real(8), intent(in) :: X(21), M(21)
-        real(8), intent(out) :: MM
-        integer :: i
+        Subroutine mean_molecular_weight(X, M, MM)
+                real(8), intent(in) :: X(21), M(21)
+                real(8), intent(out) :: MM
+                integer :: i
 
-        MM = 0
-        do i = 1, size(X)
-            MM = MM + X(i)*M(i)
-        end do
-        MM = MM/1000 ! Translate to Kilograms
-    End Subroutine mean_molecular_weight
+                MM = 0
+                do i = 1, size(X)
+                MM = MM + X(i) * M(i)
+                end do
+                MM = MM / 1000 ! Translate to Kilograms
+        End Subroutine mean_molecular_weight
 
-    Subroutine zeta(delta, Ar, z)
-        real(8), intent(in) :: delta, Ar(3, 3)
-        real(8), intent(out) :: z
-        z = 1.d0 + delta*Ar(2, 1)
-    End Subroutine zeta
+   Subroutine zeta(delta, Ar, z)
+      real(8), intent(in) :: delta, Ar(3, 3)
+      real(8), intent(out) :: z
+      z = 1.d0 + delta * Ar(2, 1)
+   End Subroutine zeta
 
-    Subroutine isochoric_heat(tau, R, Ao, Ar, cv)
-        real(8), intent(in) :: tau, R, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: cv
+   Subroutine isochoric_heat(tau, R, Ao, Ar, cv)
+      real(8), intent(in) :: tau, R, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: cv
 
-        cv = -tau**2.d0*(Ao(3, 2) + Ar(3, 2))
-        cv = cv*R
-    End Subroutine isochoric_heat
+      cv = - tau ** 2.d0 * (Ao(3, 2) + Ar(3, 2))
+      cv = cv * R
+   End Subroutine isochoric_heat
 
-    Subroutine isobaric_heat(delta, tau, R, Ao, Ar, cp)
-        real(8), intent(in) :: delta, tau, R, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: cp
-        real(8) :: up, down
+   Subroutine isobaric_heat(delta, tau, R, Ao, Ar, cp)
+      real(8), intent(in) :: delta, tau, R, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: cp
+      real(8) :: up, down
 
-        up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2.d0
-        down = 1.d0 + 2.d0*delta*Ar(2, 1) + delta**2.d0*Ar(3, 1)
+      up = (1.d0 + delta * Ar(2, 1) - delta * tau * Ar(3, 3)) ** 2.d0
+      down = 1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2.d0 * Ar(3, 1)
 
-        cp = -tau**2.d0*(Ao(3, 2) + Ar(3, 2)) + up/down
-        cp = cp*R
-    End Subroutine isobaric_heat
+      cp = - tau ** 2.d0 * (Ao(3, 2) + Ar(3, 2)) + up / down
+      cp = cp * R
+   End Subroutine isobaric_heat
 
-    Subroutine sound_speed(delta, tau, R, T, M, Ao, Ar, w)
-        real(8), intent(in) :: delta, tau, R, T, M, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: w
-        real(8) :: up, down
+   Subroutine sound_speed(delta, tau, R, T, M, Ao, Ar, w)
+      real(8), intent(in) :: delta, tau, R, T, M, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: w
+      real(8) :: up, down
 
-        up = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
-        down = (tau**2*(Ao(3, 2) + Ar(3, 2)))
+      up = (1.d0 + delta * Ar(2, 1) - delta * tau * Ar(3, 3)) ** 2
+      down = (tau ** 2 * (Ao(3, 2) + Ar(3, 2)))
 
-        w = 1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1) - up/down
-        w = sqrt(w*R*T/M)
-    End Subroutine sound_speed
+      w = 1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2 * Ar(3, 1) - up / down
+      w = sqrt(w * R * T / M)
+   End Subroutine sound_speed
 
-    Subroutine isothermal_thermal_coefficent(delta, tau, rho, Ar, delta_t)
-        real(8), intent(in) :: delta, Ar(3, 3), tau, rho
-        real(8), intent(out) :: delta_t
-        real(8) :: up, down
+   Subroutine isothermal_thermal_coefficent(delta, tau, rho, Ar, delta_t)
+      real(8), intent(in) :: delta, Ar(3, 3), tau, rho
+      real(8), intent(out) :: delta_t
+      real(8) :: up, down
 
-        up = 1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3)
-        down = 1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1)
+      up = 1.d0 + delta * Ar(2, 1) - delta * tau * Ar(3, 3)
+      down = 1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2 * Ar(3, 1)
 
-        delta_t = (1.d0 - up/down)/rho
-    End Subroutine isothermal_thermal_coefficent
+      delta_t = (1.d0 - up / down) / rho
+   End Subroutine isothermal_thermal_coefficent
 
-    Subroutine dp_dt(rho, delta, tau, R, Ar, dpdt)
-        real(8), intent(in) :: delta, R, rho, tau
-        real(8), intent(out) :: dpdt
-        real(8), dimension(3, 3), intent(in) :: Ar
+   Subroutine dp_dt(rho, delta, tau, R, Ar, dpdt)
+      real(8), intent(in) :: delta, R, rho, tau
+      real(8), intent(out) :: dpdt
+      real(8), dimension(3, 3), intent(in) :: Ar
 
-        dpdt = rho*R*(1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))
+      dpdt = rho * R * (1.d0 + delta * Ar(2, 1) - delta * tau * Ar(3, 3))
 
-    End Subroutine dp_dt
+   End Subroutine dp_dt
 
-    Subroutine dp_drho(T, delta, R, Ar, dpdrho)
-        real(8), intent(in) :: delta, R, T
-        real(8), intent(out) :: dpdrho
-        real(8), dimension(3, 3), intent(in) :: Ar
+   Subroutine dp_drho(T, delta, R, Ar, dpdrho)
+      real(8), intent(in) :: delta, R, T
+      real(8), intent(out) :: dpdrho
+      real(8), dimension(3, 3), intent(in) :: Ar
 
-        dpdrho = R*T*(1.d0 + 2.d0*delta*Ar(2, 1) + (delta**2)*Ar(3, 1))
+      dpdrho = R * T * (1.d0 + 2.d0 * delta * Ar(2, 1) + (delta ** 2) * Ar(3, 1))
 
-    End Subroutine dp_drho
+   End Subroutine dp_drho
 
-    Subroutine dp_dv(rho, delta, T, R, Ar, dpdv) ! !Recordar que acá hablamos de volumen molar!!
-        real(8), intent(in) :: delta, R, rho, T
-        real(8), intent(out) :: dpdv
-        real(8), dimension(3, 3), intent(in) :: Ar
+   Subroutine dp_dv(rho, delta, T, R, Ar, dpdv) ! !Recordar que acá hablamos de volumen molar!!
+      real(8), intent(in) :: delta, R, rho, T
+      real(8), intent(out) :: dpdv
+      real(8), dimension(3, 3), intent(in) :: Ar
 
-        dpdv = -(rho**2)*R*T*(1.d0 + 2.d0*delta*Ar(2, 1) + (delta**2)*Ar(3, 1))
+      dpdv = - (rho ** 2) * R * T * (1.d0 + 2.d0 * delta * Ar(2, 1) + (delta ** 2) * Ar(3, 1))
 
-    End Subroutine dp_dv
+   End Subroutine dp_dv
 
-    Subroutine pressure(delta, rho, R, T, Ar, p)
-        real(8), intent(in) :: delta, rho, R, T, Ar(3, 3)
-        real(8), intent(out) :: p
-        real(8) :: z
+   Subroutine pressure(delta, rho, R, T, Ar, p)
+      real(8), intent(in) :: delta, rho, R, T, Ar(3, 3)
+      real(8), intent(out) :: p
+      real(8) :: z
 
-        call zeta(delta, Ar, z)
-        p = z*(rho*1000.d0)*R*T
-    End Subroutine pressure
+      call zeta(delta, Ar, z)
+      p = z * (rho * 1000.d0) * R * T
+   End Subroutine pressure
 
-    Subroutine entropy(tau, R, Ao, Ar, s)
-        real(8), intent(in) :: tau, R, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: s
+   Subroutine entropy(tau, R, Ao, Ar, s)
+      real(8), intent(in) :: tau, R, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: s
 
-        s = (tau*(Ao(2, 2) + Ar(2, 2)) - Ao(1, 1) - Ar(1, 1))*R
-    End Subroutine entropy
+      s = (tau * (Ao(2, 2) + Ar(2, 2)) - Ao(1, 1) - Ar(1, 1)) * R
+   End Subroutine entropy
 
-    Subroutine internal_energy(tau, R, T, Ao, Ar, u)
-        real(8), intent(in) :: tau, R, T, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: u
+   Subroutine internal_energy(tau, R, T, Ao, Ar, u)
+      real(8), intent(in) :: tau, R, T, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: u
 
-        u = tau*(Ao(2, 2) + Ar(2, 2))*R*T
-    End Subroutine internal_energy
+      u = tau * (Ao(2, 2) + Ar(2, 2)) * R * T
+   End Subroutine internal_energy
 
-    Subroutine enthalpy(delta, tau, R, T, Ao, Ar, h)
-        real(8), intent(in) :: delta, tau, R, T, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: h
+   Subroutine enthalpy(delta, tau, R, T, Ao, Ar, h)
+      real(8), intent(in) :: delta, tau, R, T, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: h
 
-        h = ((1.d0 + tau*(Ao(2, 2) + Ar(2, 2)) + delta*Ar(2, 1)))*R*T
-    End Subroutine enthalpy
+      h = ((1.d0 + tau * (Ao(2, 2) + Ar(2, 2)) + delta * Ar(2, 1))) * R * T
+   End Subroutine enthalpy
 
-    Subroutine gibbs_free_energy(delta, R, T, Ao, Ar, g)
-        real(8), intent(in) :: delta, R, T, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: g
+   Subroutine gibbs_free_energy(delta, R, T, Ao, Ar, g)
+      real(8), intent(in) :: delta, R, T, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: g
 
-        g = (1.d0 + Ao(1, 1) + Ar(1, 1) + delta*Ar(2, 1))*R*T
-    End Subroutine gibbs_free_energy
+      g = (1.d0 + Ao(1, 1) + Ar(1, 1) + delta * Ar(2, 1)) * R * T
+   End Subroutine gibbs_free_energy
 
-    Subroutine joule_thomson_coeff(delta, tau, rho, R, Ao, Ar, JT)
-        real(8), intent(in) :: delta, tau, rho, R, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: JT
-        real(8) :: up, down_1, down_2
+   Subroutine joule_thomson_coeff(delta, tau, rho, R, Ao, Ar, JT)
+      real(8), intent(in) :: delta, tau, rho, R, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: JT
+      real(8) :: up, down_1, down_2
 
-        up = -(delta*Ar(2, 1) + delta**2*Ar(3, 1) + delta*tau*Ar(3, 3))
-        down_1 = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(3, 3))**2
-        down_2 = -tau**2*(Ao(3, 2) + Ar(3, 2))*(1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 1))
+      up = - (delta * Ar(2, 1) + delta ** 2 * Ar(3, 1) + delta * tau * Ar(3, 3))
+      down_1 = (1.d0 + delta * Ar(2, 1) - delta * tau * Ar (3, 3)) ** 2
+      down_2 = - tau ** 2 * (Ao(3, 2) + Ar(3, 2)) * (1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2 * Ar(3, 1))
 
-        JT = up/(down_1 + down_2)/(R*rho*1000)
-    End Subroutine joule_thomson_coeff
+      JT = up / (down_1 + down_2) / (R * rho * 1000)
 
-    Subroutine isentropic_exponent(delta, tau, Ao, Ar, k)
-        real(8), intent(in) :: delta, tau, Ao(3, 3), Ar(3, 3)
-        real(8), intent(out) :: k
-        real(8) :: up1, down1, up2, down2
+   End Subroutine joule_thomson_coeff
 
-        up1 = 1.d0 + 2*delta*Ar(2, 1) + delta**2*Ar(3, 1)
-        down1 = 1.d0 + delta*Ar(2, 1)
-        up2 = (1.d0 + delta*Ar(2, 1) - delta*tau*Ar(2, 3))**2
-        down2 = tau**2*(Ao(3, 2) + Ar(2, 2))*(1.d0 + 2.d0*delta*Ar(2, 1) + delta**2*Ar(3, 2))
+   Subroutine isentropic_exponent(delta, tau, Ao, Ar, k)
+      real(8), intent(in) :: delta, tau, Ao(3, 3), Ar(3, 3)
+      real(8), intent(out) :: k
+      real(8) :: up1, down1, up2, down2
 
-        k = (up1/down1)*(1.d0 - up2/down2)
-    End Subroutine isentropic_exponent
+      up1 = 1.d0 + 2 * delta * Ar(2, 1) + delta ** 2 * Ar(3, 1)
+      down1 = 1.d0 + delta * Ar(2, 1)
+      up2 = (1.d0 + delta * Ar(2, 1) - delta * tau * Ar(2, 3)) ** 2
+      down2 = tau ** 2 * (Ao(3, 2) + Ar(2, 2)) * (1.d0 + 2.d0 * delta * Ar(2, 1) + delta ** 2 * Ar(3, 2))
 
-    Subroutine second_thermal_virial_coeff(rho_r, Ar, B)
-        real(8), intent(in) :: rho_r, Ar(3, 3)
-        real(8), intent(out) :: B
-        real(8) :: delta
+      k = (up1 / down1) * (1.d0 - up2 / down2)
+   End Subroutine isentropic_exponent
 
-        delta = 1d-15
-        B = Ar(2, 1)/rho_r
-    End Subroutine second_thermal_virial_coeff
+   Subroutine second_thermal_virial_coeff(rho_r, Ar, B)
+      real(8), intent(in) :: rho_r, Ar(3, 3)
+      real(8), intent(out) :: B
+      real(8) :: delta
 
-    Subroutine third_thermal_virial_coeff(rho_r, Ar, C)
-        real(8), intent(in) :: rho_r, Ar(3, 3)
-        real(8), intent(out) :: C
-        real(8) :: delta
+      delta = 1d-15
+      B = Ar(2, 1) / rho_r
+   End Subroutine second_thermal_virial_coeff
 
-        delta = 1d-15
-        C = Ar(3, 1)/(rho_r**2)
-    End Subroutine third_thermal_virial_coeff
+   Subroutine third_thermal_virial_coeff(rho_r, Ar, C)
+      real(8), intent(in) :: rho_r, Ar(3, 3)
+      real(8), intent(out) :: C
+      real(8) :: delta
 
-    Subroutine molar_derivatives(x, delta, tau, r, rho_r, t_r, ar, ar_x, ar_xx, ar_tx, ar_dx, &
-                                 dvr_dx, dtr_dx, dvr2_dx2, dtr2_dx2, dvr2_dxx, dtr2_dxx, &
-                                 dar_dn, dar_ddn, dar_dtn, dp_dn, dar2_dnn)
-        Implicit None
-        real(8), intent(in) :: x(21), delta, tau, r, rho_r, T_r, ar(3, 3)
-        real(8), dimension(21), intent(in) :: ar_x, ar_tx, ar_dx, dvr_dx, dtr_dx, dvr2_dx2, dtr2_dx2
-        real(8), dimension(21, 21), intent(in) :: dvr2_dxx, dtr2_dxx, ar_xx
+      delta = 1d-15
+      C = Ar(3, 1) / (rho_r ** 2)
+   End Subroutine third_thermal_virial_coeff
 
-        real(8), dimension(21), intent(out) :: dar_dn, dar_ddn, dar_dtn, dp_dn
-        real(8), dimension(21, 21), intent(out) :: dar2_dnn
-        real(8), dimension(21) :: drhor_dx, drhor_dn, dtr_dn, dens_term, temp_term,&
-            ddelta_dn, dtau_dn, dar2_dndelta, dar2_dntau, drhor2_dx2
-        real(8), dimension(21,21) :: drhor2_dxx, drhor2_dxn, dtr2_dxn, dar2_dxn
-        real(8) :: rho, t
-        integer :: i, j
+   Subroutine helmholtz_per_mol(x, delta, tau, rho_r, T_r, ar, ar_x, ar_dx, &
+                                v_r_x, T_r_x, dar_dn, dadr_dn)
+           real(8), intent(in) :: x(21), delta, tau, rho_r, T_r, &
+                   ar(3, 3), ar_x(21), ar_dx(21), v_r_x(21), T_r_x(21)
+           real(8), dimension(21), intent(out) :: dar_dn, dadr_dn
+           real(8), dimension(21) :: drhor_dn, dtr_dn
+           integer :: i
 
-        drhor_dx = -rho_r**2*dvr_dx
+           dar_dn = 0.d0
+           dadr_dn = 0.d0
 
-        drhor_dn = drhor_dx - sum(x*drhor_dx)
-        dtr_dn = dtr_dx - sum(x*dtr_dx)
+           drhor_dn = - rho_r ** 2 * v_r_x
+           dtr_dn = v_r_x
 
-        ! Inner variables to simplify 
-        dens_term = delta*(1.d0 - drhor_dn/rho_r)
-        temp_term = tau*dtr_dn/t_r
+           do i = 1, size(dtr_dn)
+                drhor_dn = drhor_dn - (- x(i) * (- rho_r ** 2 * v_r_x(i)))
+                dtr_dn = dtr_dn - x(i) * t_r_x(i)
+           end do
 
-        dar_dn = ar(2, 1)*dens_term + ar(2, 2)*temp_term + ar_x - sum(x*ar_x)
-        dar_ddn = ar(3, 1)*dens_term + ar(3, 3)*temp_term + ar_dx - sum(x*ar_dx)
-        dar_dtn = ar(3, 3)*dens_term + ar(3, 2)*temp_term + ar_tx - sum(x*ar_tx)
+           dar_dn = delta * ar(2, 1) * (1.d0 - 1.d0 / rho_r * dtr_dn)
+           dar_dn = dar_dn + tau * ar(2, 2) / T_r * dtr_dn + ar_x
 
-        rho = delta*rho_r
-        t = t_r/tau
+           dadr_dn = delta * ar(3, 1) * (1.d0 - 1.d0 / rho_r * dtr_dn)
+           dadr_dn = dadr_dn + tau * ar(3, 3) / T_r * dtr_dn + ar_dx
 
-        dp_dn = rho*r*t*( &
-                1.d0 + delta*ar(2, 1)*(2.d0 - 1.d0/rho_r*drhor_dn) + &
-                delta*dar_dn &
-                )
+           do i = 1, size(dtr_dn)
+                   dar_dn = dar_dn - X(i) * ar_x(i)
+                   dadr_dn = dadr_dn - X(i) * ar_dx(i)
+           end do
+   End Subroutine helmholtz_per_mol
 
-        ! Crossed derivs
-        ddelta_dn = delta - delta/rho_r*drhor_dn
-        dtau_dn = tau/t_r*dtr_dn
-
-        dar2_dndelta = (ar(2, 1) + delta*ar(3, 1))*dens_term/delta + ar(3, 3)*temp_term + ar_dx - sum(x*ar_dx)
-        dar2_dntau = ar(3, 3)*dens_term + (ar(2, 2) + tau*ar(3, 2))*temp_term/tau + ar_tx - sum(x*ar_tx)
-
-        ! Convert the volume derivatives into density ones
-        drhor2_dx2 = 2.d0 * rho_r**3*dvr_dx**2 - rho_r**2*dvr2_dx2
-
-        do i=1,21
-        do j=1,21
-            drhor2_dxx(i, j) = 2*rho_r**3 * dvr_dx(i)*dvr_dx(j) - rho_r**2*dvr2_dxx(i, j)
-        end do
-        end do
-
-        do i=1,21
-        do j=1,21
-            drhor2_dxn(i, j) = drhor2_dxx(j, i) - drhor_dx(j) - sum(x * drhor2_dxx(:, j))
-            dtr2_dxn(i, j) = dtr2_dxx(j, i) - dtr_dx(j) - sum(X * dtr2_dxx(:, j))
-        end do
-        end do
-
-        do i=1,21
-        do j=1,21
-            dar2_dxn(j, i) = delta*ar_dx(j)*(1-drhor_dn(i)/rho_r) &
-                - delta*ar(2, 1)/rho_r * (drhor2_dxn(j, i) - drhor_dx(j)/rho_r * drhor_dn(i)) &
-                + tau * ar(3,3)/T_r * dtr_dn(i) &
-                + tau*ar(2,2) * dtr2_dxn(j, i) - dtr_dx(j)/t_r * dtr_dn(i) &
-                + ar_xx(i, j) - ar_x(j) - sum(x*ar_xx(:, j))
-        end do
-        end do
-
-        do i=1,21
-        do j=1,21
-            dar2_dnn(j, i) = dar2_dndelta(i) * ddelta_dn(j) &
-                + dar2_dntau(i) * dtau_dn(j) &
-                + dar2_dxn(i, j) - sum(x * dar2_dxn(i, :))
-        end do
-        end do
-    End Subroutine molar_derivatives
 End Module thermo_props

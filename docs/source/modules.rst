@@ -6,4 +6,3 @@ pyforfluids
 
    pyforfluids
    pyforfluids.models
-   pyforfluids.equilibrium
