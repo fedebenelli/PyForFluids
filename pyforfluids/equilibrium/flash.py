@@ -4,8 +4,6 @@ import numpy as np
 
 from scipy.optimize import root_scalar
 
-from ..fortran import fgerg2008
-
 
 def k_wilson(fluid):
     acentric_factor = fluid.model.w
@@ -268,171 +266,171 @@ def flash_pt(
     return vapor, liquid, vapor_fraction, it
 
 
-def bub_p(fluid, temperature, iterations=50, rtol=1e-3, atol=1e-3):
-    def p_wilson(temperature, z):
-        w_i = fluid.model.w
-        p_c = fluid.model.pc
-        t_c = fluid.model.tc
-
-        p = z * p_c * np.exp(5.373 * (1 + w_i) * (1 - t_c / temperature))
-        p = np.sum(p)
-
-        return p
-
-    # Make each phase fluid
-    fluid_i = fluid.copy()
-    vapor = fluid.copy()
-    liquid = fluid.copy()
-
-    # Wilson initialization
-    z = fluid.model.set_concentration(fluid.composition)
-    msk = np.where(z != 0)
-    p_i = p_wilson(temperature, z)
-    fluid_i.set_pressure(p_i)
-    k_i = k_wilson(fluid_i)
-    x = z
-    y_i = k_i * x
-    liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
-
-    k_i = np.exp(liquid["lnfug"] - vapor["lnfug"])
-
-    for it in range(1, iterations):
-        liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
-
-        # Define iteration step
-        f = np.dot(k_i, z) - 1
-        dfdp = np.dot(
-            z[msk] * k_i[msk],
-            liquid["dlnfug_dp"][msk] - vapor["dlnfug_dp"][msk],
-        )
-
-        # Iteration step definition
-        step = 1  # it*np.log10(p_i)
-
-        # Iteration is taking too long
-        if 5 < it < 30:
-            step = step * 10
-
-        # NaN pressure reached
-        if np.isnan(p_i - step * f / dfdp):
-            return fluid, fluid, p_i, it
-        p_n = p_i - step * f / dfdp
-
-        # Update fluids
-        liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_n)
-
-        # Define new K and molar fractions
-        k_n = np.exp(liquid["lnfug"] - vapor["lnfug"])
-        x = z
-        y_n = k_n * z
-
-        liquid, vapor = update_fluids(liquid, vapor, x, y_n, p_n)
-
-        # If algo converges, return values, else define new points
-        if np.allclose(p_i, p_n, rtol=rtol, atol=atol) and np.allclose(
-            y_i, y_n, rtol=rtol, atol=atol
-        ):
-            return vapor, liquid, p_n, it
-        else:
-            p_i = p_n
-            y_i = y_n
-
-    return vapor, liquid, p_i, it
-
-
-def bub_t(fluid, pressure, iterations=50, rtol=1e-3, atol=1e-3):
-    """Calculate the bubble temperature and vapor-phase composition.
-
-    Parameters
-    ----------
-    fluid: pyforfluids.core.Fluid
-        Fluid to which calculate it's bubble point.
-    pressure: float
-        Pressure where to calculat the bubble point.
-    iterations: int
-        Max number of iterations to realize.
-    rtol: float
-        Relative tolerance for convergence.
-    atol: float
-        Absolute tolerance for convergence.
-
-    Returns
-    -------
-    vapor: pyforfluids.core.Fluid
-        Vapor phase fluid at bubble conditions.
-    liquid:
-        Liquid phase fluid at bubble conditions.
-    t_n: float
-        Bubble temperature.
-    it: int
-        Number of iterations for convergence.
-    """
-
-    def solve_wilson_temp(z, pressure):
-        """Solve the Wilson's K-factors expression for a given pressure."""
-
-        def f(t, z, pressure):
-            k = k_wilson(fluid)
-            return np.dot(z, k) - 1
-
-        temperature = root_scalar(
-            f, args=(z, pressure), method="brentq", x0=250, bracket=(1, 1000)
-        )
-        return temperature.root
-
-    def new_fluids(liquid, vapor, x, y, pressure, temperature):
-        """Update the fluids"""
-        liquid = update_concentration(liquid, x)
-        vapor = update_concentration(vapor, y)
-
-        liquid.set_temperature(temperature)
-
-        rho_l = liquid.density_iterator(pressure, vapor_phase=False)[0]
-
-        liquid.set_density(rho_l)
-
-        liquid.calculate_properties()
-        vapor.calculate_properties()
-
-        return liquid, vapor
-
-    z = fluid.model.set_concentration(fluid.composition)
-    liquid = fluid.copy()
-    vapor = fluid.copy()
-
-    # Wilson init
-    t_i = solve_wilson_temp(z, pressure)
-    k_i = k_wilson(z, pressure, t_i)
-    x = z
-    y_i = k_i * z
-
-    liquid, vapor = new_fluids(liquid, vapor, x, y_i, pressure, t_i)
-
-    for it in range(1, iterations):
-        f = np.dot(k_i, z) - 1
-        dfdt = (k_i * z * (liquid["dlnfug_dt"] - vapor["dlnfug_dt"])).sum()
-
-        step = 25 * it / t_i
-
-        t_n = t_i - step * f / dfdt
-
-        liquid, vapor = new_fluids(liquid, vapor, x, y_i, pressure, t_n)
-        k_n = np.exp(
-            liquid["lnfug"] - vapor["lnfug"]
-        )
-        y_n = k_n * z
-
-        liquid, vapor = new_fluids(liquid, vapor, x, y_n, pressure, t_n)
-
-        if np.allclose(t_i, t_n, atol=atol) and np.allclose(
-            y_i, y_n, atol=atol
-        ):
-            return vapor, liquid, t_n, it
-        else:
-            k_i = k_n
-            y_i = y_n
-            t_i = t_n
-    return vapor, liquid, t_n, it
+# def bub_p(fluid, temperature, iterations=50, rtol=1e-3, atol=1e-3):
+#     def p_wilson(temperature, z):
+#         w_i = fluid.model.w
+#         p_c = fluid.model.pc
+#         t_c = fluid.model.tc
+# 
+#         p = z * p_c * np.exp(5.373 * (1 + w_i) * (1 - t_c / temperature))
+#         p = np.sum(p)
+# 
+#         return p
+# 
+#     # Make each phase fluid
+#     fluid_i = fluid.copy()
+#     vapor = fluid.copy()
+#     liquid = fluid.copy()
+# 
+#     # Wilson initialization
+#     z = fluid.model.set_concentration(fluid.composition)
+#     msk = np.where(z != 0)
+#     p_i = p_wilson(temperature, z)
+#     fluid_i.set_pressure(p_i)
+#     k_i = k_wilson(fluid_i)
+#     x = z
+#     y_i = k_i * x
+#     liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
+# 
+#     k_i = np.exp(liquid["lnfug"] - vapor["lnfug"])
+# 
+#     for it in range(1, iterations):
+#         liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_i)
+# 
+#         # Define iteration step
+#         f = np.dot(k_i, z) - 1
+#         dfdp = np.dot(
+#             z[msk] * k_i[msk],
+#             liquid["dlnfug_dp"][msk] - vapor["dlnfug_dp"][msk],
+#         )
+# 
+#         # Iteration step definition
+#         step = 1  # it*np.log10(p_i)
+# 
+#         # Iteration is taking too long
+#         if 5 < it < 30:
+#             step = step * 10
+# 
+#         # NaN pressure reached
+#         if np.isnan(p_i - step * f / dfdp):
+#             return fluid, fluid, p_i, it
+#         p_n = p_i - step * f / dfdp
+# 
+#         # Update fluids
+#         liquid, vapor = update_fluids(liquid, vapor, x, y_i, p_n)
+# 
+#         # Define new K and molar fractions
+#         k_n = np.exp(liquid["lnfug"] - vapor["lnfug"])
+#         x = z
+#         y_n = k_n * z
+# 
+#         liquid, vapor = update_fluids(liquid, vapor, x, y_n, p_n)
+# 
+#         # If algo converges, return values, else define new points
+#         if np.allclose(p_i, p_n, rtol=rtol, atol=atol) and np.allclose(
+#             y_i, y_n, rtol=rtol, atol=atol
+#         ):
+#             return vapor, liquid, p_n, it
+#         else:
+#             p_i = p_n
+#             y_i = y_n
+# 
+#     return vapor, liquid, p_i, it
+# 
+# 
+# def bub_t(fluid, pressure, iterations=50, rtol=1e-3, atol=1e-3):
+#     """Calculate the bubble temperature and vapor-phase composition.
+# 
+#     Parameters
+#     ----------
+#     fluid: pyforfluids.core.Fluid
+#         Fluid to which calculate it's bubble point.
+#     pressure: float
+#         Pressure where to calculat the bubble point.
+#     iterations: int
+#         Max number of iterations to realize.
+#     rtol: float
+#         Relative tolerance for convergence.
+#     atol: float
+#         Absolute tolerance for convergence.
+# 
+#     Returns
+#     -------
+#     vapor: pyforfluids.core.Fluid
+#         Vapor phase fluid at bubble conditions.
+#     liquid:
+#         Liquid phase fluid at bubble conditions.
+#     t_n: float
+#         Bubble temperature.
+#     it: int
+#         Number of iterations for convergence.
+#     """
+# 
+#     def solve_wilson_temp(z, pressure):
+#         """Solve the Wilson's K-factors expression for a given pressure."""
+# 
+#         def f(t, z, pressure):
+#             k = k_wilson(fluid)
+#             return np.dot(z, k) - 1
+# 
+#         temperature = root_scalar(
+#             f, args=(z, pressure), method="brentq", x0=250, bracket=(1, 1000)
+#         )
+#         return temperature.root
+# 
+#     def new_fluids(liquid, vapor, x, y, pressure, temperature):
+#         """Update the fluids"""
+#         liquid = update_concentration(liquid, x)
+#         vapor = update_concentration(vapor, y)
+# 
+#         liquid.set_temperature(temperature)
+# 
+#         rho_l = liquid.density_iterator(pressure, vapor_phase=False)[0]
+# 
+#         liquid.set_density(rho_l)
+# 
+#         liquid.calculate_properties()
+#         vapor.calculate_properties()
+# 
+#         return liquid, vapor
+# 
+#     z = fluid.model.set_concentration(fluid.composition)
+#     liquid = fluid.copy()
+#     vapor = fluid.copy()
+# 
+#     # Wilson init
+#     t_i = solve_wilson_temp(z, pressure)
+#     k_i = k_wilson(z, pressure, t_i)
+#     x = z
+#     y_i = k_i * z
+# 
+#     liquid, vapor = new_fluids(liquid, vapor, x, y_i, pressure, t_i)
+# 
+#     for it in range(1, iterations):
+#         f = np.dot(k_i, z) - 1
+#         dfdt = (k_i * z * (liquid["dlnfug_dt"] - vapor["dlnfug_dt"])).sum()
+# 
+#         step = 25 * it / t_i
+# 
+#         t_n = t_i - step * f / dfdt
+# 
+#         liquid, vapor = new_fluids(liquid, vapor, x, y_i, pressure, t_n)
+#         k_n = np.exp(
+#             liquid["lnfug"] - vapor["lnfug"]
+#         )
+#         y_n = k_n * z
+# 
+#         liquid, vapor = new_fluids(liquid, vapor, x, y_n, pressure, t_n)
+# 
+#         if np.allclose(t_i, t_n, atol=atol) and np.allclose(
+#             y_i, y_n, atol=atol
+#         ):
+#             return vapor, liquid, t_n, it
+#         else:
+#             k_i = k_n
+#             y_i = y_n
+#             t_i = t_n
+#     return vapor, liquid, t_n, it
 
 
 # def envelope(fluid):
