@@ -44,8 +44,10 @@ jobs:
        strategy:
          matrix:
            os: [ubuntu-latest, windows-latest]
-           python-version: ['3.8', '3.9', '3.10']
+           python-version: ['3.7', '3.8', '3.9', '3.10']
            exclude:
+             - os: ubuntu-latest
+               python-version: '3.7'
              - os: ubuntu-latest
                python-version: '3.8'
              - os: ubuntu-latest
@@ -63,7 +65,7 @@ jobs:
        - uses: knicknic/os-specific-run@v1
          with:
            linux: python setup.py sdist
-           windows: python setup.py bdist_wheel build_ext --fcompiler=gnu95 --compiler=mingw32
+           windows: python setup.py bdist_wheel build_ext
        - uses: actions/upload-artifact@v2
          with:
            name: dist
