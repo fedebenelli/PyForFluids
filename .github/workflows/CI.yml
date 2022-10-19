@@ -77,7 +77,7 @@ jobs:
     - uses: RalfG/python-wheels-manylinux-build@v0.3.4-manylinux2010_x86_64
       with:
         python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
-        build-requirements: 'skbuild numpy'
+        build-requirements: 'scikit-build numpy'
         pip-wheel-args: '-w ./dist --no-deps'
     - name: Remove non-compatible packages
       run: |
