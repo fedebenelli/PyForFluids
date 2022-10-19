@@ -9,8 +9,8 @@ import warnings
 
 import numpy as np
 
-from ..fortran import gerg2008f
-from ..fortran.thermo_props import thermo_props as tp
+from ..fortran import fgerg2008
+from ..fortran.fthermo_props import thermo_props as tp
 
 
 class GERG2008:
@@ -28,7 +28,7 @@ class GERG2008:
         Check if the components belong to the EOS.
     validate_ranges:
         Check in which range of validity are the temperature and pressure.
-    set_concentration:
+    normalize:
         Normalize the composition as molar fractions.
     calculate_properties:
         Calculate the properties.
@@ -43,6 +43,10 @@ class GERG2008:
     """
 
     name = "GERG2008"
+    r = fgerg2008.parameters.r
+    pc = fgerg2008.parameters.p_c
+    tc = fgerg2008.parameters.t_c
+    w = fgerg2008.parameters.acentric_factor
 
     valid_components = {
         "methane",
@@ -67,6 +71,30 @@ class GERG2008:
         "helium",
         "argon",
     }
+
+    names = [
+        "methane",
+        "nitrogen",
+        "carbon_dioxide",
+        "ethane",
+        "propane",
+        "butane",
+        "isobutane",
+        "pentane",
+        "isopentane",
+        "hexane",
+        "heptane",
+        "octane",
+        "nonane",
+        "decane",
+        "hydrogen",
+        "oxygen",
+        "carbon_monoxide",
+        "water",
+        "hydrogen_sulfide",
+        "helium",
+        "argon",
+    ]
 
     def validate_components(self, components):
         """Validate fluid components.
@@ -133,7 +161,8 @@ class GERG2008:
             return
 
     def set_concentration(self, composition):
-        """Verify if the sum of the molar fractions of the fluid components is 1.
+        """
+        Verify if the sum of the molar fractions of the fluid components is 1.
 
         If not, a warninig message is sent and the composition is normalized.
 
@@ -200,16 +229,16 @@ class GERG2008:
         sum_value = x.sum()
 
         if sum_value > 1.0001 or sum_value < 0.9999:
-            warnings.warn(
-                "Composition doesn't add '1', will be normalized",
-                category=UserWarning,
-            )
+            # warnings.warn(
+            #    "Composition doesn't add '1', will be normalized",
+            #    category=UserWarning,
+            # )
             x = x / sum_value
 
         return x
 
     def calculate_properties(
-        self, temperature, pressure, density, composition
+        self, temperature, pressure, density, composition, ideal=False
     ):
         """Calculate the thermodynamic properties of the given fluid.
 
@@ -236,36 +265,52 @@ class GERG2008:
             calculated with GERG2008 equation of state.
         """
         # General use parameteres
-        gerg2008f.get_params()
-        molecular_weights = gerg2008f.parameters.m
-        r = gerg2008f.parameters.r
+        fgerg2008.get_params()
+        molecular_weights = fgerg2008.parameters.m
+        r = self.r
 
         # Concentration dependant parameters
         x = self.set_concentration(composition)
         m = tp.mean_molecular_weight(x, molecular_weights)
+        n = len(x)
 
         # Reducing functions
-        reducing_density, reducing_temperature = gerg2008f.reducing_funcs(x)
+        (
+            reducing_density,
+            reducing_temperature,
+            dvr_dx,
+            dtr_dx,
+            dvr2_dx2,
+            dtr2_dx2,
+            dvr2_dxx,
+            dtr2_dxx,
+        ) = fgerg2008.reducing_funcs(x)
+
         delta = density / reducing_density
         tau = reducing_temperature / temperature
 
-        # Model tems
-        ao = gerg2008f.ideal_term(
+        # Model terms
+        ao = fgerg2008.ideal_term(
             x, density, temperature, reducing_density, reducing_temperature
         )
-        ar = gerg2008f.residual_term(x, delta, tau)
+
+        (
+            ar,
+            ar_x,
+            ar_dx,
+            ar_tx,
+            ar_xx,
+        ) = fgerg2008.residual_term(x, delta, tau)
+
+        if ideal:
+            ar = np.zeros_like(ar)
+            ar_x = np.zeros_like(ar_x)
+            ar_dx = np.zeros_like(ar_dx)
+            ar_tx = np.zeros_like(ar_tx)
+            ar_xx = np.zeros_like(ar_xx)
 
         # Properties
         z = tp.zeta(delta, ar)
-        cv = tp.isochoric_heat(tau, r, ao, ar)
-        cp = tp.isobaric_heat(delta, tau, r, ao, ar)
-        w = tp.sound_speed(delta, tau, r, temperature, m, ao, ar)
-        isothermal_thermal_coefficent = tp.isothermal_thermal_coefficent(
-            delta, tau, density, ar
-        )
-        dp_dt = tp.dp_dt(density, delta, tau, r, ar)
-        dp_drho = tp.dp_drho(temperature, delta, r, ar)
-        dp_dv = tp.dp_dv(density, delta, temperature, r, ar)
         p = tp.pressure(delta, density, r, temperature, ar)
         s = tp.entropy(tau, r, ao, ar)
         u = tp.internal_energy(tau, r, temperature, ao, ar)
@@ -273,7 +318,62 @@ class GERG2008:
         g = tp.gibbs_free_energy(delta, r, temperature, ao, ar)
         jt = tp.joule_thomson_coeff(delta, tau, density, r, ao, ar)
         k = tp.isentropic_exponent(delta, tau, ao, ar)
-        ar_virial = gerg2008f.residual_term(x, 1e-15, tau)
+        cv = tp.isochoric_heat(tau, r, ao, ar)
+        cp = tp.isobaric_heat(delta, tau, r, ao, ar)
+        w = tp.sound_speed(delta, tau, r, temperature, m, ao, ar)
+        isothermal_thermal_coefficent = tp.isothermal_thermal_coefficent(
+            delta, tau, density, ar
+        )
+
+        # PVT derivatives
+        dp_dt = tp.dp_dt(density, delta, tau, r, ar)
+        dp_drho = tp.dp_drho(temperature, delta, r, ar)
+        dp_dv = tp.dp_dv(density, delta, temperature, r, ar)
+
+        # Equilibrium properties
+        (dar_dn, dar_ddn, dar_dtn, dp_dn, dar2_dnn) = tp.molar_derivatives(
+            x,
+            delta,
+            tau,
+            r,
+            reducing_density,
+            reducing_temperature,
+            ar,
+            ar_x,
+            ar_xx,
+            ar_tx,
+            ar_dx,
+            dvr_dx,
+            dtr_dx,
+            dvr2_dx2,
+            dtr2_dx2,
+            dvr2_dxx,
+            dtr2_dxx,
+        )
+
+        msk = np.where(x != 0, 1, 0)
+        dnar_dn = (ar[0, 0] + dar_dn) * msk
+        dnar2_dtn = -tau / temperature * (ar[1, 1] + dar_dtn)
+
+        dnar2_dnn = dar_dn + dar2_dnn
+
+        excess_volume = -dp_dn / dp_dv
+
+        dp_dn = dp_dn.reshape((1, n))
+        dp_dnn = dp_dn.T @ dp_dn
+
+        dlnfug_dt = (
+            dnar2_dtn
+            + 1 / temperature
+            - excess_volume / (r * temperature) * dp_dt
+        )
+        dlnfug_dp = excess_volume / (r * temperature) - 1 / p
+        dlnfug_dn = dnar2_dnn + 1 + dp_dnn / dp_dv / (r * temperature)
+
+        lnfug = dnar_dn - np.log(z)
+
+        # Virial coeficents
+        ar_virial, *_ = fgerg2008.residual_term(x, 1e-15, tau)
         b = tp.second_thermal_virial_coeff(reducing_density, ar_virial)
         c = tp.third_thermal_virial_coeff(reducing_density, ar_virial)
 
@@ -282,6 +382,27 @@ class GERG2008:
             "critical_temperature": reducing_temperature,
             "ideal_helmholtz": ao,
             "residual_helmholtz": ar,
+            "ar_x": ar_x,
+            "ar_dx": ar_dx,
+            "ar_tx": ar_tx,
+            "ar_xx": ar_xx,
+            "dvr_dx": dvr_dx,
+            "dtr_dx": dtr_dx,
+            "dvr2_dx2": dvr2_dx2,
+            "dtr2_dx2": dtr2_dx2,
+            "dvr2_dxx": dvr2_dxx,
+            "dtr2_dxx": dtr2_dxx,
+            "dar_dn": dar_dn,
+            "dadr_dn": dar_ddn,
+            "dnar_dn": dnar_dn,
+            "dnar2_dtn": dnar2_dtn,
+            "dar_ddn": dar_ddn,
+            "dar_dtn": dar_dtn,
+            "dar2_dnn": dar2_dnn,
+            "dnar2_dnn": dar2_dnn,
+            "dp_dn": dp_dn,
+            "dp_dnn": dp_dnn,
+            "excess_volume": excess_volume,
             "compressibility_factor": z,
             "isochoric_heat": cv,
             "isobaric_heat": cp,
@@ -299,6 +420,10 @@ class GERG2008:
             "isentropic_exponent": k,
             "second_thermal_virial_coeff": b,
             "third_thermal_virial_coeff": c,
+            "lnfug": lnfug,
+            "dlnfug_dt": dlnfug_dt,
+            "dlnfug_dp": dlnfug_dp,
+            "dlnfug_dn": dlnfug_dn,
         }
 
     def __repr__(self):

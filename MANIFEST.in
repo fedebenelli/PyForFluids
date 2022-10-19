@@ -2,13 +2,17 @@ include LICENSE
 include README.md
 include CODE_OF_CONDUCT.md
 include requirements.txt
+include CMakeLists.txt
+
 recursive-include pyforfluids *
 
 exclude tox.ini
 exclude pyproject.toml
 exclude apt.txt
 exclude .header-template
+exclude requirements_dev.txt
 
 recursive-exclude tests *
 recursive-exclude pyforfluids *.mod *.log *.pyc
 recursive-exclude docs *
+recursive-exclude _skbuild *

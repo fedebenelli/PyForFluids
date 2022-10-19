@@ -10,7 +10,6 @@ tmp*
 log
 *.cpython*
 *.pyc
-
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -20,7 +19,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
-
 *.ipynb_checkpoints
 setuptools-*.zip
 .pytest_cache
@@ -28,6 +26,19 @@ setuptools-*.zip
 result_images/
 build/
 pyforfluids.egg-info/
-
 .github/workflows/coverage.svg
 myapp.log
+basic.py
+*mypy*
+build*
+*zip
+*egg-info
+_skbuild
+coverage.xml
+myapp.log
+todo.md
+coverage*
+.vscode/*
+tools
+*ipynb_checkpoints*
+.tox
