@@ -15,7 +15,7 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 endif()
 
 # Grab Python, 3.8 or newer
-find_package(Python 3.8 REQUIRED
+find_package(Python 3.7 REQUIRED
   COMPONENTS Interpreter Development.Module NumPy)
 find_package(PythonExtensions REQUIRED)
 
