@@ -22,3 +22,5 @@ todo.md
 coverage*
 .vscode/*
 tools
+*ipynb_checkpoints*
+.tox
