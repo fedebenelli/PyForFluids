@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# License: MIT License (https://tldrlegal.com/license/mit-license)
+# Copyright (c) 2021-2022 Federico Benelli and others.
+# All rights reserved.
 """Cubic EoS models."""
 
 import numpy as np
@@ -125,11 +130,23 @@ class CubicEOS:
             Dictionary of the thermodynamic properties of the given fluid.
         """
         volume = 1 / density
+        rt = self.r * temperature
 
         concentrations = self.set_concentration(composition)
         number_of_moles = concentrations.sum()
 
-        ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2 = ar(
+        (
+            ar_val,
+            ar_dt,
+            ar_dv,
+            ar_dt2,
+            ar_dv2,
+            ar_dtv,
+            ar_dn,
+            ar_dn2,
+            ar_dtn,
+            ar_dvn,
+        ) = ar(
             volume,
             temperature,
             self.model,
@@ -143,20 +160,48 @@ class CubicEOS:
         )
 
         # Properties
-        p = self.r * temperature / volume - ar_dv
-        z = (p * volume) / (self.r * temperature)
+        p = rt / volume - ar_dv
+        z = (p * volume) / (rt)
+        dp_dv = -rt * ar_dv2 - rt / volume
+        dp_dt = -rt * ar_dtv + p / temperature
+        dp_dn = -rt * ar_dvn + rt / volume
+        dv_dn = -dp_dn / dp_dv
+        dp_drho = ar_dv2 * volume**2 + number_of_moles * rt
 
-        lnfug = ar_dn / (self.r * temperature) - np.log(z)
-        dp_drho = ar_dv2 * volume**2 + number_of_moles * self.r * temperature
+        lnfug = ar_dn / (rt) - np.log(z)
+        dlnfug_dt = ar_dtn + 1 / temperature - dv_dn / rt * dp_dt
+        dlnfug_dp = dv_dn / rt - 1 / p
+        dlnfug_dn = (
+            number_of_moles * ar_dn2
+            + 1
+            + number_of_moles
+            / rt
+            * np.array([dp_dn])
+            * np.array([dp_dn]).T
+            / dp_dv
+        )
 
         return {
-            "pressure": p * 1e5,
-            "residual_helmholtz": ar_val,
-            "dar_dv": ar_dv,
-            "dar_dtv": ar_dtv,
             "compressibility_factor": z,
+            "pressure": p * 1e5,
+            "dp_dv": dp_dv,
+            "dp_dt": dp_dt,
+            "dp_dn": dp_dn,
             "dp_drho": dp_drho * 1e2,
+            "residual_helmholtz": ar_val,
+            "dar_dt": ar_dt,
+            "dar_dv": ar_dv,
+            "dar_dt2": ar_dt2,
+            "dar_dv2": ar_dv2,
+            "dar_dtv": ar_dtv,
+            "dar_dn": ar_dn,
+            "dar_dn2": ar_dn2,
+            "dar_dtn": ar_dtn,
+            "dar_dvn": ar_dvn,
             "lnfug": lnfug,
+            "dlnfug_dt": dlnfug_dt,
+            "dlnfug_dp": dlnfug_dp,
+            "dlnfug_dn": dlnfug_dn,
         }
 
     def __check_model(self, model):

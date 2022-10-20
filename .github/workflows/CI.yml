@@ -68,8 +68,8 @@ jobs:
            windows: python setup.py bdist_wheel build_ext
        - uses: actions/upload-artifact@v2
          with:
-           name: dist
-           path: dist
+           name: source_and_wheels
+           path: source_and_wheels
 
   build-manylinux:
     needs: linux-test

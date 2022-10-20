@@ -10,7 +10,8 @@ contains
    subroutine pr_ar(&
          n, v, t, &
          z, pc, tc, w, kij, lij, &
-         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2&
+         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2, &
+         ar_dtn, ar_dvn &
    )
       ! Peng Robinson EoS calculation for Helmholtz Energy
       integer, intent(in) :: n ! Number of components
@@ -34,6 +35,8 @@ contains
       real(8), intent(out) :: ar_dtv
       real(8), intent(out) :: ar_dn(n)
       real(8), intent(out) :: ar_dn2(n, n)
+      real(8), intent(out) :: ar_dtn(n)
+      real(8), intent(out) :: ar_dvn(n)
 
       type(ClassicVdW)   :: mixing_rule
       type(PengRobinson) :: components(n)
@@ -58,7 +61,8 @@ contains
 
       call scalar_to_arrays(&
          ar_in, &
-         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2&
+         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2, &
+         ar_dtn, ar_dvn &
          )
       deallocate(mixing_rule%kij, mixing_rule%lij)
       deallocate(fluid%components, fluid%mixing_rule)
@@ -68,7 +72,8 @@ contains
    subroutine srk_ar(&
          n, v, t, &
          z, pc, tc, w, kij, lij, &
-         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2&
+         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2,&
+         ar_dtn, ar_dvn &
    )
       ! Peng Robinson EoS calculation for Helmholtz Energy
       integer, intent(in) :: n ! Number of components
@@ -92,6 +97,8 @@ contains
       real(8), intent(out) :: ar_dtv
       real(8), intent(out) :: ar_dn(n)
       real(8), intent(out) :: ar_dn2(n, n)
+      real(8), intent(out) :: ar_dtn(n)
+      real(8), intent(out) :: ar_dvn(n)
 
       type(ClassicVdW)   :: mixing_rule
       type(SoaveRedlichKwong) :: components(n)
@@ -115,7 +122,8 @@ contains
 
       call scalar_to_arrays(&
          ar_in, &
-         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2&
+         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2, &
+         ar_dtn, ar_dvn &
          )
       deallocate(mixing_rule%kij, mixing_rule%lij)
       deallocate(fluid%components, fluid%mixing_rule)
@@ -123,7 +131,7 @@ contains
    end subroutine srk_ar
 
 
-   subroutine scalar_to_arrays(sp, val, dt, dv, dt2, dv2, dtv, dn, dn2)
+   subroutine scalar_to_arrays(sp, val, dt, dv, dt2, dv2, dtv, dn, dn2, dtn, dvn)
       type(scalar_property), intent(in out) :: sp
       real(8), intent(out) :: val
       real(8), intent(out) :: dt
@@ -133,6 +141,8 @@ contains
       real(8), intent(out) :: dtv
       real(8), intent(out) :: dn(size(sp%dn))
       real(8), intent(out) :: dn2(size(sp%dn), size(sp%dn))
+      real(8), intent(out) :: dtn(size(sp%dn))
+      real(8), intent(out) :: dvn(size(sp%dn))
 
       val = sp%val
       dt  = sp%dt
@@ -140,8 +150,12 @@ contains
       dt2 = sp%dt2
       dv2 = sp%dv2
       dtv = sp%dtv
+      dtn = sp%dtn
+      dvn = sp%dvn
       dn  = sp%dn
       dn2 = sp%dn2
+      deallocate(sp%dtn)
+      deallocate(sp%dvn)
       deallocate(sp%dn)
       deallocate(sp%dn2)
    end subroutine scalar_to_arrays

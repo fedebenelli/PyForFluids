@@ -15,6 +15,12 @@ import pandas as pd
 from scipy.optimize import root_scalar
 
 
+warnings.filterwarnings(
+    action="ignore",
+    category=RuntimeWarning,
+)
+
+
 class Fluid:
     """Describes a fluid based on a given model and it's thermo variables.
 
@@ -232,15 +238,12 @@ class Fluid:
         for prop in properties:
             isotherm[prop] = []
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("once")
+        for density in density_range:
+            fluid.set_density(density)
+            fluid.calculate_properties()
 
-            for density in density_range:
-                fluid.set_density(density)
-                fluid.calculate_properties()
-
-                for prop in properties:
-                    isotherm[prop].append(fluid.properties[prop])
+            for prop in properties:
+                isotherm[prop].append(fluid.properties[prop])
 
         isotherm = pd.DataFrame(isotherm)
 

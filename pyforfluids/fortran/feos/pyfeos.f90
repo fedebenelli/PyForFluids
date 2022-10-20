@@ -2,7 +2,8 @@
          n, v, t, &
          model, mixrule, &
          z, pc, tc, w, kij, lij, &
-         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2 &
+         ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2, &
+         ar_dtn, ar_dvn &
          )
       use between, only: pr_ar, srk_ar
       implicit none
@@ -29,19 +30,23 @@
       real(8), intent(out) :: ar_dtv
       real(8), intent(out) :: ar_dn(n)
       real(8), intent(out) :: ar_dn2(n, n)
+      real(8), intent(out) :: ar_dtn(n)
+      real(8), intent(out) :: ar_dvn(n)
 
       select case(model)
       case ("PR")
          call pr_ar(&
             n, v, t, &
             z, pc, tc, w, kij, lij, &
-            ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2 &
+            ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2, &
+            ar_dtn, ar_dvn &
          )
       case ("SRK")
          call srk_ar(&
             n, v, t, &
             z, pc, tc, w, kij, lij, &
-            ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2 &
+            ar_val, ar_dt, ar_dv, ar_dt2, ar_dv2, ar_dtv, ar_dn, ar_dn2, &
+            ar_dtn, ar_dvn &
          )
       end select
    end subroutine ar
