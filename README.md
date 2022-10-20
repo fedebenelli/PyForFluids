@@ -23,6 +23,13 @@ are easy to add, they even can be written either in Python or Fortran.
 - Multifluid equations:
 	- GERG-2008 [Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
 
+- Cubic EoS:
+	- PengRobinson
+	- SoaveRedlichKnow
+	- Mixing Rules:
+		- Quadratic (Classic Van der Waals)
+		- Constant $k_{ij}$ and $l_{ij}$
+
 ## Available properties
 - Reduced Temperature and Density
 - Ideal Helmholtz Energy (Ao)
