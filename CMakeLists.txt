@@ -34,6 +34,12 @@ cmake_print_variables(Python_INCLUDE_DIRS)
 cmake_print_variables(F2PY_INCLUDE_DIR)
 cmake_print_variables(Python_NumPy_INCLUDE_DIRS)
 
+if (UNIX)
+  set(F2PY_CMD ${Python_EXECUTABLE} -m "numpy.f2py")
+  else()
+    set(F2PY_CMD ${Python_EXECUTABLE} -m "numpy.f2py" --fcompiler=gnu95 --compiler=mingw32)
+endif()
+
 # =============================================================================
 # fgerg2008 module
 # =============================================================================
@@ -57,7 +63,7 @@ add_custom_target(${f2py_module_name} ALL
 add_custom_command(
   OUTPUT ${generated_module_file}
   COMMAND
-   ${Python_EXECUTABLE}  -m "numpy.f2py"
+    ${F2PY_CMD}
     -m ${f2py_module_name}
     -c
     ${fortran_src_file}
@@ -94,7 +100,7 @@ add_custom_target(${f2py_module_name} ALL
 add_custom_command(
   OUTPUT ${generated_module_file}
   COMMAND
-   ${Python_EXECUTABLE}  -m "numpy.f2py"
+    ${F2PY_CMD}
     -m ${f2py_module_name}
     -c
     ${fortran_src_file}
@@ -150,13 +156,15 @@ install(
    ALL DEPENDS ${generated_module_file}
  )
 
+
  add_custom_command(
    OUTPUT ${generated_module_file}
    COMMAND 
-   ${Python_EXECUTABLE}  -m "numpy.f2py"
+    ${F2PY_CMD}
    -L${CMAKE_CURRENT_BINARY_DIR} -lfeos
    -c -m ${f2py_module_name}
-   ${fortran_src_file} only: ar
+   ${fortran_src_file}
+   only: ar
    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
    DEPENDS ${fortran_src_file} feos
  )

@@ -65,7 +65,7 @@ jobs:
        - uses: knicknic/os-specific-run@v1
          with:
            linux: python setup.py sdist
-           windows: python setup.py bdist_wheel build_ext
+           windows: python setup.py bdist_wheel
        - uses: actions/upload-artifact@v2
          with:
            name: source_and_wheels
