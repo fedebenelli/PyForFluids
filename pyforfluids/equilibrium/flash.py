@@ -267,8 +267,8 @@ def flash_pt(
 
         it = it + 1
 
-        if it > 3:
-            return k
+        #if it > 3:
+        #    return k
 
         if g0 < 0 or g1 > 0:
             while g0 < 0:
@@ -283,6 +283,8 @@ def flash_pt(
 
     z = fluid.model.set_concentration(fluid.composition)
     vapor, liquid = get_vl(fluid, pressure)
+    vapor.set_temperature(temperature)
+    liquid.set_temperature(temperature)
 
     k_i = k_wilson(vapor)
     k_i = fix_k(z, k_i)

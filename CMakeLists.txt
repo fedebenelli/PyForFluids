@@ -1,10 +1,17 @@
 cmake_minimum_required(VERSION 3.18) # Needed to avoid requiring embedded Python libs too
 
 project(pyforfluids
-  VERSION 1.0
+  VERSION 0.0.2
   DESCRIPTION "PyForFluids Fortran Modules"
   LANGUAGES C Fortran
 )
+
+option(SKBUILD "Should be ON of being build by skbuild, 
+and OFF of being build by regular cmake" OFF)
+
+if (NOT SKBUILD)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/../cmake/")
+endif()
 
 # Safety net
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
@@ -36,8 +43,8 @@ cmake_print_variables(Python_NumPy_INCLUDE_DIRS)
 
 if (UNIX)
   set(F2PY_CMD ${Python_EXECUTABLE} -m "numpy.f2py")
-  else()
-    set(F2PY_CMD ${Python_EXECUTABLE} -m "numpy.f2py" --fcompiler=gnu95 --compiler=mingw32)
+else()
+  set(F2PY_CMD ${Python_EXECUTABLE} -m "numpy.f2py" --fcompiler=gnu95 --compiler=mingw32)
 endif()
 
 # =============================================================================
@@ -135,8 +142,8 @@ set_property(TARGET feos PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 install(
      TARGETS feos
-     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+     LIBRARY DESTINATION ${f2py_module_dir}#${CMAKE_INSTALL_LIBDIR}
+     PUBLIC_HEADER DESTINATION ${f2py_module_dir}#${CMAKE_INSTALL_INCLUDEDIR}
  )
 
  message(STATUS "Compiling fortran pyfeos module...")
@@ -155,7 +162,6 @@ install(
    ${f2py_module_name} 
    ALL DEPENDS ${generated_module_file}
  )
-
 
  add_custom_command(
    OUTPUT ${generated_module_file}
