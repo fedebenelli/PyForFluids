@@ -267,7 +267,7 @@ def flash_pt(
 
         it = it + 1
 
-        #if it > 3:
+        # if it > 3:
         #    return k
 
         if g0 < 0 or g1 > 0:
