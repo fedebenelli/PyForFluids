@@ -55,8 +55,8 @@ set(f2py_module_name "fgerg2008")
 set(f2py_module_dir "pyforfluids/fortran")
 set(
     fortran_src_file 
-    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/parameters.f95"
-    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/gerg.f95"
+    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/parameters.f90"
+    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/gerg.f90"
 )
 set(
     generated_module_file 
@@ -92,8 +92,8 @@ set(f2py_module_name "fthermo_props")
 set(f2py_module_dir "pyforfluids/fortran")
 set(
     fortran_src_file 
-    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/parameters.f95"
-    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/thermoprops.f95"
+    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/parameters.f90"
+    "${CMAKE_SOURCE_DIR}/pyforfluids/fortran/thermoprops.f90"
 )
 set(
     generated_module_file 
