@@ -26,7 +26,7 @@ are easy to add, they even can be written either in Python or Fortran.
 
 - Cubic EoS:
 	- PengRobinson
-	- SoaveRedlichKnow
+	- SoaveRedlichKwong
 	- Mixing Rules:
 		- Quadratic (Classic Van der Waals)
 		- Constant $k_{ij}$ and $l_{ij}$
