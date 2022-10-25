@@ -1,7 +1,14 @@
 [tool.black]
 line-length = 79
-target-version = ['py39']
+target-version = ['py310']
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools", "numpy", "wheel"]
+requires = [
+    "setuptools>=42",
+    "scikit-build",
+    "cmake",
+    "ninja; platform_system!='Windows'",
+    "numpy==1.21.6",
+    "wheel"
+]

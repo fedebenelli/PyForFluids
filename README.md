@@ -1,4 +1,5 @@
 # PyForFluids 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fedebenelli/PyForFluids/dev?labpath=https%3A%2F%2Fgithub.com%2Ffedebenelli%2FPyForFluids%2Fblob%2Fdev%2Fdocs%2Fsource%2Ftutorial.ipynb)
 <a href="https://codeclimate.com/github/fedebenelli/PyForFluids/maintainability">
 <img src="https://api.codeclimate.com/v1/badges/3551471cd4cdf37e226f/maintainability"/></a>
 <a href="https://github.com/fedebenelli/pyforfluids/actions/workflows/CI.yml">
@@ -22,6 +23,13 @@ are easy to add, they even can be written either in Python or Fortran.
 
 - Multifluid equations:
 	- GERG-2008 [Paper link](https://pubs.acs.org/doi/10.1021/je300655b)
+
+- Cubic EoS:
+	- PengRobinson
+	- SoaveRedlichKwong
+	- Mixing Rules:
+		- Quadratic (Classic Van der Waals)
+		- Constant $k_{ij}$ and $l_{ij}$
 
 ## Available properties
 - Reduced Temperature and Density
