@@ -1,9 +1,11 @@
 from functools import partial
-from jax import jit
+
 import jax.numpy as np
+from jax import jit
 
 
 class ClassicVdW:
+    """ """
 
     def __init__(self, kij, lij):
         self._kij = kij
@@ -17,10 +19,9 @@ class ClassicVdW:
         for i in range(n):
             for j in range(n):
                 amix += (
-                        z[i] * z[j] 
-                        * np.sqrt(a[i] * a[j]) * (1 - self._kij[i, j])
-                    )
-            
+                    z[i] * z[j] * np.sqrt(a[i] * a[j]) * (1 - self._kij[i, j])
+                )
+
         return amix
 
     @partial(jit, static_argnames=["self"])
@@ -30,12 +31,12 @@ class ClassicVdW:
 
         for i in range(n):
             for j in range(n):
-                bmix += z[i] * z[j] * (b[i] + b[j])/2 * (1 - self._lij[i, j])
+                bmix += z[i] * z[j] * (b[i] + b[j]) / 2 * (1 - self._lij[i, j])
 
-        bmix = bmix/np.sum(z)
-        
+        bmix = bmix / np.sum(z)
+
         return bmix
 
     @partial(jit, static_argnames=["self"])
     def mix_c(self, z, v, t, c):
-        return np.sum(z*c)
+        return np.sum(z * c)
