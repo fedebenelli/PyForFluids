@@ -1,3 +1,5 @@
+"""
+"""
 from functools import partial
 
 from jax import jit
@@ -6,7 +8,7 @@ import jax.numpy as np
 
 from pyforfluids.models.residual_helmholtz import ArModel
 
-from scipy.constants import R
+from pyforfluids.constants import R
 
 
 class CubicEoS(metaclass=ArModel):

@@ -20,4 +20,3 @@ class GeModel(ABCMeta):
     @abstractmethod
     def ge(self, z, volume, temperature):
         raise NotImplementedError
-

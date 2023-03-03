@@ -8,3 +8,7 @@
 
 Modules that contains the multiple models to estimate fluid's properties.
 """
+
+from pyforfluids.models.cubic import *
+from pyforfluids.models.mixingrules import *
+from pyforfluids.system import System
