@@ -11,4 +11,4 @@ Modules that contains the multiple models to estimate fluid's properties.
 
 from . import system  # noqa
 from . import cubic  # noqa
-from . import mixingrules # noqa
+from . import mixingrules  # noqa
