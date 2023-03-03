@@ -12,3 +12,36 @@ requires = [
     "jaxlib",
     "scipy"
 ]
+
+[tool.pytest.ini_options]
+markers = []
+
+testpaths = [
+    "tests"
+]
+
+[project]
+name = "pyforfluids"
+version = "0.0.2a1"
+authors = [{name = "Federico E. Benelli", email = "federico.benelli@mi.unc.edu.ar"},
+           {name = "Brandolín, Salvador Eduardo", email = "salvadorebrandolin@mi.unc.edu.ar"},
+           {name = "Juan B Cabral & QuatroPe", email = "jbcabral@unc.edu.ar"}]
+license = {text = "MIT"}
+readme = "README.md"
+description = "Fluid's thermodynamic properties"
+keywords = ["Thermodynamic", "Fluids", "Properties", "EoS"]
+classifiers=[
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Scientific/Engineering",
+    ]
+urls = {Homepage = "https://github.com/fedebenelli/pyforfluids"}
