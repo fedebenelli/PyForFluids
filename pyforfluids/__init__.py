@@ -6,12 +6,11 @@
 
 """PyForFluids.
 
-Fluid properties simulation based on Ecuations of State.
+Fluid properties simulation based on Equations of State.
 """
 
-__version__ = "0.0.1a3"
+__version__ = "0.0.2a1"
 
 from .core import Fluid  # noqa
-from . import fortran  # noqa
 from . import models  # noqa
 from . import equilibrium  # noqa
