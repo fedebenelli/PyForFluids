@@ -1,7 +1,7 @@
 """
 """
 
-from ABC import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 
 class ArModel(ABCMeta):

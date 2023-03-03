@@ -6,7 +6,7 @@ import jax.numpy as np
 from jax import jit
 
 from pyforfluids.constants import R
-from pyforfluids.models.residual_helmholtz import ArModel
+from pyforfluids.models.core_models import ArModel
 
 
 class CubicEoS(metaclass=ArModel):
@@ -28,8 +28,8 @@ class CubicEoS(metaclass=ArModel):
         b = self.mixing_rule.mix_b(z, v, t, bpures)
         # c = self.mixing_rule.mix_c(z, v, t, cpures)
 
-        del1 = self.armodel._del1[0]
-        del2 = self.armodel._del2[0]
+        del1 = self.equation._del1[0]
+        del2 = self.equation._del2[0]
 
         residual_helmholtz = (
             (

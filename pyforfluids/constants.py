@@ -1,1 +1,1 @@
-from scipy.constants import R  # noqa
+R = 0.08314472  # [bar/mol.L]

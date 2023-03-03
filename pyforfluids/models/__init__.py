@@ -9,5 +9,6 @@
 Modules that contains the multiple models to estimate fluid's properties.
 """
 
-import pyforfluids.models as models  # noqa
-from pyforfluids.system import System
+from . import system  # noqa
+from . import cubic  # noqa
+from . import mixingrules # noqa
