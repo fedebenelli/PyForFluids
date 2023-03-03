@@ -1,1 +1,1 @@
-from scipy.constants import R
+from scipy.constants import R  # noqa

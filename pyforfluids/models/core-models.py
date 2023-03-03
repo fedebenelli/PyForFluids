@@ -5,18 +5,17 @@ from ABC import ABCMeta, abstractmethod
 
 
 class ArModel(ABCMeta):
-    """
-    """
+    """ """
+
     @abstractmethod
-    def residual_helmholtz(self, z, volume, temperature):
-        """Method to calculate residual helmholtz
-        """
+    def residual_helmholtz(cls, z, volume, temperature):
+        """Method to calculate residual helmholtz"""
         raise NotImplementedError
 
 
 class GeModel(ABCMeta):
-    """
-    """
+    """ """
+
     @abstractmethod
-    def ge(self, z, volume, temperature):
+    def ge(cls, z, volume, temperature):
         raise NotImplementedError
