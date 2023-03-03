@@ -14,10 +14,10 @@ class System:
         if armodel.autodiff:
             self._residual_helmholtz = jit(
                     jacrev(armodel.residual_helmholtz)
-                )
+            )
 
-    def residual_helmholtz(self, z, v, t):
-        return self._residual_helmholtz(z, v, t)
+    def residual_helmholtz(self, z, volume, temperature):
+        return self._residual_helmholtz(z, volume, temperature)
 
     def ln_phi(self, z, volume, temperature):
         residual_helmholtz = self.residual_helmholtz(z, volume, temperature)
