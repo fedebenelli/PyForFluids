@@ -1,1 +1,1 @@
-from .mixingrules import ClassicVdW
+from .mixingrules import ClassicVdW  # noqa
