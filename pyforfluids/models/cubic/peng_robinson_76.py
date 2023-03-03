@@ -19,7 +19,7 @@ class PR76:
         self._ac = 0.45723553 * R**2 * tc**2 / pc
         self._b = 0.07779607 * R * tc / pc
         self._k = 0.37464 + 1.54226 * w - 0.26993 * w**2
-        self._c = 0
+        self._c = np.zeros(self.n)
 
     @partial(jit, static_argnames=["self"])
     def attractive_parameter(self, z, v, t):
