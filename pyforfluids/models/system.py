@@ -58,7 +58,7 @@ class System:
         pressure = -dar_dv + z.sum() * R * temperature / volume
         return pressure
 
-    def volume(self, z, pressure, temperature):
+    def volume(self, z, pressure, temperature, root="gas", v0=None):
         def obj_pressure(volume):
             dar_dv = self.dar_dv(z, volume, temperature)
             dar2_dv2 = self.dar2_dv2(z, volume, temperature)
@@ -70,12 +70,18 @@ class System:
             p = -dar_dv + n * rt_v
             dp = -rt * dar2_dv2 - n * rt_v / volume
 
-            return p - pressure, dp
+            return p - pressure, dp / 100
 
-        v0 = R * temperature / pressure
+        if not v0:
+            v0 = self.armodel.initial_volume(z, pressure, temperature, root)
 
         volume = root_scalar(
-            obj_pressure, method="newton", fprime=True, x0=v0, xtol=1e-5
+            obj_pressure,
+            method="newton",
+            fprime=True,
+            x0=v0,
+            xtol=1e-6,
+            maxiter=100,
         ).root
 
         return volume
