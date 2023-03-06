@@ -18,6 +18,14 @@ class CubicEoS(metaclass=ArModel):
         self.equation = equation
         self.mixing_rule = mixing_rule
 
+    def initial_volume(self, z, pressure, temperature, root="gas"):
+        if root == "gas":
+            return R * temperature / pressure
+        elif root == "liquid":
+            b = self.equation.repulsive_parameter(z, 1, temperature)
+            v0 = self.mixing_rule.mix_b(z, 1, temperature, b) * 0.9
+            return v0
+
     @partial(jit, static_argnames=["self"])
     def residual_helmholtz(self, z, v, t):
         apures = self.equation.attractive_parameter(z, v, t)
