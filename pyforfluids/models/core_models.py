@@ -17,5 +17,6 @@ class GeModel(ABCMeta):
     """ """
 
     @abstractmethod
-    def ge(cls, z, volume, temperature):
+    def excess_gibbs(cls, z, volume, temperature):
+        """Method to calculate excess Gibbs energy"""
         raise NotImplementedError
