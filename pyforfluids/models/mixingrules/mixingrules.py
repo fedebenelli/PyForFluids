@@ -8,8 +8,8 @@ class ClassicVdW:
     """ """
 
     def __init__(self, kij, lij):
-        self._kij = kij
-        self._lij = lij
+        self._kij = np.array(kij)
+        self._lij = np.array(lij)
 
     @partial(jit, static_argnames=["self"])
     def mix(self, z, v, t, a, b, c, del1, del2):
@@ -70,3 +70,9 @@ class ClassicVdW:
     @partial(jit, static_argnames=["self"])
     def mix_c(self, z, v, t, c):
         return np.sum(z * c)
+
+    def mix_delta1(self, z, v, t, delta1):
+        return delta1[0]
+
+    def mix_delta2(self, z, v, t, delta2):
+        return delta2[0]
