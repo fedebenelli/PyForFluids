@@ -4,7 +4,8 @@ from functools import partial
 
 from jax import jit
 
-import numpy as np
+# import numpy as np
+import jax.numpy as np
 
 from pyforfluids.autodiff import get_grad, get_hess
 from pyforfluids.constants import R
@@ -90,9 +91,9 @@ class System:
 
     def ln_phi(self, z, volume, temperature):
         """Fugacity coefficent"""
-        z = self.compressibility_factor(z, volume, temperature)
+        z_fact = self.compressibility_factor(z, volume, temperature)
         dar_dn = self.dar_dn(z, volume, temperature)
-        lnphi = dar_dn - np.log(z)
+        lnphi = dar_dn - np.log(z_fact)
 
         return lnphi
 
