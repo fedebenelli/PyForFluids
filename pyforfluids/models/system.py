@@ -171,7 +171,7 @@ class System:
             v = v + delta
 
             if v > vmax or v < vmin and root == "liquid":
-                v = (vmin + vmax)/2
+                v = (vmin + vmax) / 2
 
             if abs(p - pressure) < tol:
                 break

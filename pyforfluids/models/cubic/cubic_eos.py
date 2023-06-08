@@ -71,11 +71,9 @@ class CubicEoS(ArModel):
         n = z.sum()
         b_v = b / v
 
-        residual_helmholtz = (
-            -np.log(1 - b_v)
-            - a/(n*R*t*b) * 1 / (del1 - del2)
-            * np.log((1 + del1*b_v)/(1 + del2*b_v))
-        )
+        residual_helmholtz = -np.log(1 - b_v) - a / (n * R * t * b) * 1 / (
+            del1 - del2
+        ) * np.log((1 + del1 * b_v) / (1 + del2 * b_v))
         # R*t
 
         return residual_helmholtz

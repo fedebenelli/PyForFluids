@@ -39,7 +39,6 @@ import pytest
     ],
 )
 def test_flash_solve_rr(z, k, x, y, beta):
-
     z = np.array(z)
     k = np.array(k)
 
