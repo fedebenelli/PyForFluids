@@ -1,3 +1,6 @@
+chemicals
+jax
+jaxlib
 ipdb
 tox
 toml
