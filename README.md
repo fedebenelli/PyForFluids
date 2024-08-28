@@ -1,3 +1,6 @@
+# Warning
+This project is no longer under development, we are migrating all to [yaeos](github.com/ipqa-research/yaeos)
+
 # PyForFluids 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fedebenelli/PyForFluids/dev?labpath=https%3A%2F%2Fgithub.com%2Ffedebenelli%2FPyForFluids%2Fblob%2Fdev%2Fdocs%2Fsource%2Ftutorial.ipynb)
 <a href="https://codeclimate.com/github/fedebenelli/PyForFluids/maintainability">
