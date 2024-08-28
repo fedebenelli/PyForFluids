@@ -9,8 +9,6 @@ This project is no longer under development, we are migrating all to [yaeos](htt
 <img src="https://github.com/fedebenelli/pyforfluids/actions/workflows/CI.yml/badge.svg">
 </a> 
 <a href='https://pyforfluids.readthedocs.io/en/latest/?badge=latest'>
-<img src='https://readthedocs.org/projects/pyforfluids/badge/?version=latest'
-alt='Documentation Status'/></a> <a href="https://github.com/leliel12/diseno_sci_sfw">
 <img src="https://camo.githubusercontent.com/69644832889fa9dfcdb974614129be2fda8e4591989fd713a983a21e7fd8d1ad/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4469536f6674436f6d7043692d46414d41462d666664613030"></a>
 <a href='https://pypi.org/project/pyforfluids/'>
 <img src='https://img.shields.io/pypi/v/pyforfluids'>
